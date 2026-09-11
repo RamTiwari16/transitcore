@@ -68,35 +68,15 @@ export class Layout implements OnInit {
 
 
       // update LoggedInRole dynamically from decrypted data
-      if (this.userData?.role) {
-        this.LoggedInRole = this.userData.role.toLowerCase();
-        this.LoggedInRoleName = this.userData.role;
+      const primaryRole = this.userData?.roles?.[0];
+      if (primaryRole) {
+        this.LoggedInRole = primaryRole.toLowerCase();
+        this.LoggedInRoleName = primaryRole;
         this.LoggedInName = this.userData.email;
         this.currentRole = this.LoggedInRoleName.toLowerCase() as role;
         this.Menus = this.Menus.filter((m) => m.role.includes(this.currentRole));
         this.toastr.success('Hello ' + this.LoggedInName, 'Welcome back 👋');
-
       }
-
-      //for now only
-
-
-      this.LoggedInRole = this.userData.role.toLowerCase();
-      this.LoggedInRoleName = this.userData.role;
-      this.LoggedInName = this.userData.email;
-      this.currentRole = this.LoggedInRoleName.toLowerCase() as role;
-      this.Menus = this.Menus.filter((m) => m.role.includes(this.currentRole));
-      this.toastr.success('Hello ' + this.LoggedInName, 'Welcome back 👋');
-
-      //
-
-
-      // for notification
-      // this.fetchNotifications();
-      // // Then repeat every 30 seconds
-      // this.subscription = interval(30000).subscribe(() => {
-      //   this.fetchNotifications();
-      // });
     } else {
       console.warn("⚠️ No userData found in localStorage");
     }

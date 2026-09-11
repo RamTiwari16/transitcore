@@ -1,6 +1,5 @@
 export const ApiRoutes = {
-  Login: '/api/Auth/Login',
-  BulkUpload: '/api/VehicleOrder/bulk-upload',
-  GetByDateRange: '/api/VehicleOrder/get-by-date-range',
-  
+  Login: '/api/v1/auth/login',
+  BulkUpload: '/api/v1/vehicleorder/bulk-upload',
+  GetByDateRange: '/api/v1/vehicleorder/get-by-date-range',
 };

@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "BharatEMartPortal": {
+    "transitcore-web": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -75,10 +75,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "BharatEMartPortal:build:production"
+              "buildTarget": "transitcore-web:build:production"
             },
             "development": {
-              "buildTarget": "BharatEMartPortal:build:development"
+              "buildTarget": "transitcore-web:build:development"
             }
           },
           "defaultConfiguration": "development"

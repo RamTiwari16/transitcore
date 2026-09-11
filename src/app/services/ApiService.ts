@@ -9,11 +9,6 @@ import { environment } from '../../environments/environment';
 })
 export class ApiService {
 
-  // 🔹 Set your single base URL here
-  //private apiUrl = 'https://localhost:44345'; // ← paste your URL here
-  //private apiUrl = 'https://localrms.sisprosegur.com/BharatEMart'; // ← paste your URL here
-  //private apiUrl = 'http://10.61.6.173/VtsApi'; // ← paste your URL here
-
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}

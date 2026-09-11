@@ -131,13 +131,12 @@ export class Login {
 
     this.isLoading = true;
    
-    this.authService.login({ email: this.email, passWord: this.password }).subscribe({
+    this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: (res) => {
         this.isLoading = false;
-        localStorage.setItem('authToken', res.data.token); // store token
+        localStorage.setItem('authToken', res.data.accessToken);
 
-        
-          const encryptedUser = CryptoUtil.encryptData(res.data);
+        const encryptedUser = CryptoUtil.encryptData(res.data);
         localStorage.setItem('userData', encryptedUser);
         this.router.navigate(['/bulkupload']);
       },
