@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, TemplateRef, computed, contentChild, input, output, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,6 +29,7 @@ export interface DataTableColumn<T> {
 @Component({
   selector: 'app-data-table',
   imports: [
+    NgTemplateOutlet,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -55,6 +57,11 @@ export class DataTableComponent<T> {
   readonly emptyTitle = input('No records found');
   readonly emptyDescription = input<string>();
 
+  // Optional per-row action buttons (e.g. download/delete), projected via
+  // `<ng-template #rowActions let-row>...</ng-template>` in the host's
+  // markup. Purely additive - lists that don't provide one are unaffected.
+  readonly rowActionsTemplate = contentChild<TemplateRef<{ $implicit: T }>>('rowActions');
+
   readonly pageChange = output<PageEvent>();
   readonly sortChange = output<Sort>();
   readonly selectionChange = output<T[]>();
@@ -70,7 +77,8 @@ export class DataTableComponent<T> {
 
   readonly displayedColumnKeys = computed(() => {
     const keys = this.visibleColumns().map((c) => c.key);
-    return this.selectable() ? ['__select', ...keys] : keys;
+    const withSelect = this.selectable() ? ['__select', ...keys] : keys;
+    return this.rowActionsTemplate() ? [...withSelect, '__actions'] : withSelect;
   });
 
   readonly selectedCount = computed(() => this.selectedIds().size);

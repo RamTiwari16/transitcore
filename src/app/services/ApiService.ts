@@ -61,6 +61,15 @@ export class ApiService {
   }
 
   // --------------------
+  // 🔹 GET for file download (Blob)
+  // --------------------
+  getBlob(url: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}${url}`, {
+      responseType: 'blob'
+    }).pipe(catchError(this.handleError));
+  }
+
+  // --------------------
   // 🔹 PUT
   // --------------------
   put<T>(url: string, body: any): Observable<T> {

@@ -18,4 +18,20 @@
   emptyDescription="Add your first invoice to start billing customers."
   (pageChange)="onPage($event)"
   (sortChange)="onSort($event)"
-></app-data-table>
+>
+  <ng-template #rowActions let-row>
+    <button
+      mat-icon-button
+      (click)="downloadPdf(row)"
+      [disabled]="downloadingId() !== null"
+      matTooltip="Download PDF"
+      [attr.aria-label]="'Download PDF for invoice ' + row.invoiceNo"
+    >
+      @if (downloadingId() === row.id) {
+        <mat-spinner diameter="20"></mat-spinner>
+      } @else {
+        <mat-icon>picture_as_pdf</mat-icon>
+      }
+    </button>
+  </ng-template>
+</app-data-table>

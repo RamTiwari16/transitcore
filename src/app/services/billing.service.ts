@@ -41,6 +41,10 @@ export class BillingService {
       .pipe(map((res) => res.data));
   }
 
+  getInvoicePdf(invoiceId: number): Observable<Blob> {
+    return this.api.getBlob(`${ApiRoutes.Invoices}/${invoiceId}/pdf`);
+  }
+
   createInvoice(request: CreateInvoiceRequest): Observable<number> {
     return this.api
       .post<ApiResponse<number>>(ApiRoutes.Invoices, request)

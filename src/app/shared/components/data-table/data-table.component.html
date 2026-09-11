@@ -69,6 +69,15 @@
         </ng-container>
       }
 
+      @if (rowActionsTemplate(); as actionsTemplate) {
+        <ng-container matColumnDef="__actions" [stickyEnd]="true">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let row" (click)="$event.stopPropagation()">
+            <ng-container *ngTemplateOutlet="actionsTemplate; context: { $implicit: row }"></ng-container>
+          </td>
+        </ng-container>
+      }
+
       <tr mat-header-row *matHeaderRowDef="displayedColumnKeys(); sticky: true"></tr>
       <tr
         mat-row

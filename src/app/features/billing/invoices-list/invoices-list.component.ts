@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { BillingService } from '../../../services/billing.service';
@@ -11,7 +13,14 @@ import { DataTableColumn, DataTableComponent } from '../../../shared/components/
 
 @Component({
   selector: 'app-invoices-list',
-  imports: [RouterLink, MatButtonModule, MatIconModule, DataTableComponent],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    DataTableComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './invoices-list.component.html',
   styleUrl: './invoices-list.component.scss',
@@ -21,6 +30,7 @@ export class InvoicesListComponent {
   readonly loading = signal(true);
   readonly pageIndex = signal(0);
   readonly pageSize = signal(10);
+  readonly downloadingId = signal<number | null>(null);
 
   readonly totalCount = computed(() => this.allInvoices().length);
   readonly rows = computed(() => {
@@ -64,6 +74,27 @@ export class InvoicesListComponent {
   }
 
   rowId = (row: InvoiceModel): number => row.id;
+
+  downloadPdf(row: InvoiceModel): void {
+    if (this.downloadingId() !== null) return;
+
+    this.downloadingId.set(row.id);
+    this.billingService.getInvoicePdf(row.id).subscribe({
+      next: (blob) => {
+        this.downloadingId.set(null);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${row.invoiceNo}.pdf`;
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.downloadingId.set(null);
+        this.toast.error('Failed to generate invoice PDF');
+      },
+    });
+  }
 
   private formatCurrency(value: number): string {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(value);
