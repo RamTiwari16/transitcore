@@ -32,6 +32,7 @@
   padding: var(--tc-space-10);
   background: var(--tc-color-primary-surface);
   color: var(--tc-text-on-primary-surface);
+  border-right: 1px solid var(--tc-border);
 
   @media (min-width: 768px) {
     display: flex;
@@ -45,7 +46,11 @@
   width: 16rem;
   height: 16rem;
   border-radius: 50%;
-  background: color-mix(in oklch, var(--tc-text-on-primary-surface) 12%, transparent);
+  // A tint of the ink brand colour rather than of the panel's own text
+  // colour - the panel background is light in light mode and dark in dark
+  // mode, so a fixed low-opacity wash of "primary" reads as a soft brand
+  // tint against either one instead of needing a separate value per theme.
+  background: color-mix(in oklch, var(--tc-color-primary) 12%, transparent);
   filter: blur(64px);
   pointer-events: none;
 }
@@ -68,7 +73,8 @@
   width: 32px;
   height: 32px;
   border-radius: var(--tc-radius-md);
-  background: color-mix(in oklch, var(--tc-text-on-primary-surface) 15%, transparent);
+  background: var(--tc-color-primary);
+  color: var(--tc-color-primary-contrast);
 }
 
 .login-card__brand-name {

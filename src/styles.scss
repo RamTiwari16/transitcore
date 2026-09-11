@@ -78,7 +78,7 @@ a {
 // since Phase 3 components rely on default browser/Material focus rings
 // rather than each defining their own.
 :focus-visible {
-  outline: 2px solid var(--tc-color-primary-surface);
+  outline: 2px solid var(--tc-color-primary);
   outline-offset: 2px;
 }
 

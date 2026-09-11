@@ -1,13 +1,14 @@
-<mat-sidenav-container class="app-shell">
+<mat-sidenav-container class="app-shell" autosize>
   <mat-sidenav
-    mode="side"
-    opened
+    [mode]="sidenavMode()"
+    [opened]="sidenavOpened()"
+    (openedChange)="onSidenavOpenedChange($event)"
     class="app-shell__sidenav"
-    [class.app-shell__sidenav--collapsed]="collapsed()"
+    [class.app-shell__sidenav--collapsed]="collapsed() && sidenavMode() === 'side'"
   >
     <div class="app-shell__brand">
       <mat-icon aria-hidden="true">local_shipping</mat-icon>
-      @if (!collapsed()) {
+      @if (!collapsed() || sidenavMode() === 'over') {
         <span class="app-shell__brand-name">TransitCore</span>
       }
     </div>
@@ -15,7 +16,7 @@
     <nav class="app-shell__nav" aria-label="Primary">
       @for (group of navGroups; track group.label) {
         <div class="app-shell__nav-group">
-          @if (!collapsed()) {
+          @if (!collapsed() || sidenavMode() === 'over') {
             <span class="app-shell__nav-group-label">{{ group.label }}</span>
           }
           <mat-nav-list>
@@ -24,11 +25,11 @@
                 mat-list-item
                 [routerLink]="item.path"
                 routerLinkActive="app-shell__nav-item--active"
-                [matTooltip]="collapsed() ? item.label : ''"
+                [matTooltip]="collapsed() && sidenavMode() === 'side' ? item.label : ''"
                 matTooltipPosition="right"
               >
                 <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-                @if (!collapsed()) {
+                @if (!collapsed() || sidenavMode() === 'over') {
                   <span matListItemTitle>{{ item.label }}</span>
                 }
               </a>

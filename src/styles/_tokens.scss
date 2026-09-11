@@ -29,14 +29,17 @@ $tc-breakpoint-desktop: 1280px;
 :root {
   // ---- Brand ----
   // "Primary" is an ink colour (near-black on light bg), not a hue - used
-  // for solid buttons and, via primary-surface, the app shell's sidebar and
-  // the login page's brand panel.
+  // for solid buttons, links and accents. "Primary surface" is a separate
+  // token for the app shell's sidebar and the login page's brand panel - in
+  // light mode that's a light neutral (matching the rest of the light
+  // theme), not the ink colour itself; dark mode keeps its own dark neutral
+  // further down so the sidebar stays dark in both themes' own way.
   --tc-color-primary: oklch(0.3765 0.0261 40.3447);
   --tc-color-primary-hover: oklch(0.4478 0.0261 40.3447);
   --tc-color-primary-active: oklch(0.32 0.0261 40.3447);
   --tc-color-primary-contrast: oklch(1 0 0);
-  --tc-color-primary-surface: oklch(0.3765 0.0261 40.3447);
-  --tc-color-primary-surface-contrast: oklch(1 0 0);
+  --tc-color-primary-surface: oklch(1 0.00011 271.152);
+  --tc-color-primary-surface-contrast: oklch(0.2435 0 0);
 
   // ---- Semantic ----
   --tc-color-success: oklch(0.6 0.145 145);
@@ -63,7 +66,7 @@ $tc-breakpoint-desktop: 1280px;
   --tc-text-tertiary: oklch(0.64 0 0);
   --tc-text-disabled: oklch(0.78 0 0);
   --tc-text-on-primary: oklch(1 0 0);
-  --tc-text-on-primary-surface: oklch(1 0 0);
+  --tc-text-on-primary-surface: oklch(0.2435 0 0);
   --tc-text-link: oklch(0.3765 0.0261 40.3447);
 
   // ---- Typography ----

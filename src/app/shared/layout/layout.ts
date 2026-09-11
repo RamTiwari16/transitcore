@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -45,11 +46,23 @@ import { NAV_GROUPS } from './nav-items';
 export class Layout {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly breakpointObserver = inject(BreakpointObserver);
   readonly themeService = inject(ThemeService);
   readonly loadingService = inject(LoadingService);
 
   readonly navGroups = NAV_GROUPS;
   readonly collapsed = signal(false);
+
+  // Below the tablet breakpoint the sidenav becomes an overlay (mode="over",
+  // closed by default) instead of a permanent 260px/72px column - a fixed-width
+  // "side" nav has no room to coexist with content on a phone-width viewport.
+  readonly isHandset = toSignal(
+    this.breakpointObserver.observe([Breakpoints.Handset, Breakpoints.TabletPortrait]),
+    { initialValue: { matches: false, breakpoints: {} } },
+  );
+  readonly sidenavMode = computed<'side' | 'over'>(() => (this.isHandset().matches ? 'over' : 'side'));
+  readonly mobileOpen = signal(false);
+  readonly sidenavOpened = computed(() => (this.isHandset().matches ? this.mobileOpen() : true));
 
   private readonly userData = this.authService.getUserData();
   readonly displayName = this.userData?.displayName ?? this.userData?.email ?? 'User';
@@ -70,8 +83,29 @@ export class Layout {
     return active?.label ?? 'Dashboard';
   });
 
+  constructor() {
+    // Close the overlay nav after navigating on a handset - it would
+    // otherwise stay open on top of the page the user just picked.
+    effect(() => {
+      this.currentUrl();
+      if (this.isHandset().matches) {
+        this.mobileOpen.set(false);
+      }
+    });
+  }
+
   toggleSidenav(): void {
-    this.collapsed.update((v) => !v);
+    if (this.isHandset().matches) {
+      this.mobileOpen.update((v) => !v);
+    } else {
+      this.collapsed.update((v) => !v);
+    }
+  }
+
+  onSidenavOpenedChange(opened: boolean): void {
+    if (this.isHandset().matches) {
+      this.mobileOpen.set(opened);
+    }
   }
 
   toggleTheme(): void {

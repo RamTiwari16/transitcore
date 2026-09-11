@@ -8,7 +8,7 @@
   width: var(--tc-sidebar-width);
   background: var(--tc-color-primary-surface);
   color: var(--tc-color-primary-surface-contrast);
-  border-right: none;
+  border-right: 1px solid var(--tc-border);
   transition: width 0.2s ease;
   display: flex;
   flex-direction: column;
@@ -53,7 +53,7 @@
   font-weight: var(--tc-font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--tc-text-tertiary);
   margin-bottom: var(--tc-space-1);
 }
 
@@ -63,8 +63,14 @@
   padding-top: 0;
 }
 
+.app-shell__sidenav--collapsed mat-nav-list a.mdc-list-item {
+  justify-content: center;
+}
+
 .app-shell__sidenav a.app-shell__nav-item--active {
-  background: rgba(255, 255, 255, 0.14);
+  background: color-mix(in oklch, var(--tc-color-primary) 10%, transparent);
+  --mat-list-list-item-label-text-color: var(--tc-color-primary);
+  --mat-list-list-item-icon-color: var(--tc-color-primary);
 }
 
 .app-shell__content {
