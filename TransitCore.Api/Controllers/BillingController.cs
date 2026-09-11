@@ -12,10 +12,12 @@ namespace TransitCore.Api.Controllers;
 public class BillingController : ControllerBase
 {
     private readonly IBillingService _billingService;
+    private readonly IInvoicePdfGenerator _invoicePdfGenerator;
 
-    public BillingController(IBillingService billingService)
+    public BillingController(IBillingService billingService, IInvoicePdfGenerator invoicePdfGenerator)
     {
         _billingService = billingService;
+        _invoicePdfGenerator = invoicePdfGenerator;
     }
 
     [HttpGet("customers")]
@@ -48,6 +50,17 @@ public class BillingController : ControllerBase
             return NotFound(ApiResponse<string>.Fail("Invoice not found"));
 
         return Ok(ApiResponse<InvoiceDetailDto>.Ok(invoice));
+    }
+
+    [HttpGet("invoices/{invoiceId:int}/pdf")]
+    public async Task<IActionResult> GetInvoicePdf(int invoiceId, CancellationToken cancellationToken)
+    {
+        var invoice = await _billingService.GetInvoiceByIdAsync(invoiceId, cancellationToken);
+        if (invoice is null)
+            return NotFound(ApiResponse<string>.Fail("Invoice not found"));
+
+        var pdfBytes = _invoicePdfGenerator.Generate(invoice);
+        return File(pdfBytes, "application/pdf", $"{invoice.InvoiceNo}.pdf");
     }
 
     [HttpPost("invoices")]
