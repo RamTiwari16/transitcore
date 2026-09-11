@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth-service';
 import { CryptoUtil } from '../../services/crypto.util';
+import { ToastService } from '../../core/services/toast.service';
 
 interface LoginFormModel {
   email: FormControl<string>;
@@ -24,6 +25,7 @@ export class Login {
   readonly showPassword = signal(false);
   readonly isLoading = signal(false);
   readonly errorMsg = signal('');
+  readonly proofInitials = ['JD', 'MK', 'AR'];
 
   readonly form = new FormGroup<LoginFormModel>({
     email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
@@ -33,10 +35,22 @@ export class Login {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private toast: ToastService,
   ) {}
 
   togglePasswordVisibility(): void {
     this.showPassword.update((v) => !v);
+  }
+
+  // Google OAuth isn't wired up on the backend yet (email/password + JWT
+  // only) - this stays a clear no-op rather than pretending to authenticate.
+  continueWithGoogle(): void {
+    this.toast.info('Google sign-in is not set up yet. Use email and password below.');
+  }
+
+  // No password-reset endpoint exists yet either - same honesty as above.
+  forgotPassword(): void {
+    this.toast.info('Password reset is not set up yet. Contact your administrator.');
   }
 
   login(): void {

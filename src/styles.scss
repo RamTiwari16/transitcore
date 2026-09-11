@@ -5,7 +5,7 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$green-palette,
+        primary: mat.$violet-palette,
         tertiary: mat.$blue-palette,
       ),
       typography: (
@@ -13,6 +13,38 @@ html {
         brand-family: 'Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       ),
       density: 0,
+    )
+  );
+
+  // Angular Material's M3 palettes (violet/blue above) only exist to satisfy
+  // `mat.theme()`'s API - every colour Material actually paints with is
+  // overridden here to reference the app's own `--tc-*` tokens, so Material
+  // components (buttons, form fields, menus, dialogs...) follow the same
+  // OKLCH palette - and the same light/dark switching - as the rest of the app.
+  @include mat.theme-overrides(
+    (
+      primary: var(--tc-color-primary),
+      on-primary: var(--tc-color-primary-contrast),
+      primary-container: var(--tc-surface-sunken),
+      on-primary-container: var(--tc-text-primary),
+      inverse-primary: var(--tc-color-primary-contrast),
+      error: var(--tc-color-danger),
+      on-error: var(--tc-color-primary-contrast),
+      error-container: var(--tc-color-danger-surface),
+      on-error-container: var(--tc-color-danger),
+      background: var(--tc-surface-canvas),
+      on-background: var(--tc-text-primary),
+      surface: var(--tc-surface-raised),
+      on-surface: var(--tc-text-primary),
+      surface-variant: var(--tc-surface-sunken),
+      on-surface-variant: var(--tc-text-secondary),
+      surface-container: var(--tc-surface-overlay),
+      surface-container-low: var(--tc-surface-raised),
+      surface-container-lowest: var(--tc-surface-raised),
+      surface-container-high: var(--tc-surface-overlay),
+      surface-container-highest: var(--tc-surface-overlay),
+      outline: var(--tc-border-strong),
+      outline-variant: var(--tc-border),
     )
   );
 }

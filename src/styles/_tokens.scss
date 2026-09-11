@@ -1,11 +1,11 @@
 // TransitCore design tokens.
 //
-// Colour values are extracted from the reference app's real theme source
-// (base-theme/app/_variables.scss) rather than guessed from screenshots:
-// primary brand green #92D050, Montserrat typeface, and its grayscale/
-// semantic palette. Adapted into a token system with explicit light/dark
-// variants (the reference is light-only) and named for this app's domain
-// rather than copied 1:1.
+// Colour values come from a warm-neutral/near-monochrome OKLCH palette
+// (primary acts as an ink colour - near-black on light surfaces, near-white
+// on dark ones - rather than a hue-forward brand colour). Semantic
+// success/warning/info aren't part of that source palette; they're chosen
+// to sit at the same lightness/chroma family so they read as part of one
+// system rather than bolted on.
 //
 // CSS custom properties carry runtime-switchable values (colour, shadow).
 // Breakpoints are SCSS variables since custom properties can't be used
@@ -28,41 +28,43 @@ $tc-breakpoint-desktop: 1280px;
 
 :root {
   // ---- Brand ----
-  --tc-color-primary: #92D050;
-  --tc-color-primary-hover: #7ab63c;
-  --tc-color-primary-active: #649c2e;
-  --tc-color-primary-contrast: #0c0c0c;
-  // Darker brand shade for high-contrast surfaces (sidebar, active nav item).
-  --tc-color-primary-surface: #1f6b3a;
-  --tc-color-primary-surface-contrast: #ffffff;
+  // "Primary" is an ink colour (near-black on light bg), not a hue - used
+  // for solid buttons and, via primary-surface, the app shell's sidebar and
+  // the login page's brand panel.
+  --tc-color-primary: oklch(0.3765 0.0261 40.3447);
+  --tc-color-primary-hover: oklch(0.4478 0.0261 40.3447);
+  --tc-color-primary-active: oklch(0.32 0.0261 40.3447);
+  --tc-color-primary-contrast: oklch(1 0 0);
+  --tc-color-primary-surface: oklch(0.3765 0.0261 40.3447);
+  --tc-color-primary-surface-contrast: oklch(1 0 0);
 
   // ---- Semantic ----
-  --tc-color-success: #52c41a;
-  --tc-color-success-surface: #edfae3;
-  --tc-color-warning: #c98a02;
-  --tc-color-warning-surface: #fff6d3;
-  --tc-color-danger: #d92d20;
-  --tc-color-danger-surface: #ffedec;
-  --tc-color-info: #2f6fed;
-  --tc-color-info-surface: #eef7fc;
+  --tc-color-success: oklch(0.6 0.145 145);
+  --tc-color-success-surface: oklch(0.95 0.03 145);
+  --tc-color-warning: oklch(0.72 0.15 80);
+  --tc-color-warning-surface: oklch(0.96 0.04 80);
+  --tc-color-danger: oklch(0.6271 0.1936 33.339);
+  --tc-color-danger-surface: oklch(0.95 0.045 33.339);
+  --tc-color-info: oklch(0.58 0.14 250);
+  --tc-color-info-surface: oklch(0.95 0.03 250);
 
   // ---- Surfaces ----
-  --tc-surface-canvas: #f5f5f5;
-  --tc-surface-raised: #ffffff;
-  --tc-surface-sunken: #f2f2f2;
-  --tc-surface-overlay: #ffffff;
-  --tc-border: #eaeaeb;
-  --tc-border-strong: #d6d6d6;
-  --tc-divider: #f2f2f3;
+  --tc-surface-canvas: oklch(0.986 0 0);
+  --tc-surface-raised: oklch(1 0.00011 271.152);
+  --tc-surface-sunken: oklch(0.9521 0 0);
+  --tc-surface-overlay: oklch(0.9911 0 0);
+  --tc-border: oklch(0.932 0 0);
+  --tc-border-strong: oklch(0.8822 0 0);
+  --tc-divider: oklch(0.9521 0 0);
 
   // ---- Text ----
-  --tc-text-primary: #111827;
-  --tc-text-secondary: #6b7280;
-  --tc-text-tertiary: #a0a3a9;
-  --tc-text-disabled: #c2c4c8;
-  --tc-text-on-primary: #0c0c0c;
-  --tc-text-on-primary-surface: #ffffff;
-  --tc-text-link: #2f6fed;
+  --tc-text-primary: oklch(0.2435 0 0);
+  --tc-text-secondary: oklch(0.5032 0 0);
+  --tc-text-tertiary: oklch(0.64 0 0);
+  --tc-text-disabled: oklch(0.78 0 0);
+  --tc-text-on-primary: oklch(1 0 0);
+  --tc-text-on-primary-surface: oklch(1 0 0);
+  --tc-text-link: oklch(0.3765 0.0261 40.3447);
 
   // ---- Typography ----
   --tc-font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -93,16 +95,16 @@ $tc-breakpoint-desktop: 1280px;
   --tc-space-12: 48px;
   --tc-space-16: 64px;
 
-  // ---- Radii ----
-  --tc-radius-sm: 4px;
-  --tc-radius-md: 8px;
-  --tc-radius-lg: 12px;
+  // ---- Radii (base 0.7rem, matching the source palette's --radius) ----
+  --tc-radius-sm: 0.4rem;
+  --tc-radius-md: 0.7rem;
+  --tc-radius-lg: 1rem;
   --tc-radius-full: 999px;
 
   // ---- Elevation ----
-  --tc-shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
-  --tc-shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
-  --tc-shadow-lg: 0 12px 32px rgba(17, 24, 39, 0.14);
+  --tc-shadow-sm: 0 1px 2px oklch(0.2435 0 0 / 0.06);
+  --tc-shadow-md: 0 4px 12px oklch(0.2435 0 0 / 0.08);
+  --tc-shadow-lg: 0 12px 32px oklch(0.2435 0 0 / 0.14);
 
   // ---- Layout ----
   --tc-sidebar-width: 260px;
@@ -113,41 +115,44 @@ $tc-breakpoint-desktop: 1280px;
 }
 
 @mixin tc-dark-palette {
-  --tc-color-primary: #92d050;
-  --tc-color-primary-hover: #a3d968;
-  --tc-color-primary-active: #7ab63c;
-  --tc-color-primary-contrast: #0c0c0c;
-  --tc-color-primary-surface: #14321f;
-  --tc-color-primary-surface-contrast: #ffffff;
+  --tc-color-primary: oklch(0.9911 0 0);
+  --tc-color-primary-hover: oklch(0.92 0 0);
+  --tc-color-primary-active: oklch(0.85 0 0);
+  --tc-color-primary-contrast: oklch(0.2029 0.024 200.1962);
+  // The sidebar/login brand panel keep a dark neutral surface in dark mode
+  // too (rather than following "primary" all the way to near-white, which
+  // would put a very bright panel next to an otherwise dark UI).
+  --tc-color-primary-surface: oklch(0.2134 0 0);
+  --tc-color-primary-surface-contrast: oklch(0.9911 0 0);
 
-  --tc-color-success: #4ade80;
-  --tc-color-success-surface: #12271a;
-  --tc-color-warning: #eab308;
-  --tc-color-warning-surface: #2b2410;
-  --tc-color-danger: #f87171;
-  --tc-color-danger-surface: #2c1614;
-  --tc-color-info: #60a5fa;
-  --tc-color-info-surface: #101c2c;
+  --tc-color-success: oklch(0.72 0.16 145);
+  --tc-color-success-surface: oklch(0.28 0.05 145);
+  --tc-color-warning: oklch(0.8 0.15 80);
+  --tc-color-warning-surface: oklch(0.3 0.055 80);
+  --tc-color-danger: oklch(0.6271 0.1936 33.339);
+  --tc-color-danger-surface: oklch(0.3 0.065 33.339);
+  --tc-color-info: oklch(0.72 0.14 250);
+  --tc-color-info-surface: oklch(0.28 0.05 250);
 
-  --tc-surface-canvas: #101214;
-  --tc-surface-raised: #1a1d20;
-  --tc-surface-sunken: #0c0d0f;
-  --tc-surface-overlay: #202327;
-  --tc-border: #2b2f33;
-  --tc-border-strong: #3a3f45;
-  --tc-divider: #24272b;
+  --tc-surface-canvas: oklch(0.1776 0 0);
+  --tc-surface-raised: oklch(0.2134 0 0);
+  --tc-surface-sunken: oklch(0.252 0 0);
+  --tc-surface-overlay: oklch(0.2134 0 0);
+  --tc-border: oklch(0.2351 0.0115 91.7467);
+  --tc-border-strong: oklch(0.2972 0.00003 271.152);
+  --tc-divider: oklch(0.252 0 0);
 
-  --tc-text-primary: #f2f3f5;
-  --tc-text-secondary: #b0b4ba;
-  --tc-text-tertiary: #7d8188;
-  --tc-text-disabled: #565a60;
-  --tc-text-on-primary: #0c0c0c;
-  --tc-text-on-primary-surface: #ffffff;
-  --tc-text-link: #7aa8f5;
+  --tc-text-primary: oklch(0.9491 0 0);
+  --tc-text-secondary: oklch(0.7699 0 0);
+  --tc-text-tertiary: oklch(0.6 0 0);
+  --tc-text-disabled: oklch(0.42 0 0);
+  --tc-text-on-primary: oklch(0.2029 0.024 200.1962);
+  --tc-text-on-primary-surface: oklch(0.9911 0 0);
+  --tc-text-link: oklch(0.8 0.05 60);
 
-  --tc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
-  --tc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
-  --tc-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --tc-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);
+  --tc-shadow-md: 0 4px 12px oklch(0 0 0 / 0.32);
+  --tc-shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
 
   color-scheme: dark;
 }
