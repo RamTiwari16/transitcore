@@ -33,7 +33,7 @@ public class OpsRepository : IOpsService
             .ToList();
     }
 
-    public async Task<IReadOnlyList<TripDto>> GetTripsAsync(TripFilterRequest filter, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<TripDto>> GetTripsAsync(TripFilterRequest filter, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var parameters = new[]
         {
@@ -42,12 +42,23 @@ public class OpsRepository : IOpsService
             new SqlParameter("@StatusId", (object?)filter.StatusId ?? DBNull.Value),
             new SqlParameter("@VehicleId", (object?)filter.VehicleId ?? DBNull.Value),
             new SqlParameter("@DriverId", (object?)filter.DriverId ?? DBNull.Value),
-            new SqlParameter("@RouteId", (object?)filter.RouteId ?? DBNull.Value)
+            new SqlParameter("@RouteId", (object?)filter.RouteId ?? DBNull.Value),
+            new SqlParameter("@PageNumber", pageNumber),
+            new SqlParameter("@PageSize", pageSize)
         };
 
         var table = await _db.QueryProcedureAsync("ops.usp_GetTrips", parameters, cancellationToken);
 
-        return table.Rows.Cast<DataRow>().Select(MapTrip).ToList();
+        var items = table.Rows.Cast<DataRow>().Select(MapTrip).ToList();
+        var totalCount = table.Rows.Count > 0 ? Convert.ToInt32(table.Rows[0]["TotalCount"]) : 0;
+
+        return new PagedResult<TripDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     public async Task<TripDetailDto?> GetTripByIdAsync(int tripId, CancellationToken cancellationToken = default)

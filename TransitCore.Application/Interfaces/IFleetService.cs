@@ -5,7 +5,7 @@ namespace TransitCore.Application.Interfaces;
 public interface IFleetService
 {
     Task<IReadOnlyList<VehicleTypeDto>> GetVehicleTypesAsync(CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<VehicleDto>> GetVehiclesAsync(int? statusId, int? vehicleTypeId, CancellationToken cancellationToken = default);
+    Task<PagedResult<VehicleDto>> GetVehiclesAsync(int? statusId, int? vehicleTypeId, int pageNumber, int pageSize, CancellationToken cancellationToken = default);
     Task<VehicleDto?> GetVehicleByIdAsync(int vehicleId, CancellationToken cancellationToken = default);
     Task<int> CreateVehicleAsync(CreateVehicleRequest request, string createdBy, CancellationToken cancellationToken = default);
     Task<bool> UpdateVehicleAsync(UpdateVehicleRequest request, string modifiedBy, CancellationToken cancellationToken = default);

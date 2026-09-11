@@ -26,10 +26,20 @@ public class FleetController : ControllerBase
     }
 
     [HttpGet("vehicles")]
-    public async Task<IActionResult> GetVehicles([FromQuery] int? statusId, [FromQuery] int? vehicleTypeId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetVehicles(
+        [FromQuery] int? statusId,
+        [FromQuery] int? vehicleTypeId,
+        [FromQuery] int pageNumber,
+        [FromQuery] int pageSize,
+        CancellationToken cancellationToken)
     {
-        var vehicles = await _fleetService.GetVehiclesAsync(statusId, vehicleTypeId, cancellationToken);
-        return Ok(ApiResponse<IReadOnlyList<VehicleDto>>.Ok(vehicles));
+        var vehicles = await _fleetService.GetVehiclesAsync(
+            statusId, vehicleTypeId,
+            pageNumber <= 0 ? 1 : pageNumber,
+            pageSize <= 0 ? 25 : pageSize,
+            cancellationToken);
+
+        return Ok(ApiResponse<PagedResult<VehicleDto>>.Ok(vehicles));
     }
 
     [HttpGet("vehicles/{vehicleId:int}")]

@@ -26,10 +26,19 @@ public class OpsController : ControllerBase
     }
 
     [HttpGet("trips")]
-    public async Task<IActionResult> GetTrips([FromQuery] TripFilterRequest filter, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetTrips(
+        [FromQuery] TripFilterRequest filter,
+        [FromQuery] int pageNumber,
+        [FromQuery] int pageSize,
+        CancellationToken cancellationToken)
     {
-        var trips = await _opsService.GetTripsAsync(filter, cancellationToken);
-        return Ok(ApiResponse<IReadOnlyList<TripDto>>.Ok(trips));
+        var trips = await _opsService.GetTripsAsync(
+            filter,
+            pageNumber <= 0 ? 1 : pageNumber,
+            pageSize <= 0 ? 25 : pageSize,
+            cancellationToken);
+
+        return Ok(ApiResponse<PagedResult<TripDto>>.Ok(trips));
     }
 
     [HttpGet("trips/{tripId:int}")]

@@ -30,17 +30,28 @@ public class FleetRepository : IFleetService
             .ToList();
     }
 
-    public async Task<IReadOnlyList<VehicleDto>> GetVehiclesAsync(int? statusId, int? vehicleTypeId, CancellationToken cancellationToken = default)
+    public async Task<PagedResult<VehicleDto>> GetVehiclesAsync(int? statusId, int? vehicleTypeId, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var parameters = new[]
         {
             new SqlParameter("@StatusId", (object?)statusId ?? DBNull.Value),
-            new SqlParameter("@VehicleTypeId", (object?)vehicleTypeId ?? DBNull.Value)
+            new SqlParameter("@VehicleTypeId", (object?)vehicleTypeId ?? DBNull.Value),
+            new SqlParameter("@PageNumber", pageNumber),
+            new SqlParameter("@PageSize", pageSize)
         };
 
         var table = await _db.QueryProcedureAsync("fleet.usp_GetVehicles", parameters, cancellationToken);
 
-        return table.Rows.Cast<DataRow>().Select(MapVehicle).ToList();
+        var items = table.Rows.Cast<DataRow>().Select(MapVehicle).ToList();
+        var totalCount = table.Rows.Count > 0 ? Convert.ToInt32(table.Rows[0]["TotalCount"]) : 0;
+
+        return new PagedResult<VehicleDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
     }
 
     public async Task<VehicleDto?> GetVehicleByIdAsync(int vehicleId, CancellationToken cancellationToken = default)
