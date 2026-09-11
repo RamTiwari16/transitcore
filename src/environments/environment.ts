@@ -1,6 +1,6 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://localhost:7195',
+    apiUrl: 'http://localhost:5297',
     appName: "TransitCore",
     // Not a real secret boundary: this key ships inside the client bundle,
     // so it only obscures localStorage contents from casual inspection, not
