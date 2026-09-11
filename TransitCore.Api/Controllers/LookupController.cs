@@ -1,0 +1,47 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using TransitCore.Application.Interfaces;
+using TransitCore.Application.Models;
+
+namespace TransitCore.Api.Controllers;
+
+[Authorize]
+[Route("api/v1/[controller]")]
+[ApiController]
+public class LookupController : ControllerBase
+{
+    private readonly ILookupService _lookupService;
+
+    public LookupController(ILookupService lookupService)
+    {
+        _lookupService = lookupService;
+    }
+
+    [HttpGet("regions")]
+    public async Task<IActionResult> GetRegions(CancellationToken cancellationToken)
+    {
+        var regions = await _lookupService.GetRegionsAsync(cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<RegionDto>>.Ok(regions));
+    }
+
+    [HttpGet("branches")]
+    public async Task<IActionResult> GetBranches([FromQuery] int? regionId, CancellationToken cancellationToken)
+    {
+        var branches = await _lookupService.GetBranchesAsync(regionId, cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<BranchDto>>.Ok(branches));
+    }
+
+    [HttpGet("designations")]
+    public async Task<IActionResult> GetDesignations(CancellationToken cancellationToken)
+    {
+        var designations = await _lookupService.GetDesignationsAsync(cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<DesignationDto>>.Ok(designations));
+    }
+
+    [HttpGet("working-designations")]
+    public async Task<IActionResult> GetWorkingDesignations(CancellationToken cancellationToken)
+    {
+        var workingDesignations = await _lookupService.GetWorkingDesignationsAsync(cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<WorkingDesignationDto>>.Ok(workingDesignations));
+    }
+}
