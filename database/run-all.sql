@@ -35,6 +35,7 @@ PRINT '--- 02-programmability ---';
 :r .\02-programmability\008_lookup_statuscodes_proc.sql
 :r .\02-programmability\009_ops_shipment_procs.sql
 :r .\02-programmability\010_lookup_cities_proc.sql
+:r .\02-programmability\011_lookup_unitsofmeasure_proc.sql
 
 PRINT '--- 03-seed ---';
 :r .\03-seed\001_lookup_seed.sql
