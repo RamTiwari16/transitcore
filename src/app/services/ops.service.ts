@@ -4,8 +4,12 @@ import { ApiRoutes } from '../constants/apiRoutes';
 import { ApiResponse } from '../models/api-response';
 import { PagedResult } from '../models/paged-result';
 import {
+  CreateShipmentRequest,
   CreateTripRequest,
   RouteModel,
+  ShipmentDetailModel,
+  ShipmentFilter,
+  ShipmentModel,
   TripDetailModel,
   TripFilter,
   TripModel,
@@ -39,5 +43,23 @@ export class OpsService {
 
   updateTripStatus(request: UpdateTripStatusRequest): Observable<void> {
     return this.api.put<ApiResponse<string>>(ApiRoutes.TripStatus, request).pipe(map(() => undefined));
+  }
+
+  getShipments(filter: ShipmentFilter): Observable<ShipmentModel[]> {
+    return this.api
+      .get<ApiResponse<ShipmentModel[]>>(ApiRoutes.Shipments, filter)
+      .pipe(map((res) => res.data));
+  }
+
+  getShipmentById(shipmentId: number): Observable<ShipmentDetailModel> {
+    return this.api
+      .get<ApiResponse<ShipmentDetailModel>>(`${ApiRoutes.Shipments}/${shipmentId}`)
+      .pipe(map((res) => res.data));
+  }
+
+  createShipment(request: CreateShipmentRequest): Observable<number> {
+    return this.api
+      .post<ApiResponse<number>>(ApiRoutes.Shipments, request)
+      .pipe(map((res) => res.data));
   }
 }

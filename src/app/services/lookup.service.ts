@@ -4,9 +4,11 @@ import { ApiRoutes } from '../constants/apiRoutes';
 import { ApiResponse } from '../models/api-response';
 import {
   BranchModel,
+  CityModel,
   DesignationModel,
   RegionModel,
   StatusCodeModel,
+  UnitOfMeasureModel,
   WorkingDesignationModel,
 } from '../models/lookup.models';
 import { ApiService } from './ApiService';
@@ -14,6 +16,16 @@ import { ApiService } from './ApiService';
 @Injectable({ providedIn: 'root' })
 export class LookupService {
   private readonly api = inject(ApiService);
+
+  getCities(): Observable<CityModel[]> {
+    return this.api.get<ApiResponse<CityModel[]>>(ApiRoutes.Cities).pipe(map((res) => res.data));
+  }
+
+  getUnitsOfMeasure(): Observable<UnitOfMeasureModel[]> {
+    return this.api
+      .get<ApiResponse<UnitOfMeasureModel[]>>(ApiRoutes.UnitsOfMeasure)
+      .pipe(map((res) => res.data));
+  }
 
   getRegions(): Observable<RegionModel[]> {
     return this.api

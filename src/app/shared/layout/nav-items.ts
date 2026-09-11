@@ -16,12 +16,17 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: 'Fleet',
-    items: [{ label: 'Vehicles', icon: 'local_shipping', path: '/fleet/vehicles' }],
+    items: [
+      { label: 'Vehicles', icon: 'local_shipping', path: '/fleet/vehicles' },
+      { label: 'Drivers', icon: 'badge', path: '/fleet/drivers' },
+    ],
   },
   {
     label: 'Operations',
     items: [
       { label: 'Trips', icon: 'route', path: '/ops/trips' },
+      { label: 'Routes', icon: 'alt_route', path: '/ops/routes' },
+      { label: 'Shipments', icon: 'inventory_2', path: '/ops/shipments' },
       { label: 'Vehicle Orders', icon: 'assignment', path: '/vehicle-order' },
       { label: 'Bulk Upload', icon: 'upload_file', path: '/bulk-upload' },
     ],

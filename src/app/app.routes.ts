@@ -20,11 +20,11 @@ export const routes: Routes = [
                     import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
             },
             {
-                path: 'fleet/vehicles',
+                path: 'fleet',
                 loadChildren: () => import('./features/fleet/fleet.routes').then((m) => m.FLEET_ROUTES),
             },
             {
-                path: 'ops/trips',
+                path: 'ops',
                 loadChildren: () => import('./features/ops/ops.routes').then((m) => m.OPS_ROUTES),
             },
             {

@@ -59,3 +59,52 @@ export interface UpdateTripStatusRequest {
   statusId: number;
   notes?: string;
 }
+
+export interface ShipmentFilter {
+  customerId?: number;
+  statusId?: number;
+}
+
+export interface ShipmentModel {
+  id: number;
+  tripId: number | null;
+  customerId: number;
+  customerName: string;
+  originCityId: number;
+  originCityName: string;
+  destinationCityId: number;
+  destinationCityName: string;
+  statusId: number;
+  statusName: string;
+  shipmentDate: string;
+}
+
+export interface ShipmentItemModel {
+  id: number;
+  description: string;
+  quantity: number;
+  unitOfMeasureId: number;
+  unitOfMeasureCode: string;
+  weightKg: number | null;
+}
+
+export interface ShipmentDetailModel extends ShipmentModel {
+  items: ShipmentItemModel[];
+}
+
+export interface CreateShipmentItemRequest {
+  description: string;
+  quantity: number;
+  unitOfMeasureId: number;
+  weightKg?: number;
+}
+
+export interface CreateShipmentRequest {
+  customerId: number;
+  originCityId: number;
+  destinationCityId: number;
+  statusId: number;
+  shipmentDate: string;
+  tripId?: number;
+  items: CreateShipmentItemRequest[];
+}

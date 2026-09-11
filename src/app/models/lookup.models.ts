@@ -1,3 +1,10 @@
+export interface CityModel {
+  id: number;
+  name: string;
+  countryId: number;
+  countryName: string;
+}
+
 export interface RegionModel {
   id: number;
   name: string;
@@ -18,6 +25,12 @@ export interface DesignationModel {
 
 export interface WorkingDesignationModel {
   id: number;
+  name: string;
+}
+
+export interface UnitOfMeasureModel {
+  id: number;
+  code: string;
   name: string;
 }
 

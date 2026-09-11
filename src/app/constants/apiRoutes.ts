@@ -3,11 +3,13 @@ export const ApiRoutes = {
   BulkUpload: '/api/v1/vehicleorder/bulk-upload',
   GetByDateRange: '/api/v1/vehicleorder/get-by-date-range',
 
+  Cities: '/api/v1/lookup/cities',
   Regions: '/api/v1/lookup/regions',
   Branches: '/api/v1/lookup/branches',
   Designations: '/api/v1/lookup/designations',
   WorkingDesignations: '/api/v1/lookup/working-designations',
   StatusCodes: '/api/v1/lookup/status-codes',
+  UnitsOfMeasure: '/api/v1/lookup/units-of-measure',
 
   VehicleTypes: '/api/v1/fleet/vehicle-types',
   Vehicles: '/api/v1/fleet/vehicles',
@@ -17,6 +19,7 @@ export const ApiRoutes = {
   Routes: '/api/v1/ops/routes',
   Trips: '/api/v1/ops/trips',
   TripStatus: '/api/v1/ops/trips/status',
+  Shipments: '/api/v1/ops/shipments',
 
   Customers: '/api/v1/billing/customers',
   Invoices: '/api/v1/billing/invoices',
