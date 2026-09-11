@@ -25,6 +25,14 @@ public class OpsController : ControllerBase
         return Ok(ApiResponse<IReadOnlyList<RouteDto>>.Ok(routes));
     }
 
+    [HttpPost("routes")]
+    public async Task<IActionResult> CreateRoute([FromBody] CreateRouteRequest request, CancellationToken cancellationToken)
+    {
+        var createdBy = User.FindFirst(ClaimTypes.Email)?.Value ?? "unknown";
+        var newRouteId = await _opsService.CreateRouteAsync(request, createdBy, cancellationToken);
+        return Ok(ApiResponse<int>.Ok(newRouteId, "Route created successfully"));
+    }
+
     [HttpGet("trips")]
     public async Task<IActionResult> GetTrips(
         [FromQuery] TripFilterRequest filter,

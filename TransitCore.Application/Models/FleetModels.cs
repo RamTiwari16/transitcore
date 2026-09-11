@@ -55,6 +55,16 @@ public class DriverDto
     public string StatusName { get; set; } = string.Empty;
 }
 
+public class CreateDriverRequest
+{
+    public string FullName { get; set; } = string.Empty;
+    public string? PhoneNo { get; set; }
+    public string? Email { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
+    public DateOnly? HireDate { get; set; }
+    public int StatusId { get; set; }
+}
+
 public class FleetUtilisationDto
 {
     public int VehicleId { get; set; }

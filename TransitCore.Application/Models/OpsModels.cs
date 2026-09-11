@@ -11,6 +11,14 @@ public class RouteDto
     public decimal? DistanceKm { get; set; }
 }
 
+public class CreateRouteRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public int OriginCityId { get; set; }
+    public int DestinationCityId { get; set; }
+    public decimal? DistanceKm { get; set; }
+}
+
 public class TripFilterRequest
 {
     public DateTime? FromDate { get; set; }

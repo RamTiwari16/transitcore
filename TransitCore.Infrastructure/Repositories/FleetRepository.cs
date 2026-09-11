@@ -121,6 +121,23 @@ public class FleetRepository : IFleetService
             .ToList();
     }
 
+    public async Task<int> CreateDriverAsync(CreateDriverRequest request, string createdBy, CancellationToken cancellationToken = default)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@FullName", request.FullName),
+            new SqlParameter("@PhoneNo", (object?)request.PhoneNo ?? DBNull.Value),
+            new SqlParameter("@Email", (object?)request.Email ?? DBNull.Value),
+            new SqlParameter("@DateOfBirth", request.DateOfBirth.HasValue ? request.DateOfBirth.Value.ToDateTime(TimeOnly.MinValue) : DBNull.Value),
+            new SqlParameter("@HireDate", request.HireDate.HasValue ? request.HireDate.Value.ToDateTime(TimeOnly.MinValue) : DBNull.Value),
+            new SqlParameter("@StatusId", request.StatusId),
+            new SqlParameter("@CreatedBy", createdBy)
+        };
+
+        var newId = await _db.ExecuteScalarProcedureAsync("fleet.usp_InsertDriver", parameters, cancellationToken);
+        return Convert.ToInt32(newId);
+    }
+
     public async Task<IReadOnlyList<FleetUtilisationDto>> GetFleetUtilisationAsync(DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default)
     {
         var parameters = new[]

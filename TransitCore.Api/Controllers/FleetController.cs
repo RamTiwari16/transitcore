@@ -79,6 +79,14 @@ public class FleetController : ControllerBase
         return Ok(ApiResponse<IReadOnlyList<DriverDto>>.Ok(drivers));
     }
 
+    [HttpPost("drivers")]
+    public async Task<IActionResult> CreateDriver([FromBody] CreateDriverRequest request, CancellationToken cancellationToken)
+    {
+        var createdBy = User.FindFirst(ClaimTypes.Email)?.Value ?? "unknown";
+        var newDriverId = await _fleetService.CreateDriverAsync(request, createdBy, cancellationToken);
+        return Ok(ApiResponse<int>.Ok(newDriverId, "Driver created successfully"));
+    }
+
     [HttpGet("utilisation")]
     public async Task<IActionResult> GetFleetUtilisation([FromQuery] DateOnly fromDate, [FromQuery] DateOnly toDate, CancellationToken cancellationToken)
     {

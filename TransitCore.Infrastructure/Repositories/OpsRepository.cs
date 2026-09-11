@@ -33,6 +33,21 @@ public class OpsRepository : IOpsService
             .ToList();
     }
 
+    public async Task<int> CreateRouteAsync(CreateRouteRequest request, string createdBy, CancellationToken cancellationToken = default)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@Name", request.Name),
+            new SqlParameter("@OriginCityId", request.OriginCityId),
+            new SqlParameter("@DestinationCityId", request.DestinationCityId),
+            new SqlParameter("@DistanceKm", (object?)request.DistanceKm ?? DBNull.Value),
+            new SqlParameter("@CreatedBy", createdBy)
+        };
+
+        var newId = await _db.ExecuteScalarProcedureAsync("ops.usp_InsertRoute", parameters, cancellationToken);
+        return Convert.ToInt32(newId);
+    }
+
     public async Task<PagedResult<TripDto>> GetTripsAsync(TripFilterRequest filter, int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         var parameters = new[]

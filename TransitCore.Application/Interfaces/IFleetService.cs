@@ -10,5 +10,6 @@ public interface IFleetService
     Task<int> CreateVehicleAsync(CreateVehicleRequest request, string createdBy, CancellationToken cancellationToken = default);
     Task<bool> UpdateVehicleAsync(UpdateVehicleRequest request, string modifiedBy, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<DriverDto>> GetDriversAsync(int? statusId, CancellationToken cancellationToken = default);
+    Task<int> CreateDriverAsync(CreateDriverRequest request, string createdBy, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<FleetUtilisationDto>> GetFleetUtilisationAsync(DateOnly fromDate, DateOnly toDate, CancellationToken cancellationToken = default);
 }

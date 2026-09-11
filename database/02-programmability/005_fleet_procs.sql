@@ -177,6 +177,35 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('fleet.usp_InsertDriver', 'P') IS NOT NULL
+    DROP PROCEDURE fleet.usp_InsertDriver;
+GO
+
+CREATE PROCEDURE fleet.usp_InsertDriver
+    @FullName     NVARCHAR(200),
+    @PhoneNo      NVARCHAR(30) = NULL,
+    @Email        NVARCHAR(256) = NULL,
+    @DateOfBirth  DATE = NULL,
+    @HireDate     DATE = NULL,
+    @StatusId     INT,
+    @CreatedBy    NVARCHAR(256)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        INSERT INTO fleet.Drivers
+            (FullName, PhoneNo, Email, DateOfBirth, HireDate, StatusId, CreatedBy)
+        VALUES
+            (@FullName, @PhoneNo, @Email, @DateOfBirth, @HireDate, @StatusId, @CreatedBy);
+
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS DriverId;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+
 /*
   Heavy read path: fleet utilisation over a date range. Utilisation% is
   scheduled trip hours within the window divided by total available hours

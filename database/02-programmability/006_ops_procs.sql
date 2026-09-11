@@ -33,6 +33,33 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('ops.usp_InsertRoute', 'P') IS NOT NULL
+    DROP PROCEDURE ops.usp_InsertRoute;
+GO
+
+CREATE PROCEDURE ops.usp_InsertRoute
+    @Name               NVARCHAR(200),
+    @OriginCityId       INT,
+    @DestinationCityId  INT,
+    @DistanceKm         DECIMAL(18,2) = NULL,
+    @CreatedBy          NVARCHAR(256)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        INSERT INTO ops.Routes
+            (Name, OriginCityId, DestinationCityId, DistanceKm, CreatedBy)
+        VALUES
+            (@Name, @OriginCityId, @DestinationCityId, @DistanceKm, @CreatedBy);
+
+        SELECT CAST(SCOPE_IDENTITY() AS INT) AS RouteId;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+
 /*
   Heavy read path: trip listing with filters. Every filter is optional so
   the UI's data grid can call this with whatever subset the user picked.
