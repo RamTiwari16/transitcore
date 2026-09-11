@@ -29,6 +29,13 @@ public class DesignationDto
     public string Name { get; set; } = string.Empty;
 }
 
+public class UnitOfMeasureDto
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+}
+
 public class WorkingDesignationDto
 {
     public int Id { get; set; }

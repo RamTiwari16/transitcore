@@ -9,5 +9,6 @@ public interface ILookupService
     Task<IReadOnlyList<BranchDto>> GetBranchesAsync(int? regionId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<DesignationDto>> GetDesignationsAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<WorkingDesignationDto>> GetWorkingDesignationsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<UnitOfMeasureDto>> GetUnitsOfMeasureAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<StatusCodeDto>> GetStatusCodesAsync(string category, CancellationToken cancellationToken = default);
 }

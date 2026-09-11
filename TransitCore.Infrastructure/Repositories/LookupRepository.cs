@@ -85,6 +85,20 @@ public class LookupRepository : ILookupService
             .ToList();
     }
 
+    public async Task<IReadOnlyList<UnitOfMeasureDto>> GetUnitsOfMeasureAsync(CancellationToken cancellationToken = default)
+    {
+        var table = await _db.QueryProcedureAsync("lookup.usp_GetUnitsOfMeasure", cancellationToken: cancellationToken);
+
+        return table.Rows.Cast<System.Data.DataRow>()
+            .Select(row => new UnitOfMeasureDto
+            {
+                Id = Convert.ToInt32(row["Id"]),
+                Code = row["Code"].ToString() ?? string.Empty,
+                Name = row["Name"].ToString() ?? string.Empty
+            })
+            .ToList();
+    }
+
     public async Task<IReadOnlyList<StatusCodeDto>> GetStatusCodesAsync(string category, CancellationToken cancellationToken = default)
     {
         var parameters = new[] { new SqlParameter("@Category", category) };

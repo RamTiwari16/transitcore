@@ -52,6 +52,13 @@ public class LookupController : ControllerBase
         return Ok(ApiResponse<IReadOnlyList<WorkingDesignationDto>>.Ok(workingDesignations));
     }
 
+    [HttpGet("units-of-measure")]
+    public async Task<IActionResult> GetUnitsOfMeasure(CancellationToken cancellationToken)
+    {
+        var units = await _lookupService.GetUnitsOfMeasureAsync(cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<UnitOfMeasureDto>>.Ok(units));
+    }
+
     [HttpGet("status-codes")]
     public async Task<IActionResult> GetStatusCodes([FromQuery] string category, CancellationToken cancellationToken)
     {
