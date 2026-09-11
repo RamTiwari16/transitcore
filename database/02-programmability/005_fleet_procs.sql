@@ -34,7 +34,9 @@ GO
 
 CREATE PROCEDURE fleet.usp_GetVehicles
     @StatusId      INT = NULL,
-    @VehicleTypeId INT = NULL
+    @VehicleTypeId INT = NULL,
+    @PageNumber    INT = 1,
+    @PageSize      INT = 25
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -42,14 +44,17 @@ BEGIN
         SELECT
             v.Id, v.RegistrationNo, v.VehicleTypeId, vt.Name AS VehicleTypeName,
             v.Make, v.Model, v.ManufactureYear, v.CapacityKg,
-            v.StatusId, sc.Name AS StatusName
+            v.StatusId, sc.Name AS StatusName,
+            COUNT(*) OVER() AS TotalCount
         FROM fleet.Vehicles v
         INNER JOIN fleet.VehicleTypes vt ON vt.Id = v.VehicleTypeId
         INNER JOIN lookup.StatusCodes sc ON sc.Id = v.StatusId
         WHERE v.IsDeleted = 0
           AND (@StatusId IS NULL OR v.StatusId = @StatusId)
           AND (@VehicleTypeId IS NULL OR v.VehicleTypeId = @VehicleTypeId)
-        ORDER BY v.RegistrationNo;
+        ORDER BY v.RegistrationNo
+        OFFSET (@PageNumber - 1) * @PageSize ROWS
+        FETCH NEXT @PageSize ROWS ONLY;
     END TRY
     BEGIN CATCH
         THROW;

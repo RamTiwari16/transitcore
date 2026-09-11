@@ -42,12 +42,14 @@ IF OBJECT_ID('ops.usp_GetTrips', 'P') IS NOT NULL
 GO
 
 CREATE PROCEDURE ops.usp_GetTrips
-    @FromDate  DATETIME2(3) = NULL,
-    @ToDate    DATETIME2(3) = NULL,
-    @StatusId  INT = NULL,
-    @VehicleId INT = NULL,
-    @DriverId  INT = NULL,
-    @RouteId   INT = NULL
+    @FromDate   DATETIME2(3) = NULL,
+    @ToDate     DATETIME2(3) = NULL,
+    @StatusId   INT = NULL,
+    @VehicleId  INT = NULL,
+    @DriverId   INT = NULL,
+    @RouteId    INT = NULL,
+    @PageNumber INT = 1,
+    @PageSize   INT = 25
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -57,7 +59,8 @@ BEGIN
             t.VehicleId, v.RegistrationNo,
             t.DriverId, d.FullName AS DriverName,
             t.ScheduledDeparture, t.ScheduledArrival, t.ActualDeparture, t.ActualArrival,
-            t.StatusId, sc.Name AS StatusName
+            t.StatusId, sc.Name AS StatusName,
+            COUNT(*) OVER() AS TotalCount
         FROM ops.Trips t
         INNER JOIN ops.Routes r ON r.Id = t.RouteId
         INNER JOIN fleet.Vehicles v ON v.Id = t.VehicleId
@@ -70,7 +73,9 @@ BEGIN
           AND (@VehicleId IS NULL OR t.VehicleId = @VehicleId)
           AND (@DriverId IS NULL OR t.DriverId = @DriverId)
           AND (@RouteId IS NULL OR t.RouteId = @RouteId)
-        ORDER BY t.ScheduledDeparture DESC;
+        ORDER BY t.ScheduledDeparture DESC
+        OFFSET (@PageNumber - 1) * @PageSize ROWS
+        FETCH NEXT @PageSize ROWS ONLY;
     END TRY
     BEGIN CATCH
         THROW;
