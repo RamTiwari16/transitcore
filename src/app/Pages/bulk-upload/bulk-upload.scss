@@ -1,585 +1,149 @@
-// ── Theme tokens (matches your app palette) ───────────
-$yellow: #f9d71c;
-$yellow-dark: #e6c200;
-$yellow-bg: #fffde7;
-$yellow-border: #f9d71c40;
-$text-dark: #333333;
-$text-mid: #555555;
-$text-light: #888;
-$white: #ffffff;
-$border: #e0e0e0;
-$success: #2e7d32;
-$success-bg: #e8f5e9;
-$error: #c62828;
-$error-bg: #ffebee;
-$excel-green: #1d6f42;
-$radius: 10px;
-$shadow: 0 2px 12px rgba(0,0,0,0.08);
+.bulk-upload__subtitle {
+  color: var(--tc-text-secondary);
+  margin: calc(-1 * var(--tc-space-3)) 0 var(--tc-space-4);
+}
 
-// ── Page ──────────────────────────────────────────────
-.bu-page {
-  // padding: 1.25rem 1.5rem;
+.bulk-upload__card {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
+  padding: var(--tc-space-6);
+  max-width: 40rem;
+}
+
+.bulk-upload__dropzone {
+  border: 2px dashed var(--tc-border-strong);
+  border-radius: var(--tc-radius-md);
+  padding: var(--tc-space-8) var(--tc-space-4);
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &.bulk-upload__dropzone--active {
+    border-color: var(--tc-color-primary);
+    background: var(--tc-color-success-surface);
+  }
+}
+
+.bulk-upload__empty {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  max-width: 100%;  // ← was 700px, now full width
-  width: 100%;
-}
-
-// ── Header ────────────────────────────────────────────
-.bu-header {
-  display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--tc-space-1);
+  color: var(--tc-text-secondary);
 
-  &__icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, $yellow 0%, $yellow-dark 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 3px 10px rgba($yellow-dark, 0.4);
-    flex-shrink: 0;
-
-    i { font-size: 20px; color: $text-dark; }
-  }
-
-  &__title {
-    font-size: 20px;
-    font-weight: 700;
-    color: $text-dark;
-    margin: 0 0 2px;
-  }
-
-  &__sub {
-    font-size: 13px;
-    color: $text-light;
-    margin: 0;
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: var(--tc-text-tertiary);
+    margin-bottom: var(--tc-space-2);
   }
 }
 
-// ── Card ──────────────────────────────────────────────
-.bu-card {
-  background: $white;
-  border-radius: $radius;
-  box-shadow: $shadow;
-  border: 1px solid $border;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
+.bulk-upload__hint {
+  font-size: var(--tc-font-size-xs);
 }
 
-// ── Drop Zone ─────────────────────────────────────────
-.bu-dropzone {
-  border: 2px dashed $border;
-  border-radius: $radius;
-  background: #fafafa;
-  transition: all 0.25s ease;
-  min-height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-
-  &--active {
-    border-color: $yellow-dark;
-    background: $yellow-bg;
-    box-shadow: 0 0 0 4px rgba($yellow, 0.2);
-  }
-
-  &--has-file {
-    border-color: $excel-green;
-    background: #f1f8f4;
-    border-style: solid;
-  }
-
-  &__empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 1.25rem;
-    text-align: center;
-    width: 100%;
-  }
-
-  &__icon {
-    font-size: 32px;
-    color: $excel-green;
-    margin-bottom: 0.15rem;
-  }
-
-  &__text {
-    font-size: 14px;
-    font-weight: 600;
-    color: $text-dark;
-    margin: 0;
-  }
-
-  &__hint {
-    font-size: 12px;
-    color: $text-light;
-    margin: 0 0 0.5rem;
-  }
-
-  &__file {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    width: 100%;
-  }
-}
-
-// ── Browse Button ─────────────────────────────────────
-.bu-browse-btn {
+.bulk-upload__browse {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 20px;
-  background: linear-gradient(135deg, $yellow 0%, $yellow-dark 100%);
-  color: $text-dark;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 6px;
+  gap: var(--tc-space-1);
+  margin-top: var(--tc-space-3);
   cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba($yellow-dark, 0.3);
-
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba($yellow-dark, 0.4);
-  }
 }
 
-// ── File Preview ──────────────────────────────────────
-.bu-file-icon {
-  font-size: 26px;
-  color: $excel-green;
-  flex-shrink: 0;
+.bulk-upload__file {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-3);
+  text-align: left;
 }
 
-.bu-file-info {
-  flex: 1;
+.bulk-upload__file-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
-.bu-file-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: $text-dark;
-  white-space: nowrap;
+.bulk-upload__file-name {
+  font-weight: var(--tc-font-weight-medium);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.bu-file-size {
-  font-size: 12px;
-  color: $text-light;
+.bulk-upload__file-size {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
 }
 
-.bu-file-remove {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1.5px solid $border;
-  background: $white;
-  color: $error;
-  cursor: pointer;
+.bulk-upload__alert {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  flex-shrink: 0;
-  font-size: 13px;
+  gap: var(--tc-space-2);
+  font-size: var(--tc-font-size-sm);
+  padding: var(--tc-space-3);
+  border-radius: var(--tc-radius-md);
+  margin: var(--tc-space-4) 0 0;
 
-  &:hover {
-    background: $error-bg;
-    border-color: $error;
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 }
 
-// ── Alerts ────────────────────────────────────────────
-.bu-alert {
-  padding: 9px 13px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &--error {
-    background: $error-bg;
-    color: $error;
-    border: 1px solid #ffcdd2;
-  }
-
-  &--success {
-    background: $success-bg;
-    color: $success;
-    border: 1px solid #c8e6c9;
-  }
+.bulk-upload__alert--error {
+  background: var(--tc-color-danger-surface);
+  color: var(--tc-color-danger);
 }
 
-// ── Actions ───────────────────────────────────────────
-.bu-actions {
+.bulk-upload__alert--success {
+  background: var(--tc-color-success-surface);
+  color: var(--tc-color-success);
+}
+
+.bulk-upload__actions {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.bu-template-link {
-  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: $excel-green;
-  text-decoration: none;
-  padding: 7px 14px;
-  border: 1.5px solid $excel-green;
-  border-radius: 6px;
-  transition: all 0.2s;
+  margin-top: var(--tc-space-5);
+}
 
-  &:hover {
-    background: #e8f5e9;
-    transform: translateY(-1px);
+.bulk-upload__format {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-tertiary);
+  margin: var(--tc-space-4) 0 0;
+}
+
+.bulk-upload__preview {
+  margin-top: var(--tc-space-6);
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--tc-space-2);
+    font-size: var(--tc-font-size-lg);
   }
 }
 
-// ── Upload Button — dark with yellow text ─────────────
-.bu-upload-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 28px;
-  background: linear-gradient(135deg, #333333 0%, #1a1a1a 100%);
-  color: $yellow;
-  font-size: 14px;
-  font-weight: 700;
-  border: none;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-
-  &:hover:not(:disabled) {
-    background: linear-gradient(135deg, #444444 0%, #2a2a2a 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.3);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
+.bulk-upload__preview-count {
+  font-size: var(--tc-font-size-xs);
+  font-weight: var(--tc-font-weight-regular);
+  color: var(--tc-text-secondary);
 }
 
-// ── Format Guide ──────────────────────────────────────
-.bu-format {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: $yellow-bg;
-  border: 1px solid $yellow-border;
-  border-radius: 6px;
-  flex-wrap: wrap;
-
-  &__label {
-    font-size: 12px;
-    font-weight: 700;
-    color: $text-dark;
-  }
-
-  &__col {
-    font-size: 12px;
-    color: $text-mid;
-    background: $white;
-    border: 1px solid $border;
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-family: monospace;
-  }
-}
-
-// ── Table Section ─────────────────────────────────────
-.bu-table-section {
-  background: $white;
-  border-radius: $radius;
-  box-shadow: $shadow;
-  border: 1px solid $border;
+.bulk-upload__table {
+  width: 100%;
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
   overflow: hidden;
-  width: 100%;
 }
 
-.bu-table-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: $text-dark;
-  margin: 0;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid $border;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fafafa;
-
-  i {
-    color: $yellow-dark;
-    font-size: 13px;
-  }
+.bulk-upload__missing {
+  color: var(--tc-color-danger);
+  font-size: var(--tc-font-size-xs);
+  font-weight: var(--tc-font-weight-medium);
 }
-
-.bu-table-count {
-  margin-left: auto;
-  background: linear-gradient(135deg, $yellow 0%, $yellow-dark 100%);
-  color: $text-dark;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 10px;
-  padding: 2px 9px;
-  min-width: 22px;
-  text-align: center;
-}
-
-// ── Table Wrap — fixed height scrollable ──────────────
-.bu-table-wrap {
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 460px;   // taller since more vertical space now
-
-  &::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f5f5f5;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, $yellow-dark, #aaa);
-    border-radius: 10px;
-  }
-
-  scrollbar-width: thin;
-  scrollbar-color: $yellow-dark #f5f5f5;
-}
-// ── Table — fill all columns evenly ──────────────────
-.bu-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  table-layout: auto;   // columns stretch to fill
-
-  thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-
-    tr {
-      background: linear-gradient(135deg, $yellow 0%, $yellow-dark 100%);
-    }
-
-    th {
-      padding: 11px 16px;
-      text-align: left;
-      font-weight: 700;
-      color: $text-dark;
-      white-space: nowrap;
-      font-size: 12px;
-      letter-spacing: 0.3px;
-      border-bottom: 2px solid $yellow-dark;
-    }
-  }
-
-  tbody {
-    tr {
-      border-bottom: 1px solid #f0f0f0;
-      transition: background 0.15s;
-
-      &:hover { background: $yellow-bg; }
-      &:last-child { border-bottom: none; }
-
-      &:nth-child(even) {
-        background: #fafafa;
-        &:hover { background: $yellow-bg; }
-      }
-    }
-
-    td {
-      padding: 10px 16px;
-      color: $text-mid;
-      vertical-align: middle;
-      font-size: 13px;
-    }
-  }
-
-  &__filename {
-    font-weight: 600;
-    color: $text-dark !important;
-    white-space: nowrap;
-    i { color: $excel-green; margin-right: 5px; }
-  }
-
-  &__center {
-    text-align: center;
-    font-weight: 600;
-  }
-
-  &__msg {
-    max-width: 100%;       // no more truncation on wide screens
-    white-space: normal;   // allow wrap
-    color: $text-light !important;
-    word-break: break-word;
-  }
-
-  &__empty {
-    text-align: center;
-    padding: 3rem !important;
-    color: $text-light;
-
-    i {
-      font-size: 32px;
-      display: block;
-      margin-bottom: 10px;
-      color: #ccc;
-    }
-
-    span {
-      display: block;
-      font-size: 13px;
-    }
-  }
-}
-
-// ── Status Badge ──────────────────────────────────────
-.bu-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-
-  &--success {
-    background: $success-bg;
-    color: $success;
-    border: 1px solid #a5d6a7;
-  }
-
-  &--fail {
-    background: $error-bg;
-    color: $error;
-    border: 1px solid #ef9a9a;
-  }
-}
-
-// ── Error row highlight ───────────────────────────────
-.bu-row--error {
-  background: #fff8f8 !important;
-  border-left: 3px solid $error;
-}
-
-// ── Missing cell indicator ────────────────────────────
-.bu-missing {
-  color: $error;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;  
-  gap: 4px;
-
-  i { font-size: 11px; }
-}
-
-// ── Responsive ────────────────────────────────────────
-@media (max-width: 1024px) {
-  .bu-page {
-    max-width: 100%;
-    padding: 1rem 1.25rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .bu-page {
-    padding: 1rem;
-    gap: 1rem;
-  }
-
-  .bu-card {
-    padding: 1rem;
-  }
-
-  .bu-header {
-    &__icon {
-      width: 38px;
-      height: 38px;
-      i { font-size: 17px; }
-    }
-
-    &__title { font-size: 17px; }
-    &__sub { font-size: 12px; }
-  }
-
-  .bu-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .bu-upload-btn {
-    justify-content: center;
-    width: 100%;
-  }
-
-  .bu-template-link {
-    justify-content: center;
-  }
-
-  .bu-table-wrap {
-    max-height: 240px;
-  }
-
-  .bu-table {
-    font-size: 12px;
-
-    thead th { padding: 8px 10px; font-size: 11px; }
-    tbody td { padding: 7px 10px; }
-  }
-
-  .bu-table__msg {
-    max-width: 130px;
-  }
-}
-
-@media (max-width: 480px) {
-  .bu-page { padding: 0.75rem; }
-
-  .bu-dropzone__icon { font-size: 26px; }
-  .bu-dropzone__text { font-size: 13px; }
-
-  .bu-format {
-    gap: 6px;
-    &__col { font-size: 11px; padding: 2px 6px; }
-  }
-}
-
-

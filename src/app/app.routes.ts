@@ -31,8 +31,8 @@ export const routes: Routes = [
                 path: 'billing',
                 loadChildren: () => import('./features/billing/billing.routes').then((m) => m.BILLING_ROUTES),
             },
-            { path: 'vehicleOrder', component: VehicleOrder },
-            { path: 'bulkupload', component: BulkUpload },
+            { path: 'vehicle-order', component: VehicleOrder },
+            { path: 'bulk-upload', component: BulkUpload },
             {
                 path: '403',
                 loadComponent: () =>

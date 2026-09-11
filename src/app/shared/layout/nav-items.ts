@@ -23,7 +23,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Trips', icon: 'route', path: '/ops/trips' },
       { label: 'Vehicle Orders', icon: 'assignment', path: '/vehicle-order' },
-      { label: 'Bulk Upload', icon: 'upload_file', path: '/bulkupload' },
+      { label: 'Bulk Upload', icon: 'upload_file', path: '/bulk-upload' },
     ],
   },
   {

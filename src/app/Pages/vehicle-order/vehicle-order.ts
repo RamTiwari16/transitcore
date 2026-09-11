@@ -1,134 +1,89 @@
-import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { VehicleOrderRow, VehicleOrderService } from '../../services/vehicle-order-service';
-
 
 @Component({
   selector: 'app-vehicle-order',
-  imports: [CommonModule, FormsModule],
+  imports: [MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatTableModule, MatPaginatorModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './vehicle-order.html',
   styleUrl: './vehicle-order.scss',
 })
 export class VehicleOrder {
-  Math = Math;
-  // ── Date filter ───────────────────────────────────
-  fromDate: string = '';
-  toDate: string = '';
+  readonly fromDate = signal(this.today());
+  readonly toDate = signal(this.today());
+  readonly isLoading = signal(false);
+  readonly errorMsg = signal('');
+  readonly searched = signal(false);
+  readonly allData = signal<VehicleOrderRow[]>([]);
+  readonly searchTerm = signal('');
+  readonly pageIndex = signal(0);
+  readonly pageSize = signal(10);
+  readonly displayedColumns = ['index', 'orderNo', 'vehicleNo', 'uploadDate', 'createdByEmail'];
 
-  // ── State ─────────────────────────────────────────
-  isLoading = false;
-  errorMsg = '';
-  searched = false;
+  readonly filteredData = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    if (!term) return this.allData();
 
-  // ── Data ──────────────────────────────────────────
-  allData: VehicleOrderRow[] = [];
-  filteredData: VehicleOrderRow[] = [];
-  pagedData: VehicleOrderRow[] = [];
+    return this.allData().filter(
+      (row) => row.vehicleNo?.toLowerCase().includes(term) || row.orderNo?.toLowerCase().includes(term),
+    );
+  });
 
-  // ── Search ────────────────────────────────────────
-  searchTerm = '';
+  readonly pagedData = computed(() => {
+    const start = this.pageIndex() * this.pageSize();
+    return this.filteredData().slice(start, start + this.pageSize());
+  });
 
-  // ── Pagination ────────────────────────────────────
-  currentPage = 1;
-  pageSize = 10;
-  totalPages = 0;
+  constructor(private service: VehicleOrderService) {}
 
-  constructor(
-    private service: VehicleOrderService,
-    private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
-  ) {
-    // default to today
-    const today = new Date().toISOString().split('T')[0];
-    this.fromDate = today;
-    this.toDate = today;
+  private today(): string {
+    return new Date().toISOString().split('T')[0];
   }
 
-  search() {
-    if (!this.fromDate || !this.toDate) {
-      this.errorMsg = 'Please select both From and To dates.';
+  search(): void {
+    if (!this.fromDate() || !this.toDate()) {
+      this.errorMsg.set('Please select both From and To dates.');
       return;
     }
-    this.isLoading = true;
-    this.errorMsg = '';
-    this.searched = false;
-    debugger
 
-    this.service
-      .getByDateRange({ fromDate: this.fromDate, toDate: this.toDate })
-      .subscribe({
-        next: (res) => {
-          this.ngZone.run(() => {
-            this.isLoading = false;
-            this.searched = true;
-            this.allData = res.data ?? [];
-            this.searchTerm = '';
-            this.currentPage = 1;
-            this.applyFilter();
-            this.cdr.detectChanges();
-          });
-        },
-        error: (err) => {
-          this.ngZone.run(() => {
-            this.isLoading = false;
-            this.searched = true;
-            this.errorMsg =
-              err?.error?.message || 'Failed to fetch data. Please try again.';
-            this.cdr.detectChanges();
-          });
-        },
-      });
+    this.isLoading.set(true);
+    this.errorMsg.set('');
+    this.searched.set(false);
+
+    this.service.getByDateRange({ fromDate: this.fromDate(), toDate: this.toDate() }).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        this.searched.set(true);
+        this.allData.set(res.data ?? []);
+        this.searchTerm.set('');
+        this.pageIndex.set(0);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.searched.set(true);
+        this.errorMsg.set(err?.error?.message || 'Failed to fetch data. Please try again.');
+      },
+    });
   }
 
-  // ── Client-side search ────────────────────────────
-  onSearchChange() {
-    this.currentPage = 1;
-    this.applyFilter();
+  onSearchTermChange(value: string): void {
+    this.searchTerm.set(value);
+    this.pageIndex.set(0);
   }
 
-  applyFilter() {
-    const term = this.searchTerm.toLowerCase().trim();
-    this.filteredData = term
-      ? this.allData.filter(
-          (row) =>
-            row.vehicleNo?.toLowerCase().includes(term) ||
-            row.orderNo?.toLowerCase().includes(term)
-        )
-      : [...this.allData];
-
-    this.totalPages = Math.ceil(this.filteredData.length / this.pageSize);
-    if (this.totalPages === 0) this.totalPages = 1;
-    this.buildPage();
+  onPage(event: PageEvent): void {
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
   }
 
-  buildPage() {
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.pagedData = this.filteredData.slice(start, start + this.pageSize);
-  }
-
-  // ── Pagination controls ───────────────────────────
-  goToPage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.buildPage();
-  }
-
-  get pageNumbers(): number[] {
-    const pages: number[] = [];
-    const start = Math.max(1, this.currentPage - 2);
-    const end = Math.min(this.totalPages, this.currentPage + 2);
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
-  }
-
-  // ── Utility ───────────────────────────────────────
   formatDate(date: string): string {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    return new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 }

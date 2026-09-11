@@ -1,8 +1,9 @@
-import { Component, NgZone, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
 import * as XLSX from 'xlsx';
 import { VehicleOrderService } from '../../services/vehicle-order-service';
-
 
 interface ExcelRow {
   vehicleNo: string;
@@ -11,156 +12,137 @@ interface ExcelRow {
 
 @Component({
   selector: 'app-bulk-upload',
-  imports: [CommonModule],
+  imports: [MatButtonModule, MatIconModule, MatTableModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bulk-upload.html',
   styleUrl: './bulk-upload.scss',
 })
 export class BulkUpload {
-  selectedFile: File | null = null;
-  isDragging = false;
-  isLoading = false;
-  errorMsg = '';
-  successMsg = '';
-  previewData: ExcelRow[] = [];
+  readonly selectedFile = signal<File | null>(null);
+  readonly isDragging = signal(false);
+  readonly isLoading = signal(false);
+  readonly errorMsg = signal('');
+  readonly successMsg = signal('');
+  readonly previewData = signal<ExcelRow[]>([]);
+  readonly displayedColumns = ['index', 'vehicleNo', 'orderNo'];
 
-  constructor(
-    private vehicleOrderService: VehicleOrderService,
-    private ngZone: NgZone,
-    private cdr: ChangeDetectorRef    // ← add this
-  ) { }
+  constructor(private vehicleOrderService: VehicleOrderService) {}
 
-  onDragOver(e: DragEvent) {
+  onDragOver(e: DragEvent): void {
     e.preventDefault();
-    this.isDragging = true;
+    this.isDragging.set(true);
   }
 
-  onDragLeave() {
-    this.isDragging = false;
+  onDragLeave(): void {
+    this.isDragging.set(false);
   }
 
-  onDrop(e: DragEvent) {
+  onDrop(e: DragEvent): void {
     e.preventDefault();
-    this.isDragging = false;
+    this.isDragging.set(false);
     const file = e.dataTransfer?.files[0];
     if (file) this.setFile(file);
   }
 
-  onFileSelected(e: Event) {
+  onFileSelected(e: Event): void {
     const input = e.target as HTMLInputElement;
     if (input.files?.length) this.setFile(input.files[0]);
-    // reset input so same file can be re-selected
-    (e.target as HTMLInputElement).value = '';
+    input.value = '';
   }
 
-  setFile(file: File) {
+  setFile(file: File): void {
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (ext !== 'xlsx' && ext !== 'xls') {
-      this.errorMsg = 'Only Excel files (.xlsx, .xls) are allowed.';
-      this.selectedFile = null;
-      this.previewData = [];
-      this.cdr.detectChanges();      // ← force update
+      this.errorMsg.set('Only Excel files (.xlsx, .xls) are allowed.');
+      this.selectedFile.set(null);
+      this.previewData.set([]);
       return;
     }
-    this.errorMsg = '';
-    this.successMsg = '';
-    this.selectedFile = file;
-    this.cdr.detectChanges();        // ← force update so file name shows instantly
+    this.errorMsg.set('');
+    this.successMsg.set('');
+    this.selectedFile.set(file);
     this.parseExcel(file);
   }
 
-  parseExcel(file: File) {
+  parseExcel(file: File): void {
     const reader = new FileReader();
 
-    reader.onload = (e: any) => {
-      this.ngZone.run(() => {          // ← run inside Angular zone
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        this.previewData = rows
-          .slice(1)
-          .filter(row => row[0] || row[1])
-          .map(row => ({
-            vehicleNo: row[0]?.toString().trim() ?? '',
-            orderNo: row[1]?.toString().trim() ?? '',
-          }));
+      const parsed = rows
+        .slice(1)
+        .filter((row) => row[0] || row[1])
+        .map((row) => ({
+          vehicleNo: row[0]?.toString().trim() ?? '',
+          orderNo: row[1]?.toString().trim() ?? '',
+        }));
 
-        if (this.previewData.length === 0) {
-          this.errorMsg = 'No data rows found in the file.';
-        }
+      this.previewData.set(parsed);
 
-        this.cdr.detectChanges();     // ← force update after parsing
-      });
+      if (parsed.length === 0) {
+        this.errorMsg.set('No data rows found in the file.');
+      }
     };
 
     reader.onerror = () => {
-      this.ngZone.run(() => {
-        this.errorMsg = 'Failed to read file. Please try again.';
-        this.cdr.detectChanges();
-      });
+      this.errorMsg.set('Failed to read file. Please try again.');
     };
 
     reader.readAsArrayBuffer(file);
   }
 
-  removeFile() {
-    this.selectedFile = null;
-    this.previewData = [];
-    this.errorMsg = '';
-    this.successMsg = '';
-    this.cdr.detectChanges();        // ← force update on remove
+  removeFile(): void {
+    this.selectedFile.set(null);
+    this.previewData.set([]);
+    this.errorMsg.set('');
+    this.successMsg.set('');
   }
 
-  downloadTemplate() {
+  downloadTemplate(): void {
     const templateData = [
-      ['OrderNo','VehicleNo'  ],   // header row
-      ['ORD-001','MH12AB1234' ], // example row 1
-      ['ORD-002','DL01CD5678' ], // example row 2
+      ['OrderNo', 'VehicleNo'],
+      ['ORD-001', 'MH12AB1234'],
+      ['ORD-002', 'DL01CD5678'],
     ];
 
     const worksheet = XLSX.utils.aoa_to_sheet(templateData);
+    worksheet['!cols'] = [{ wch: 20 }, { wch: 20 }];
 
-    // column widths
-    worksheet['!cols'] = [
-      { wch: 20 },  // VehicleNo column width
-      { wch: 20 },  // OrderNo column width
-    ];
-
-    // style header row bold (note: basic XLSX doesn't support rich styles,
-    // but column headers are set correctly)
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'VehicleOrder');
-
     XLSX.writeFile(workbook, 'vehicle-order-template.xlsx');
   }
 
-  upload() {
-    if (!this.selectedFile) {
-      this.errorMsg = 'Please select a file first.';
+  upload(): void {
+    const file = this.selectedFile();
+    if (!file) {
+      this.errorMsg.set('Please select a file first.');
       return;
     }
-    this.isLoading = true;
-    this.errorMsg = '';
-    this.successMsg = '';
 
-    this.vehicleOrderService.bulkUpload(this.selectedFile).subscribe({
+    this.isLoading.set(true);
+    this.errorMsg.set('');
+    this.successMsg.set('');
+
+    this.vehicleOrderService.bulkUpload(file).subscribe({
       next: (res) => {
-        this.ngZone.run(() => {
-          this.isLoading = false;
-          this.successMsg = res.message;
-          this.selectedFile = null;
-          this.previewData = [];
-          this.cdr.detectChanges();  // ← force update after upload
-        });
+        this.isLoading.set(false);
+        this.successMsg.set(res.message);
+        this.selectedFile.set(null);
+        this.previewData.set([]);
       },
       error: (err) => {
-        this.ngZone.run(() => {
-          this.isLoading = false;
-          this.errorMsg = err?.error?.message || 'Upload failed. Please try again.';
-          this.cdr.detectChanges();  // ← force update on error
-        });
+        this.isLoading.set(false);
+        this.errorMsg.set(err?.error?.message || 'Upload failed. Please try again.');
       },
     });
+  }
+
+  formatFileSize(file: File): string {
+    return `${(file.size / 1024).toFixed(1)} KB`;
   }
 }
