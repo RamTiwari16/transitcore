@@ -13,11 +13,11 @@
 SET NOCOUNT ON;
 GO
 
-IF OBJECT_ID('identity.usp_GetUserForLogin', 'P') IS NOT NULL
-    DROP PROCEDURE identity.usp_GetUserForLogin;
+IF OBJECT_ID('auth.usp_GetUserForLogin', 'P') IS NOT NULL
+    DROP PROCEDURE auth.usp_GetUserForLogin;
 GO
 
-CREATE PROCEDURE identity.usp_GetUserForLogin
+CREATE PROCEDURE auth.usp_GetUserForLogin
     @Email NVARCHAR(256)
 AS
 BEGIN
@@ -33,11 +33,11 @@ BEGIN
             u.IsActive,
             (
                 SELECT STRING_AGG(r.Name, ',')
-                FROM identity.UserRoles ur
-                INNER JOIN identity.Roles r ON r.Id = ur.RoleId
+                FROM auth.UserRoles ur
+                INNER JOIN auth.Roles r ON r.Id = ur.RoleId
                 WHERE ur.UserId = u.Id AND r.IsDeleted = 0
             ) AS Roles
-        FROM identity.Users u
+        FROM auth.Users u
         WHERE u.Email = @Email
           AND u.IsDeleted = 0;
     END TRY

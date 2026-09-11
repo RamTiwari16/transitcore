@@ -23,7 +23,7 @@ public class AuthRepository : IAuthService
     {
         var parameters = new[] { new SqlParameter("@Email", request.Email) };
 
-        var table = await _db.QueryProcedureAsync("identity.usp_GetUserForLogin", parameters, cancellationToken);
+        var table = await _db.QueryProcedureAsync("auth.usp_GetUserForLogin", parameters, cancellationToken);
 
         if (table.Rows.Count == 0)
             return null;

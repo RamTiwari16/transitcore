@@ -16,14 +16,14 @@
 SET NOCOUNT ON;
 GO
 
-MERGE identity.Roles AS target
+MERGE auth.Roles AS target
 USING (VALUES ('Admin'), ('Manager'), ('User')) AS source (Name)
 ON target.Name = source.Name
 WHEN NOT MATCHED THEN
     INSERT (Name, CreatedBy) VALUES (source.Name, 'seed');
 GO
 
-MERGE identity.Permissions AS target
+MERGE auth.Permissions AS target
 USING (VALUES
     ('users.manage'), ('users.view'),
     ('fleet.manage'), ('fleet.view'),
@@ -35,39 +35,39 @@ WHEN NOT MATCHED THEN
     INSERT (Name, CreatedBy) VALUES (source.Name, 'seed');
 GO
 
-INSERT INTO identity.RolePermissions (RoleId, PermissionId)
+INSERT INTO auth.RolePermissions (RoleId, PermissionId)
 SELECT r.Id, p.Id
-FROM identity.Roles r
-CROSS JOIN identity.Permissions p
+FROM auth.Roles r
+CROSS JOIN auth.Permissions p
 WHERE r.Name = 'Admin'
   AND NOT EXISTS (
-      SELECT 1 FROM identity.RolePermissions rp WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
+      SELECT 1 FROM auth.RolePermissions rp WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
   );
 GO
 
-INSERT INTO identity.RolePermissions (RoleId, PermissionId)
+INSERT INTO auth.RolePermissions (RoleId, PermissionId)
 SELECT r.Id, p.Id
-FROM identity.Roles r
-CROSS JOIN identity.Permissions p
+FROM auth.Roles r
+CROSS JOIN auth.Permissions p
 WHERE r.Name = 'Manager'
   AND p.Name IN ('users.view', 'fleet.manage', 'fleet.view', 'trips.manage', 'trips.view', 'billing.view')
   AND NOT EXISTS (
-      SELECT 1 FROM identity.RolePermissions rp WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
+      SELECT 1 FROM auth.RolePermissions rp WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
   );
 GO
 
-INSERT INTO identity.RolePermissions (RoleId, PermissionId)
+INSERT INTO auth.RolePermissions (RoleId, PermissionId)
 SELECT r.Id, p.Id
-FROM identity.Roles r
-CROSS JOIN identity.Permissions p
+FROM auth.Roles r
+CROSS JOIN auth.Permissions p
 WHERE r.Name = 'User'
   AND p.Name IN ('fleet.view', 'trips.view')
   AND NOT EXISTS (
-      SELECT 1 FROM identity.RolePermissions rp WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
+      SELECT 1 FROM auth.RolePermissions rp WHERE rp.RoleId = r.Id AND rp.PermissionId = p.Id
   );
 GO
 
-MERGE identity.Users AS target
+MERGE auth.Users AS target
 USING (VALUES
     ('admin@transitcore.local',   '73DVYAcCOIPZq50VMeD1wg==', 'I7u477jyEFjXJclxjQ63538irJh9IDduDR/OCWnE0mY=', 'System Administrator'),
     ('manager@transitcore.local', 'BSDUUd0rmPQeCNDhMygB/A==', 'FvQqbLmBUAI5EKoue6sU/Da6NCs0tI38u/dAdu8vnpU=', 'Regional Manager'),
@@ -79,16 +79,16 @@ WHEN NOT MATCHED THEN
     VALUES (source.Email, source.PasswordHash, source.PasswordSalt, source.DisplayName, 1, 'seed');
 GO
 
-INSERT INTO identity.UserRoles (UserId, RoleId)
+INSERT INTO auth.UserRoles (UserId, RoleId)
 SELECT u.Id, r.Id
-FROM identity.Users u
-CROSS JOIN identity.Roles r
+FROM auth.Users u
+CROSS JOIN auth.Roles r
 WHERE (
           (u.Email = 'admin@transitcore.local'   AND r.Name = 'Admin')
        OR (u.Email = 'manager@transitcore.local' AND r.Name = 'Manager')
        OR (u.Email = 'ops@transitcore.local'     AND r.Name = 'User')
       )
   AND NOT EXISTS (
-      SELECT 1 FROM identity.UserRoles ur WHERE ur.UserId = u.Id AND ur.RoleId = r.Id
+      SELECT 1 FROM auth.UserRoles ur WHERE ur.UserId = u.Id AND ur.RoleId = r.Id
   );
 GO

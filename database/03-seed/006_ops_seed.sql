@@ -42,7 +42,11 @@ SELECT
     v.Id,
     d.Id,
     DATEADD(DAY, t.DayOffset, @SeedAnchorDate),
-    DATEADD(HOUR, t.DurationHours, DATEADD(DAY, t.DayOffset, @SeedAnchorDate)),
+    -- DATEADD can't add an HOUR part directly to a DATE-typed expression
+    -- (confirmed against a live SQL Server: "the datepart hour is not
+    -- supported by date function dateadd for data type date") - cast to
+    -- DATETIME2 first.
+    DATEADD(HOUR, t.DurationHours, CAST(DATEADD(DAY, t.DayOffset, @SeedAnchorDate) AS DATETIME2)),
     sc.Id,
     'seed'
 FROM (VALUES

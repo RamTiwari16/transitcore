@@ -8,6 +8,6 @@
 SET NOCOUNT ON;
 GO
 
-IF NOT EXISTS (SELECT 1 FROM sys.types WHERE name = 'IntList_TVP' AND schema_id = SCHEMA_ID('identity'))
-    CREATE TYPE identity.IntList_TVP AS TABLE (Id INT NOT NULL PRIMARY KEY);
+IF NOT EXISTS (SELECT 1 FROM sys.types WHERE name = 'IntList_TVP' AND schema_id = SCHEMA_ID('auth'))
+    CREATE TYPE auth.IntList_TVP AS TABLE (Id INT NOT NULL PRIMARY KEY);
 GO

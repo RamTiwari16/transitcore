@@ -9,6 +9,22 @@ a corresponding stored procedure yet — see "What's schema-only so far" below.
 Built alongside the TransitCore.Api rewrite slice by slice; see `/PLAN.md` at
 the repo root for the full sequencing.
 
+**Verified against a live SQL Server** (LocalDB) — `run-all.sql` executes
+clean end to end, all 37 tables/35 procs created, seed data loads, and the
+full stack (SQL Server → stored procs → TransitCore.Api → TransitCore.Web)
+was exercised for real: login, paginated vehicle/trip listings, fleet
+utilisation, invoice summary. Two real bugs were only caught this way and
+are now fixed:
+- **The `identity` schema name doesn't work** — `IDENTITY` is a reserved
+  T-SQL keyword; `CREATE SCHEMA identity` (and every `identity.Table`
+  reference) fails outright unless bracket-quoted. Renamed the schema to
+  `auth` everywhere (schema/table/proc/TVP definitions, seed data, and the
+  two C# repositories that called these procs by name) rather than
+  bracket-quoting every reference.
+- `DATEADD(HOUR, ...)` can't apply an hour offset directly to a `DATE`-typed
+  expression (only DATETIME/DATETIME2) — fixed in the trip seed script by
+  casting to `DATETIME2` first.
+
 ## What's schema-only so far
 
 Tables exist (with indexes/constraints) but have no CRUD procedures or seed
@@ -54,8 +70,11 @@ bloat and worse join performance for no benefit here.
 
 ## Conventions
 
-- Explicit schemas always (`identity.`, `lookup.`, and — in later slices —
-  `fleet.`, `ops.`, `billing.`). Never unqualified/`dbo.` for business tables.
+- Explicit schemas always (`auth.`, `lookup.`, `fleet.`, `ops.`, `billing.`).
+  Never unqualified/`dbo.` for business tables. The identity domain's schema
+  is named `auth`, not `identity` — `IDENTITY` is a reserved T-SQL keyword
+  and breaks as an unquoted schema qualifier (confirmed against a live SQL
+  Server: `CREATE SCHEMA identity` fails outright).
 - Named constraints: `PK_Table`, `FK_Child_Parent`, `UQ_Table_Column`,
   `IX_Table_Column`, `CK_Table_Rule`, `DF_Table_Column` for defaults.
 - Every business table has `CreatedAt`, `CreatedBy`, `ModifiedAt`,
@@ -70,10 +89,10 @@ bloat and worse join performance for no benefit here.
 
 ## Password hashing
 
-`identity.Users.PasswordHash`/`PasswordSalt` are PBKDF2-HMACSHA256 output
+`auth.Users.PasswordHash`/`PasswordSalt` are PBKDF2-HMACSHA256 output
 (100,000 iterations, 16-byte salt, 32-byte derived key), both stored as
 Base64. The comparison happens in `TransitCore.Infrastructure.Security.PasswordHasher`
-(.NET), not in T-SQL — `identity.usp_GetUserForLogin` only returns the stored
+(.NET), not in T-SQL — `auth.usp_GetUserForLogin` only returns the stored
 hash/salt for the app layer to verify. This keeps the hashing parameters easy
 to change later without a database migration.
 

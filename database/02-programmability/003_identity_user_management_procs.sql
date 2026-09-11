@@ -8,11 +8,11 @@
 SET NOCOUNT ON;
 GO
 
-IF OBJECT_ID('identity.usp_GetUsers', 'P') IS NOT NULL
-    DROP PROCEDURE identity.usp_GetUsers;
+IF OBJECT_ID('auth.usp_GetUsers', 'P') IS NOT NULL
+    DROP PROCEDURE auth.usp_GetUsers;
 GO
 
-CREATE PROCEDURE identity.usp_GetUsers
+CREATE PROCEDURE auth.usp_GetUsers
     @BranchId             INT = NULL,
     @DesignationId        INT = NULL,
     @WorkingDesignationId INT = NULL
@@ -37,11 +37,11 @@ BEGIN
             u.IsActive,
             (
                 SELECT STRING_AGG(br.Name, ',')
-                FROM identity.UserBranches ub2
+                FROM auth.UserBranches ub2
                 INNER JOIN lookup.Branches br ON br.Id = ub2.BranchId
                 WHERE ub2.UserId = u.Id
             ) AS BranchNames
-        FROM identity.Users u
+        FROM auth.Users u
         LEFT JOIN lookup.Designations d ON d.Id = u.DesignationId
         LEFT JOIN lookup.WorkingDesignations wd ON wd.Id = u.WorkingDesignationId
         LEFT JOIN lookup.Regions rg ON rg.Id = u.RegionId
@@ -50,7 +50,7 @@ BEGIN
           AND (@WorkingDesignationId IS NULL OR u.WorkingDesignationId = @WorkingDesignationId)
           AND (
                 @BranchId IS NULL
-                OR EXISTS (SELECT 1 FROM identity.UserBranches ub WHERE ub.UserId = u.Id AND ub.BranchId = @BranchId)
+                OR EXISTS (SELECT 1 FROM auth.UserBranches ub WHERE ub.UserId = u.Id AND ub.BranchId = @BranchId)
               )
         ORDER BY u.DisplayName;
     END TRY
@@ -60,11 +60,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('identity.usp_GetUserById', 'P') IS NOT NULL
-    DROP PROCEDURE identity.usp_GetUserById;
+IF OBJECT_ID('auth.usp_GetUserById', 'P') IS NOT NULL
+    DROP PROCEDURE auth.usp_GetUserById;
 GO
 
-CREATE PROCEDURE identity.usp_GetUserById
+CREATE PROCEDURE auth.usp_GetUserById
     @UserId INT
 AS
 BEGIN
@@ -77,14 +77,14 @@ BEGIN
             u.RegionId, rg.Name AS RegionName,
             u.PunchLocation, u.Shift, u.Company, u.IsActive,
             u.CreatedAt, u.CreatedBy
-        FROM identity.Users u
+        FROM auth.Users u
         LEFT JOIN lookup.Designations d ON d.Id = u.DesignationId
         LEFT JOIN lookup.WorkingDesignations wd ON wd.Id = u.WorkingDesignationId
         LEFT JOIN lookup.Regions rg ON rg.Id = u.RegionId
         WHERE u.Id = @UserId AND u.IsDeleted = 0;
 
         SELECT BranchId
-        FROM identity.UserBranches
+        FROM auth.UserBranches
         WHERE UserId = @UserId;
     END TRY
     BEGIN CATCH
@@ -93,11 +93,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('identity.usp_InsertUser', 'P') IS NOT NULL
-    DROP PROCEDURE identity.usp_InsertUser;
+IF OBJECT_ID('auth.usp_InsertUser', 'P') IS NOT NULL
+    DROP PROCEDURE auth.usp_InsertUser;
 GO
 
-CREATE PROCEDURE identity.usp_InsertUser
+CREATE PROCEDURE auth.usp_InsertUser
     @Email                NVARCHAR(256),
     @PasswordHash         NVARCHAR(256),
     @PasswordSalt         NVARCHAR(256),
@@ -111,7 +111,7 @@ CREATE PROCEDURE identity.usp_InsertUser
     @Shift                NVARCHAR(50)  = NULL,
     @Company              NVARCHAR(200) = NULL,
     @CreatedBy            NVARCHAR(256),
-    @Branches             identity.IntList_TVP READONLY
+    @Branches             auth.IntList_TVP READONLY
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -120,7 +120,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        INSERT INTO identity.Users
+        INSERT INTO auth.Users
             (Email, PasswordHash, PasswordSalt, DisplayName, PhoneNo, EmpCode,
              DesignationId, WorkingDesignationId, RegionId, PunchLocation, Shift, Company, CreatedBy)
         VALUES
@@ -129,7 +129,7 @@ BEGIN
 
         DECLARE @NewUserId INT = SCOPE_IDENTITY();
 
-        INSERT INTO identity.UserBranches (UserId, BranchId)
+        INSERT INTO auth.UserBranches (UserId, BranchId)
         SELECT @NewUserId, Id FROM @Branches;
 
         COMMIT TRANSACTION;
@@ -144,11 +144,11 @@ BEGIN
 END
 GO
 
-IF OBJECT_ID('identity.usp_UpdateUser', 'P') IS NOT NULL
-    DROP PROCEDURE identity.usp_UpdateUser;
+IF OBJECT_ID('auth.usp_UpdateUser', 'P') IS NOT NULL
+    DROP PROCEDURE auth.usp_UpdateUser;
 GO
 
-CREATE PROCEDURE identity.usp_UpdateUser
+CREATE PROCEDURE auth.usp_UpdateUser
     @UserId               INT,
     @DisplayName          NVARCHAR(200),
     @PhoneNo              NVARCHAR(30)  = NULL,
@@ -159,7 +159,7 @@ CREATE PROCEDURE identity.usp_UpdateUser
     @Shift                NVARCHAR(50)  = NULL,
     @Company              NVARCHAR(200) = NULL,
     @ModifiedBy           NVARCHAR(256),
-    @Branches             identity.IntList_TVP READONLY,
+    @Branches             auth.IntList_TVP READONLY,
     @IsUpdated            BIT OUTPUT
 AS
 BEGIN
@@ -169,7 +169,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        UPDATE identity.Users
+        UPDATE auth.Users
         SET DisplayName          = @DisplayName,
             PhoneNo              = @PhoneNo,
             DesignationId        = @DesignationId,
@@ -184,9 +184,9 @@ BEGIN
 
         SET @IsUpdated = CASE WHEN @@ROWCOUNT > 0 THEN 1 ELSE 0 END;
 
-        DELETE FROM identity.UserBranches WHERE UserId = @UserId;
+        DELETE FROM auth.UserBranches WHERE UserId = @UserId;
 
-        INSERT INTO identity.UserBranches (UserId, BranchId)
+        INSERT INTO auth.UserBranches (UserId, BranchId)
         SELECT @UserId, Id FROM @Branches;
 
         COMMIT TRANSACTION;

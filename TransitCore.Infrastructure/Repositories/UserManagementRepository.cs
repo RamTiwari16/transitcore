@@ -26,7 +26,7 @@ public class UserManagementRepository : IUserManagementService
             new SqlParameter("@WorkingDesignationId", (object?)filter.WorkingDesignationId ?? DBNull.Value)
         };
 
-        var table = await _db.QueryProcedureAsync("identity.usp_GetUsers", parameters, cancellationToken);
+        var table = await _db.QueryProcedureAsync("auth.usp_GetUsers", parameters, cancellationToken);
 
         return table.Rows.Cast<DataRow>().Select(MapSummary).ToList();
     }
@@ -34,7 +34,7 @@ public class UserManagementRepository : IUserManagementService
     public async Task<UserDetailDto?> GetUserByIdAsync(int userId, CancellationToken cancellationToken = default)
     {
         var parameters = new[] { new SqlParameter("@UserId", userId) };
-        var dataSet = await _db.QueryProcedureMultipleAsync("identity.usp_GetUserById", parameters, cancellationToken);
+        var dataSet = await _db.QueryProcedureMultipleAsync("auth.usp_GetUserById", parameters, cancellationToken);
 
         if (dataSet.Tables.Count == 0 || dataSet.Tables[0].Rows.Count == 0)
             return null;
@@ -90,7 +90,7 @@ public class UserManagementRepository : IUserManagementService
             BuildBranchesParameter(request.BranchIds)
         };
 
-        var newUserId = await _db.ExecuteScalarProcedureAsync("identity.usp_InsertUser", parameters, cancellationToken);
+        var newUserId = await _db.ExecuteScalarProcedureAsync("auth.usp_InsertUser", parameters, cancellationToken);
         return Convert.ToInt32(newUserId);
     }
 
@@ -114,7 +114,7 @@ public class UserManagementRepository : IUserManagementService
             isUpdatedParam
         };
 
-        await _db.ExecuteNonQueryProcedureAsync("identity.usp_UpdateUser", parameters, cancellationToken);
+        await _db.ExecuteNonQueryProcedureAsync("auth.usp_UpdateUser", parameters, cancellationToken);
 
         return isUpdatedParam.Value is bool b && b;
     }
@@ -149,7 +149,7 @@ public class UserManagementRepository : IUserManagementService
 
         return new SqlParameter("@Branches", SqlDbType.Structured)
         {
-            TypeName = "identity.IntList_TVP",
+            TypeName = "auth.IntList_TVP",
             Value = table
         };
     }
