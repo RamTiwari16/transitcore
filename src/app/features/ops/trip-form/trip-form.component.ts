@@ -54,10 +54,22 @@ export class TripFormComponent implements CanComponentDeactivate {
     private toast: ToastService,
     private router: Router,
   ) {
-    this.opsService.getRoutes().subscribe((r) => this.routes.set(r));
-    this.fleetService.getVehicles(1, 100).subscribe((r) => this.vehicles.set(r.items));
-    this.fleetService.getDrivers().subscribe((d) => this.drivers.set(d));
-    this.lookupService.getStatusCodes('Trip').subscribe((s) => this.statusOptions.set(s));
+    this.opsService.getRoutes().subscribe({
+      next: (r) => this.routes.set(r),
+      error: () => this.toast.error('Failed to load routes'),
+    });
+    this.fleetService.getVehicles(1, 100).subscribe({
+      next: (r) => this.vehicles.set(r.items),
+      error: () => this.toast.error('Failed to load vehicles'),
+    });
+    this.fleetService.getDrivers().subscribe({
+      next: (d) => this.drivers.set(d),
+      error: () => this.toast.error('Failed to load drivers'),
+    });
+    this.lookupService.getStatusCodes('Trip').subscribe({
+      next: (s) => this.statusOptions.set(s),
+      error: () => this.toast.error('Failed to load status options'),
+    });
   }
 
   hasUnsavedChanges(): boolean {

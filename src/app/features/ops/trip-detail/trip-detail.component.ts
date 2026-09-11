@@ -34,7 +34,10 @@ export class TripDetailComponent {
     private confirmDialog: ConfirmDialogService,
     private toast: ToastService,
   ) {
-    this.lookupService.getStatusCodes('Trip').subscribe((s) => this.statusOptions.set(s));
+    this.lookupService.getStatusCodes('Trip').subscribe({
+      next: (s) => this.statusOptions.set(s),
+      error: () => this.toast.error('Failed to load status options'),
+    });
     this.load();
   }
 

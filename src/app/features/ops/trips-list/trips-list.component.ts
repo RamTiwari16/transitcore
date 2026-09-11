@@ -8,6 +8,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { OpsService } from '../../../services/ops.service';
 import { LookupService } from '../../../services/lookup.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { TripModel } from '../../../models/ops.models';
 import { StatusCodeModel } from '../../../models/lookup.models';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
@@ -40,9 +41,13 @@ export class TripsListComponent {
   constructor(
     private opsService: OpsService,
     private lookupService: LookupService,
+    private toast: ToastService,
     private router: Router,
   ) {
-    this.lookupService.getStatusCodes('Trip').subscribe((statuses) => this.statusOptions.set(statuses));
+    this.lookupService.getStatusCodes('Trip').subscribe({
+      next: (statuses) => this.statusOptions.set(statuses),
+      error: () => this.toast.error('Failed to load status options'),
+    });
     this.load();
   }
 

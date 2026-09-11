@@ -60,8 +60,14 @@ export class VehicleFormComponent implements CanComponentDeactivate {
     private toast: ToastService,
     private router: Router,
   ) {
-    this.fleetService.getVehicleTypes().subscribe((types) => this.vehicleTypes.set(types));
-    this.lookupService.getStatusCodes('Vehicle').subscribe((statuses) => this.statusOptions.set(statuses));
+    this.fleetService.getVehicleTypes().subscribe({
+      next: (types) => this.vehicleTypes.set(types),
+      error: () => this.toast.error('Failed to load vehicle types'),
+    });
+    this.lookupService.getStatusCodes('Vehicle').subscribe({
+      next: (statuses) => this.statusOptions.set(statuses),
+      error: () => this.toast.error('Failed to load status options'),
+    });
   }
 
   hasUnsavedChanges(): boolean {
