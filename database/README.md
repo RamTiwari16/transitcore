@@ -15,10 +15,11 @@ Tables exist (with indexes/constraints) but have no CRUD procedures or seed
 data yet: `fleet.VehicleDocuments`, `fleet.MaintenanceRecords`,
 `fleet.FuelLogs`, `fleet.DriverLicenses`, `fleet.DriverAssignments`,
 `billing.CustomerContacts`, `billing.CustomerAddresses`, `ops.RouteStops`,
-`ops.Shipments`, `ops.ShipmentItems`, `billing.RateCards`. These will get
-procedures + seed data (and .NET endpoints) as the corresponding UI screens
-are built in Phase 3, rather than being built speculatively ahead of a
-consumer.
+`billing.RateCards`. These will get procedures + seed data (and .NET
+endpoints) as the corresponding UI screens are built, rather than being
+built speculatively ahead of a consumer. (`ops.Shipments`/`ShipmentItems`
+got procedures, seed data, and a UI screen once the Shipments list/create
+screen was added.)
 
 ## Prerequisites
 

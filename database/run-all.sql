@@ -22,6 +22,7 @@ PRINT '--- 01-schema ---';
 :r .\01-schema\008_ops_routes_trips_shipments_schema.sql
 :r .\01-schema\009_billing_invoicing_schema.sql
 :r .\01-schema\010_billing_tvp.sql
+:r .\01-schema\011_ops_shipment_tvp.sql
 
 PRINT '--- 02-programmability ---';
 :r .\02-programmability\001_identity_procs.sql
@@ -32,6 +33,8 @@ PRINT '--- 02-programmability ---';
 :r .\02-programmability\006_ops_procs.sql
 :r .\02-programmability\007_billing_procs.sql
 :r .\02-programmability\008_lookup_statuscodes_proc.sql
+:r .\02-programmability\009_ops_shipment_procs.sql
+:r .\02-programmability\010_lookup_cities_proc.sql
 
 PRINT '--- 03-seed ---';
 :r .\03-seed\001_lookup_seed.sql
@@ -41,5 +44,6 @@ PRINT '--- 03-seed ---';
 :r .\03-seed\005_billing_customers_seed.sql
 :r .\03-seed\006_ops_seed.sql
 :r .\03-seed\007_billing_invoicing_seed.sql
+:r .\03-seed\008_ops_shipments_seed.sql
 
 PRINT '--- done ---';
