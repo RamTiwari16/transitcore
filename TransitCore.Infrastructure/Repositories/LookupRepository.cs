@@ -69,4 +69,21 @@ public class LookupRepository : ILookupService
             })
             .ToList();
     }
+
+    public async Task<IReadOnlyList<StatusCodeDto>> GetStatusCodesAsync(string category, CancellationToken cancellationToken = default)
+    {
+        var parameters = new[] { new SqlParameter("@Category", category) };
+        var table = await _db.QueryProcedureAsync("lookup.usp_GetStatusCodes", parameters, cancellationToken);
+
+        return table.Rows.Cast<System.Data.DataRow>()
+            .Select(row => new StatusCodeDto
+            {
+                Id = Convert.ToInt32(row["Id"]),
+                Category = row["Category"].ToString() ?? string.Empty,
+                Code = row["Code"].ToString() ?? string.Empty,
+                Name = row["Name"].ToString() ?? string.Empty,
+                SortOrder = Convert.ToInt32(row["SortOrder"])
+            })
+            .ToList();
+    }
 }

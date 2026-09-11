@@ -44,4 +44,14 @@ public class LookupController : ControllerBase
         var workingDesignations = await _lookupService.GetWorkingDesignationsAsync(cancellationToken);
         return Ok(ApiResponse<IReadOnlyList<WorkingDesignationDto>>.Ok(workingDesignations));
     }
+
+    [HttpGet("status-codes")]
+    public async Task<IActionResult> GetStatusCodes([FromQuery] string category, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(category))
+            return BadRequest(ApiResponse<string>.Fail("category is required"));
+
+        var statusCodes = await _lookupService.GetStatusCodesAsync(category, cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<StatusCodeDto>>.Ok(statusCodes));
+    }
 }
