@@ -3,10 +3,22 @@
 Hand-written T-SQL for SQL Server, run manually in SSMS (or `sqlcmd`). No ORM
 migrations — these scripts are the source of truth for schema.
 
-**Status: Identity slice only** (this is a work in progress, built alongside
-the TransitCore.Api rewrite one domain slice at a time — see `/PLAN.md` at the
-repo root for the full sequencing). Fleet/Ops/Billing schemas land in later
-slices and will extend this README's ER diagram as they're added.
+**Status:** Identity, Lookup, Ops (VehicleOrderMapping), and the full
+Fleet/Ops/Billing domain schema + seed data are in place. Not every table has
+a corresponding stored procedure yet — see "What's schema-only so far" below.
+Built alongside the TransitCore.Api rewrite slice by slice; see `/PLAN.md` at
+the repo root for the full sequencing.
+
+## What's schema-only so far
+
+Tables exist (with indexes/constraints) but have no CRUD procedures or seed
+data yet: `fleet.VehicleDocuments`, `fleet.MaintenanceRecords`,
+`fleet.FuelLogs`, `fleet.DriverLicenses`, `fleet.DriverAssignments`,
+`billing.CustomerContacts`, `billing.CustomerAddresses`, `ops.RouteStops`,
+`ops.Shipments`, `ops.ShipmentItems`, `billing.RateCards`. These will get
+procedures + seed data (and .NET endpoints) as the corresponding UI screens
+are built in Phase 3, rather than being built speculatively ahead of a
+consumer.
 
 ## Prerequisites
 
@@ -73,7 +85,7 @@ rotate before using in any shared environment):
 | manager@transitcore.local | Manager@123 | Manager |
 | ops@transitcore.local | User@123 | User |
 
-## ER diagram (current slice)
+## ER diagram — Identity / core Lookup
 
 ```mermaid
 erDiagram
@@ -145,3 +157,178 @@ erDiagram
         datetime2 ExpiresAt
         datetime2 RevokedAt
     }
+```
+
+## ER diagram — Fleet / Ops / Billing
+
+```mermaid
+erDiagram
+    VEHICLE_TYPES ||--o{ VEHICLES : "classifies"
+    VEHICLES ||--o{ VEHICLE_DOCUMENTS : "has"
+    VEHICLES ||--o{ MAINTENANCE_RECORDS : "has"
+    VEHICLES ||--o{ FUEL_LOGS : "has"
+    VEHICLES ||--o{ DRIVER_ASSIGNMENTS : "assigned via"
+    DRIVERS ||--o{ DRIVER_LICENSES : "holds"
+    DRIVERS ||--o{ DRIVER_ASSIGNMENTS : "assigned via"
+    CITIES ||--o{ ROUTES : "origin/destination"
+    ROUTES ||--o{ ROUTE_STOPS : "has"
+    ROUTES ||--o{ TRIPS : "scheduled on"
+    VEHICLES ||--o{ TRIPS : "runs"
+    DRIVERS ||--o{ TRIPS : "drives"
+    TRIPS ||--o{ TRIP_STATUS_HISTORY : "has"
+    TRIPS ||--o{ SHIPMENTS : "carries"
+    CUSTOMERS ||--o{ SHIPMENTS : "requests"
+    CUSTOMERS ||--o{ CUSTOMER_CONTACTS : "has"
+    CUSTOMERS ||--o{ CUSTOMER_ADDRESSES : "has"
+    SHIPMENTS ||--o{ SHIPMENT_ITEMS : "contains"
+    UNITS_OF_MEASURE ||--o{ SHIPMENT_ITEMS : "measured in"
+    CUSTOMERS ||--o{ INVOICES : "billed"
+    INVOICES ||--o{ INVOICE_LINES : "has"
+    SHIPMENTS ||--o{ INVOICE_LINES : "billed via"
+    INVOICES ||--o{ PAYMENTS : "receives"
+    CUSTOMERS ||--o{ RATE_CARDS : "priced by"
+
+    VEHICLE_TYPES {
+        int Id PK
+        nvarchar Name
+        decimal CapacityKg
+    }
+    VEHICLES {
+        int Id PK
+        nvarchar RegistrationNo
+        int VehicleTypeId FK
+        int StatusId FK
+    }
+    VEHICLE_DOCUMENTS {
+        int Id PK
+        int VehicleId FK
+        nvarchar DocumentType
+        date ExpiryDate
+    }
+    MAINTENANCE_RECORDS {
+        int Id PK
+        int VehicleId FK
+        date ServiceDate
+        decimal Cost
+    }
+    FUEL_LOGS {
+        int Id PK
+        int VehicleId FK
+        date FuelDate
+        decimal Liters
+    }
+    DRIVERS {
+        int Id PK
+        nvarchar FullName
+        int StatusId FK
+    }
+    DRIVER_LICENSES {
+        int Id PK
+        int DriverId FK
+        nvarchar LicenseNo
+        date ExpiryDate
+    }
+    DRIVER_ASSIGNMENTS {
+        int Id PK
+        int DriverId FK
+        int VehicleId FK
+        date StartDate
+        date EndDate
+    }
+    ROUTES {
+        int Id PK
+        nvarchar Name
+        int OriginCityId FK
+        int DestinationCityId FK
+        decimal DistanceKm
+    }
+    ROUTE_STOPS {
+        int Id PK
+        int RouteId FK
+        int CityId FK
+        int StopOrder
+    }
+    TRIPS {
+        int Id PK
+        int RouteId FK
+        int VehicleId FK
+        int DriverId FK
+        datetime2 ScheduledDeparture
+        datetime2 ScheduledArrival
+        int StatusId FK
+    }
+    TRIP_STATUS_HISTORY {
+        int Id PK
+        int TripId FK
+        int StatusId FK
+        datetime2 ChangedAt
+    }
+    CUSTOMERS {
+        int Id PK
+        nvarchar Code
+        nvarchar Name
+    }
+    CUSTOMER_CONTACTS {
+        int Id PK
+        int CustomerId FK
+        nvarchar ContactName
+    }
+    CUSTOMER_ADDRESSES {
+        int Id PK
+        int CustomerId FK
+        int CityId FK
+    }
+    SHIPMENTS {
+        int Id PK
+        int TripId FK
+        int CustomerId FK
+        int OriginCityId FK
+        int DestinationCityId FK
+        int StatusId FK
+        date ShipmentDate
+    }
+    SHIPMENT_ITEMS {
+        int Id PK
+        int ShipmentId FK
+        nvarchar Description
+        decimal Quantity
+        int UnitOfMeasureId FK
+    }
+    RATE_CARDS {
+        int Id PK
+        int CustomerId FK
+        decimal RatePerKg
+        decimal RatePerKm
+        date EffectiveFrom
+    }
+    INVOICES {
+        int Id PK
+        nvarchar InvoiceNo
+        int CustomerId FK
+        date InvoiceDate
+        decimal TotalAmount
+        int StatusId FK
+    }
+    INVOICE_LINES {
+        int Id PK
+        int InvoiceId FK
+        int ShipmentId FK
+        decimal LineTotal
+    }
+    PAYMENTS {
+        int Id PK
+        int InvoiceId FK
+        date PaymentDate
+        decimal Amount
+    }
+    CITIES {
+        int Id PK
+        nvarchar Name
+        int CountryId FK
+    }
+    UNITS_OF_MEASURE {
+        int Id PK
+        nvarchar Code
+        nvarchar Name
+    }
+```

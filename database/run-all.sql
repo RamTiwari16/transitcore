@@ -16,15 +16,29 @@ PRINT '--- 01-schema ---';
 :r .\01-schema\002_identity_schema.sql
 :r .\01-schema\003_identity_tvp.sql
 :r .\01-schema\004_ops_schema.sql
+:r .\01-schema\005_lookup_extended.sql
+:r .\01-schema\006_fleet_schema.sql
+:r .\01-schema\007_billing_customers_schema.sql
+:r .\01-schema\008_ops_routes_trips_shipments_schema.sql
+:r .\01-schema\009_billing_invoicing_schema.sql
+:r .\01-schema\010_billing_tvp.sql
 
 PRINT '--- 02-programmability ---';
 :r .\02-programmability\001_identity_procs.sql
 :r .\02-programmability\002_lookup_procs.sql
 :r .\02-programmability\003_identity_user_management_procs.sql
 :r .\02-programmability\004_ops_vehicleordermapping_procs.sql
+:r .\02-programmability\005_fleet_procs.sql
+:r .\02-programmability\006_ops_procs.sql
+:r .\02-programmability\007_billing_procs.sql
 
 PRINT '--- 03-seed ---';
 :r .\03-seed\001_lookup_seed.sql
 :r .\03-seed\002_identity_seed.sql
+:r .\03-seed\003_lookup_extended_seed.sql
+:r .\03-seed\004_fleet_seed.sql
+:r .\03-seed\005_billing_customers_seed.sql
+:r .\03-seed\006_ops_seed.sql
+:r .\03-seed\007_billing_invoicing_seed.sql
 
 PRINT '--- done ---';
