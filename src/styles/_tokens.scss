@@ -1,0 +1,163 @@
+// TransitCore design tokens.
+//
+// Colour values are extracted from the reference app's real theme source
+// (base-theme/app/_variables.scss) rather than guessed from screenshots:
+// primary brand green #92D050, Montserrat typeface, and its grayscale/
+// semantic palette. Adapted into a token system with explicit light/dark
+// variants (the reference is light-only) and named for this app's domain
+// rather than copied 1:1.
+//
+// CSS custom properties carry runtime-switchable values (colour, shadow).
+// Breakpoints are SCSS variables since custom properties can't be used
+// inside @media conditions.
+
+$tc-breakpoint-tablet: 768px;
+$tc-breakpoint-desktop: 1280px;
+
+@mixin tc-tablet-down {
+  @media (max-width: #{$tc-breakpoint-desktop - 1px}) {
+    @content;
+  }
+}
+
+@mixin tc-tablet-only {
+  @media (min-width: $tc-breakpoint-tablet) and (max-width: #{$tc-breakpoint-desktop - 1px}) {
+    @content;
+  }
+}
+
+:root {
+  // ---- Brand ----
+  --tc-color-primary: #92D050;
+  --tc-color-primary-hover: #7ab63c;
+  --tc-color-primary-active: #649c2e;
+  --tc-color-primary-contrast: #0c0c0c;
+  // Darker brand shade for high-contrast surfaces (sidebar, active nav item).
+  --tc-color-primary-surface: #1f6b3a;
+  --tc-color-primary-surface-contrast: #ffffff;
+
+  // ---- Semantic ----
+  --tc-color-success: #52c41a;
+  --tc-color-success-surface: #edfae3;
+  --tc-color-warning: #c98a02;
+  --tc-color-warning-surface: #fff6d3;
+  --tc-color-danger: #d92d20;
+  --tc-color-danger-surface: #ffedec;
+  --tc-color-info: #2f6fed;
+  --tc-color-info-surface: #eef7fc;
+
+  // ---- Surfaces ----
+  --tc-surface-canvas: #f5f5f5;
+  --tc-surface-raised: #ffffff;
+  --tc-surface-sunken: #f2f2f2;
+  --tc-surface-overlay: #ffffff;
+  --tc-border: #eaeaeb;
+  --tc-border-strong: #d6d6d6;
+  --tc-divider: #f2f2f3;
+
+  // ---- Text ----
+  --tc-text-primary: #111827;
+  --tc-text-secondary: #6b7280;
+  --tc-text-tertiary: #a0a3a9;
+  --tc-text-disabled: #c2c4c8;
+  --tc-text-on-primary: #0c0c0c;
+  --tc-text-on-primary-surface: #ffffff;
+  --tc-text-link: #2f6fed;
+
+  // ---- Typography ----
+  --tc-font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tc-font-size-xs: 0.75rem;   // 12px
+  --tc-font-size-sm: 0.8125rem; // 13px
+  --tc-font-size-md: 0.875rem;  // 14px (base)
+  --tc-font-size-lg: 1rem;      // 16px
+  --tc-font-size-xl: 1.25rem;   // 20px
+  --tc-font-size-2xl: 1.5rem;   // 24px
+  --tc-font-size-3xl: 2rem;     // 32px
+  --tc-font-weight-regular: 400;
+  --tc-font-weight-medium: 500;
+  --tc-font-weight-semibold: 600;
+  --tc-font-weight-bold: 700;
+  --tc-line-height-tight: 1.25;
+  --tc-line-height-normal: 1.5;
+  --tc-line-height-relaxed: 1.75;
+
+  // ---- Spacing (4px base) ----
+  --tc-space-1: 4px;
+  --tc-space-2: 8px;
+  --tc-space-3: 12px;
+  --tc-space-4: 16px;
+  --tc-space-5: 20px;
+  --tc-space-6: 24px;
+  --tc-space-8: 32px;
+  --tc-space-10: 40px;
+  --tc-space-12: 48px;
+  --tc-space-16: 64px;
+
+  // ---- Radii ----
+  --tc-radius-sm: 4px;
+  --tc-radius-md: 8px;
+  --tc-radius-lg: 12px;
+  --tc-radius-full: 999px;
+
+  // ---- Elevation ----
+  --tc-shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
+  --tc-shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
+  --tc-shadow-lg: 0 12px 32px rgba(17, 24, 39, 0.14);
+
+  // ---- Layout ----
+  --tc-sidebar-width: 260px;
+  --tc-sidebar-width-collapsed: 72px;
+  --tc-topbar-height: 64px;
+
+  color-scheme: light;
+}
+
+@mixin tc-dark-palette {
+  --tc-color-primary: #92d050;
+  --tc-color-primary-hover: #a3d968;
+  --tc-color-primary-active: #7ab63c;
+  --tc-color-primary-contrast: #0c0c0c;
+  --tc-color-primary-surface: #14321f;
+  --tc-color-primary-surface-contrast: #ffffff;
+
+  --tc-color-success: #4ade80;
+  --tc-color-success-surface: #12271a;
+  --tc-color-warning: #eab308;
+  --tc-color-warning-surface: #2b2410;
+  --tc-color-danger: #f87171;
+  --tc-color-danger-surface: #2c1614;
+  --tc-color-info: #60a5fa;
+  --tc-color-info-surface: #101c2c;
+
+  --tc-surface-canvas: #101214;
+  --tc-surface-raised: #1a1d20;
+  --tc-surface-sunken: #0c0d0f;
+  --tc-surface-overlay: #202327;
+  --tc-border: #2b2f33;
+  --tc-border-strong: #3a3f45;
+  --tc-divider: #24272b;
+
+  --tc-text-primary: #f2f3f5;
+  --tc-text-secondary: #b0b4ba;
+  --tc-text-tertiary: #7d8188;
+  --tc-text-disabled: #565a60;
+  --tc-text-on-primary: #0c0c0c;
+  --tc-text-on-primary-surface: #ffffff;
+  --tc-text-link: #7aa8f5;
+
+  --tc-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --tc-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+  --tc-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include tc-dark-palette;
+  }
+}
+
+:root[data-theme='dark'] {
+  @include tc-dark-palette;
+}
