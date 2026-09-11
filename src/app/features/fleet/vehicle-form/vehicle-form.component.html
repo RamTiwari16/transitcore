@@ -1,5 +1,8 @@
 <div class="page-header">
-  <h1>Add Vehicle</h1>
+  <div>
+    <h1>Add Vehicle</h1>
+    <p class="page-header__subtitle">Register a new vehicle and add it to your fleet.</p>
+  </div>
 </div>
 
 <form [formGroup]="form" (ngSubmit)="save()" class="form-card">
@@ -53,7 +56,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="form-grid__span-2">
       <mat-label>Status</mat-label>
       <mat-select formControlName="statusId" required>
         @for (status of statusOptions(); track status.id) {

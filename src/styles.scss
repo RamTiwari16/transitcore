@@ -45,6 +45,12 @@ html {
       surface-container-highest: var(--tc-surface-overlay),
       outline: var(--tc-border-strong),
       outline-variant: var(--tc-border),
+      // Outlined/filled form-fields, autocomplete/menu panels, tooltips and
+      // snack-bars all default to a barely-rounded 4px corner (Material's
+      // "corner-extra-small"), which reads as noticeably sharper than this
+      // app's own buttons/cards (8-16px) - a small but visible mismatch.
+      // Softening it to 8px brings inputs in line with the rest of the UI.
+      corner-extra-small: 8px,
     )
   );
 }
@@ -96,19 +102,26 @@ a {
   }
 }
 
+.page-header__subtitle {
+  font-size: var(--tc-font-size-sm);
+  color: var(--tc-text-secondary);
+  margin: var(--tc-space-1) 0 0;
+}
+
 // Shared reactive-form layout - used by every create/edit form page.
 .form-card {
   background: var(--tc-surface-raised);
   border: 1px solid var(--tc-border);
   border-radius: var(--tc-radius-lg);
-  padding: var(--tc-space-6);
+  box-shadow: var(--tc-shadow-md);
+  padding: var(--tc-space-8) var(--tc-space-6);
   max-width: 48rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0 var(--tc-space-4);
+  gap: 0 var(--tc-space-6);
 
   mat-form-field {
     width: 100%;
@@ -116,6 +129,16 @@ a {
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+  }
+}
+
+// Spans both columns - for a lone trailing field in an odd-count grid, so
+// it doesn't sit next to an empty, oddly-gapped cell.
+.form-grid__span-2 {
+  grid-column: 1 / -1;
+
+  @media (max-width: 768px) {
+    grid-column: auto;
   }
 }
 
