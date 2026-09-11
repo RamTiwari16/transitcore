@@ -15,11 +15,13 @@ PRINT '--- 01-schema ---';
 :r .\01-schema\001_lookup_core.sql
 :r .\01-schema\002_identity_schema.sql
 :r .\01-schema\003_identity_tvp.sql
+:r .\01-schema\004_ops_schema.sql
 
 PRINT '--- 02-programmability ---';
 :r .\02-programmability\001_identity_procs.sql
 :r .\02-programmability\002_lookup_procs.sql
 :r .\02-programmability\003_identity_user_management_procs.sql
+:r .\02-programmability\004_ops_vehicleordermapping_procs.sql
 
 PRINT '--- 03-seed ---';
 :r .\03-seed\001_lookup_seed.sql
