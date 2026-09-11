@@ -68,3 +68,58 @@ public class UpdateTripStatusRequest
     public int StatusId { get; set; }
     public string? Notes { get; set; }
 }
+
+public class ShipmentFilterRequest
+{
+    public int? CustomerId { get; set; }
+    public int? StatusId { get; set; }
+}
+
+public class ShipmentDto
+{
+    public int Id { get; set; }
+    public int? TripId { get; set; }
+    public int CustomerId { get; set; }
+    public string CustomerName { get; set; } = string.Empty;
+    public int OriginCityId { get; set; }
+    public string OriginCityName { get; set; } = string.Empty;
+    public int DestinationCityId { get; set; }
+    public string DestinationCityName { get; set; } = string.Empty;
+    public int StatusId { get; set; }
+    public string StatusName { get; set; } = string.Empty;
+    public DateOnly ShipmentDate { get; set; }
+}
+
+public class ShipmentItemDto
+{
+    public int Id { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public decimal Quantity { get; set; }
+    public int UnitOfMeasureId { get; set; }
+    public string UnitOfMeasureCode { get; set; } = string.Empty;
+    public decimal? WeightKg { get; set; }
+}
+
+public class ShipmentDetailDto : ShipmentDto
+{
+    public IReadOnlyList<ShipmentItemDto> Items { get; set; } = Array.Empty<ShipmentItemDto>();
+}
+
+public class CreateShipmentItemRequest
+{
+    public string Description { get; set; } = string.Empty;
+    public decimal Quantity { get; set; }
+    public int UnitOfMeasureId { get; set; }
+    public decimal? WeightKg { get; set; }
+}
+
+public class CreateShipmentRequest
+{
+    public int CustomerId { get; set; }
+    public int OriginCityId { get; set; }
+    public int DestinationCityId { get; set; }
+    public int StatusId { get; set; }
+    public DateOnly ShipmentDate { get; set; }
+    public int? TripId { get; set; }
+    public List<CreateShipmentItemRequest> Items { get; set; } = new();
+}

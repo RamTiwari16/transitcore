@@ -66,4 +66,32 @@ public class OpsController : ControllerBase
         await _opsService.UpdateTripStatusAsync(request, changedBy, cancellationToken);
         return Ok(ApiResponse<string>.Ok(string.Empty, "Trip status updated successfully"));
     }
+
+    [HttpGet("shipments")]
+    public async Task<IActionResult> GetShipments([FromQuery] ShipmentFilterRequest filter, CancellationToken cancellationToken)
+    {
+        var shipments = await _opsService.GetShipmentsAsync(filter, cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<ShipmentDto>>.Ok(shipments));
+    }
+
+    [HttpGet("shipments/{shipmentId:int}")]
+    public async Task<IActionResult> GetShipmentById(int shipmentId, CancellationToken cancellationToken)
+    {
+        var shipment = await _opsService.GetShipmentByIdAsync(shipmentId, cancellationToken);
+        if (shipment is null)
+            return NotFound(ApiResponse<string>.Fail("Shipment not found"));
+
+        return Ok(ApiResponse<ShipmentDetailDto>.Ok(shipment));
+    }
+
+    [HttpPost("shipments")]
+    public async Task<IActionResult> CreateShipment([FromBody] CreateShipmentRequest request, CancellationToken cancellationToken)
+    {
+        if (request.Items.Count == 0)
+            return BadRequest(ApiResponse<string>.Fail("At least one shipment item is required"));
+
+        var createdBy = User.FindFirst(ClaimTypes.Email)?.Value ?? "unknown";
+        var newShipmentId = await _opsService.CreateShipmentAsync(request, createdBy, cancellationToken);
+        return Ok(ApiResponse<int>.Ok(newShipmentId, "Shipment created successfully"));
+    }
 }

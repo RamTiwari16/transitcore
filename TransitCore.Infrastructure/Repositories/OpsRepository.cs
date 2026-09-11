@@ -132,6 +132,113 @@ public class OpsRepository : IOpsService
         await _db.ExecuteNonQueryProcedureAsync("ops.usp_UpdateTripStatus", parameters, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<ShipmentDto>> GetShipmentsAsync(ShipmentFilterRequest filter, CancellationToken cancellationToken = default)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@CustomerId", (object?)filter.CustomerId ?? DBNull.Value),
+            new SqlParameter("@StatusId", (object?)filter.StatusId ?? DBNull.Value)
+        };
+
+        var table = await _db.QueryProcedureAsync("ops.usp_GetShipments", parameters, cancellationToken);
+
+        return table.Rows.Cast<DataRow>().Select(MapShipment).ToList();
+    }
+
+    public async Task<ShipmentDetailDto?> GetShipmentByIdAsync(int shipmentId, CancellationToken cancellationToken = default)
+    {
+        var parameters = new[] { new SqlParameter("@ShipmentId", shipmentId) };
+        var dataSet = await _db.QueryProcedureMultipleAsync("ops.usp_GetShipmentById", parameters, cancellationToken);
+
+        if (dataSet.Tables.Count == 0 || dataSet.Tables[0].Rows.Count == 0)
+            return null;
+
+        var shipment = MapShipment(dataSet.Tables[0].Rows[0]);
+
+        var items = dataSet.Tables.Count > 1
+            ? dataSet.Tables[1].Rows.Cast<DataRow>().Select(row => new ShipmentItemDto
+            {
+                Id = Convert.ToInt32(row["Id"]),
+                Description = row["Description"].ToString() ?? string.Empty,
+                Quantity = Convert.ToDecimal(row["Quantity"]),
+                UnitOfMeasureId = Convert.ToInt32(row["UnitOfMeasureId"]),
+                UnitOfMeasureCode = row["UnitOfMeasureCode"].ToString() ?? string.Empty,
+                WeightKg = row["WeightKg"] == DBNull.Value ? null : Convert.ToDecimal(row["WeightKg"])
+            }).ToList()
+            : new List<ShipmentItemDto>();
+
+        return new ShipmentDetailDto
+        {
+            Id = shipment.Id,
+            TripId = shipment.TripId,
+            CustomerId = shipment.CustomerId,
+            CustomerName = shipment.CustomerName,
+            OriginCityId = shipment.OriginCityId,
+            OriginCityName = shipment.OriginCityName,
+            DestinationCityId = shipment.DestinationCityId,
+            DestinationCityName = shipment.DestinationCityName,
+            StatusId = shipment.StatusId,
+            StatusName = shipment.StatusName,
+            ShipmentDate = shipment.ShipmentDate,
+            Items = items
+        };
+    }
+
+    public async Task<int> CreateShipmentAsync(CreateShipmentRequest request, string createdBy, CancellationToken cancellationToken = default)
+    {
+        var itemsTable = new DataTable();
+        itemsTable.Columns.Add("Description", typeof(string));
+        itemsTable.Columns.Add("Quantity", typeof(decimal));
+        itemsTable.Columns.Add("UnitOfMeasureId", typeof(int));
+        itemsTable.Columns.Add("WeightKg", typeof(decimal));
+
+        foreach (var item in request.Items)
+        {
+            var row = itemsTable.NewRow();
+            row["Description"] = item.Description;
+            row["Quantity"] = item.Quantity;
+            row["UnitOfMeasureId"] = item.UnitOfMeasureId;
+            row["WeightKg"] = (object?)item.WeightKg ?? DBNull.Value;
+            itemsTable.Rows.Add(row);
+        }
+
+        var itemsParameter = new SqlParameter("@Items", SqlDbType.Structured)
+        {
+            TypeName = "ops.ShipmentItemType",
+            Value = itemsTable
+        };
+
+        var parameters = new[]
+        {
+            new SqlParameter("@CustomerId", request.CustomerId),
+            new SqlParameter("@OriginCityId", request.OriginCityId),
+            new SqlParameter("@DestinationCityId", request.DestinationCityId),
+            new SqlParameter("@StatusId", request.StatusId),
+            new SqlParameter("@ShipmentDate", request.ShipmentDate.ToDateTime(TimeOnly.MinValue)),
+            new SqlParameter("@TripId", (object?)request.TripId ?? DBNull.Value),
+            new SqlParameter("@CreatedBy", createdBy),
+            itemsParameter
+        };
+
+        var newId = await _db.ExecuteScalarProcedureAsync("ops.usp_InsertShipment", parameters, cancellationToken);
+        return Convert.ToInt32(newId);
+    }
+
+    private static ShipmentDto MapShipment(DataRow row) => new()
+    {
+        Id = Convert.ToInt32(row["Id"]),
+        TripId = row["TripId"] == DBNull.Value ? null : Convert.ToInt32(row["TripId"]),
+        CustomerId = Convert.ToInt32(row["CustomerId"]),
+        CustomerName = row["CustomerName"].ToString() ?? string.Empty,
+        OriginCityId = Convert.ToInt32(row["OriginCityId"]),
+        OriginCityName = row["OriginCityName"].ToString() ?? string.Empty,
+        DestinationCityId = Convert.ToInt32(row["DestinationCityId"]),
+        DestinationCityName = row["DestinationCityName"].ToString() ?? string.Empty,
+        StatusId = Convert.ToInt32(row["StatusId"]),
+        StatusName = row["StatusName"].ToString() ?? string.Empty,
+        ShipmentDate = DateOnly.FromDateTime(Convert.ToDateTime(row["ShipmentDate"]))
+    };
+
     private static TripDto MapTrip(DataRow row) => new()
     {
         Id = Convert.ToInt32(row["Id"]),

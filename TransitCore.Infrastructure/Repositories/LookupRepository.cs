@@ -14,6 +14,21 @@ public class LookupRepository : ILookupService
         _db = db;
     }
 
+    public async Task<IReadOnlyList<CityDto>> GetCitiesAsync(CancellationToken cancellationToken = default)
+    {
+        var table = await _db.QueryProcedureAsync("lookup.usp_GetCities", cancellationToken: cancellationToken);
+
+        return table.Rows.Cast<System.Data.DataRow>()
+            .Select(row => new CityDto
+            {
+                Id = Convert.ToInt32(row["Id"]),
+                Name = row["Name"].ToString() ?? string.Empty,
+                CountryId = Convert.ToInt32(row["CountryId"]),
+                CountryName = row["CountryName"].ToString() ?? string.Empty
+            })
+            .ToList();
+    }
+
     public async Task<IReadOnlyList<RegionDto>> GetRegionsAsync(CancellationToken cancellationToken = default)
     {
         var table = await _db.QueryProcedureAsync("lookup.usp_GetRegions", cancellationToken: cancellationToken);

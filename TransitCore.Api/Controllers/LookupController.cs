@@ -17,6 +17,13 @@ public class LookupController : ControllerBase
         _lookupService = lookupService;
     }
 
+    [HttpGet("cities")]
+    public async Task<IActionResult> GetCities(CancellationToken cancellationToken)
+    {
+        var cities = await _lookupService.GetCitiesAsync(cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<CityDto>>.Ok(cities));
+    }
+
     [HttpGet("regions")]
     public async Task<IActionResult> GetRegions(CancellationToken cancellationToken)
     {
