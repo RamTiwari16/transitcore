@@ -7,16 +7,50 @@ import { OpsService } from '../../services/ops.service';
 import { BillingService } from '../../services/billing.service';
 import { StatCardComponent } from '../../shared/components/stat-card/stat-card.component';
 import { BarChartComponent, BarChartItem } from '../../shared/components/bar-chart/bar-chart.component';
+import { DonutChartComponent, DonutChartItem } from '../../shared/components/donut-chart/donut-chart.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { TripModel } from '../../models/ops.models';
+import { InvoiceModel } from '../../models/billing.models';
 
 function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+// Fixed colour per status so a given status always reads the same way
+// across the trip and invoice donuts (and matches the semantic tone used
+// elsewhere - success/warning/danger/info surfaces on stat cards etc).
+const TRIP_STATUS_COLORS: Record<string, string> = {
+  Scheduled: 'var(--tc-color-primary)',
+  'In Transit': 'var(--tc-color-info)',
+  Delayed: 'var(--tc-color-warning)',
+  Completed: 'var(--tc-color-success)',
+  Cancelled: 'var(--tc-color-danger)',
+};
+
+const INVOICE_STATUS_COLORS: Record<string, string> = {
+  Draft: 'var(--tc-color-primary)',
+  Sent: 'var(--tc-color-info)',
+  'Partially Paid': 'var(--tc-color-warning)',
+  Paid: 'var(--tc-color-success)',
+  Overdue: 'var(--tc-color-danger)',
+  Void: 'var(--tc-text-tertiary)',
+};
+
+function countByStatus(items: { statusName: string }[], colors: Record<string, string>): DonutChartItem[] {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    counts.set(item.statusName, (counts.get(item.statusName) ?? 0) + 1);
+  }
+  return Array.from(counts.entries()).map(([label, value]) => ({
+    label,
+    value,
+    color: colors[label] ?? 'var(--tc-text-tertiary)',
+  }));
+}
+
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, RouterLink, StatCardComponent, BarChartComponent, EmptyStateComponent],
+  imports: [CommonModule, RouterLink, StatCardComponent, BarChartComponent, DonutChartComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
@@ -25,6 +59,7 @@ export class DashboardComponent {
   readonly loading = signal(true);
 
   private readonly trips = signal<TripModel[]>([]);
+  private readonly invoices = signal<InvoiceModel[]>([]);
   private readonly utilisationData = signal<BarChartItem[]>([]);
   readonly totalInvoiced = signal(0);
   readonly totalOutstanding = signal(0);
@@ -37,6 +72,9 @@ export class DashboardComponent {
 
   readonly totalTrips = computed(() => this.trips().length);
   readonly utilisationChartData = this.utilisationData;
+
+  readonly tripStatusBreakdown = computed(() => countByStatus(this.trips(), TRIP_STATUS_COLORS));
+  readonly invoiceStatusBreakdown = computed(() => countByStatus(this.invoices(), INVOICE_STATUS_COLORS));
 
   constructor(
     private fleetService: FleetService,
@@ -77,6 +115,7 @@ export class DashboardComponent {
         );
         this.vehiclesInMaintenance.set(vehicles.items.filter((v) => v.statusName === 'In Maintenance').length);
         this.trips.set(trips.items);
+        this.invoices.set(invoices);
         this.totalInvoiced.set(invoiceSummary.totalInvoiced);
         this.totalOutstanding.set(invoiceSummary.totalOutstanding);
         this.overdueInvoiceCount.set(invoices.filter((i) => i.statusName === 'Overdue').length);

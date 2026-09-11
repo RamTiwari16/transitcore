@@ -73,4 +73,24 @@
       </ul>
     </section>
   </div>
+
+  <div class="dashboard__grid dashboard__grid--secondary">
+    <section class="dashboard__panel">
+      <h2>Trips by Status</h2>
+      @if (!loading() && tripStatusBreakdown().length > 0) {
+        <app-donut-chart [items]="tripStatusBreakdown()" centerLabel="Trips"></app-donut-chart>
+      } @else if (!loading()) {
+        <app-empty-state title="No trip data" icon="route"></app-empty-state>
+      }
+    </section>
+
+    <section class="dashboard__panel">
+      <h2>Invoices by Status</h2>
+      @if (!loading() && invoiceStatusBreakdown().length > 0) {
+        <app-donut-chart [items]="invoiceStatusBreakdown()" centerLabel="Invoices"></app-donut-chart>
+      } @else if (!loading()) {
+        <app-empty-state title="No invoice data" icon="receipt_long"></app-empty-state>
+      }
+    </section>
+  </div>
 </div>

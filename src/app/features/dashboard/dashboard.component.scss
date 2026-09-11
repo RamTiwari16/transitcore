@@ -25,6 +25,15 @@
   }
 }
 
+.dashboard__grid--secondary {
+  grid-template-columns: repeat(2, 1fr);
+  margin-top: var(--tc-space-4);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dashboard__panel {
   background: var(--tc-surface-raised);
   border: 1px solid var(--tc-border);

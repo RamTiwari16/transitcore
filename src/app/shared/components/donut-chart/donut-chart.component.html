@@ -1,0 +1,35 @@
+<div class="donut-chart">
+  <svg class="donut-chart__svg" viewBox="0 0 36 36" role="img" [attr.aria-label]="centerLabel()">
+    <circle class="donut-chart__track" cx="18" cy="18" r="15.9155" fill="none"></circle>
+    @for (segment of segments(); track segment.label) {
+      <circle
+        class="donut-chart__segment"
+        cx="18"
+        cy="18"
+        r="15.9155"
+        fill="none"
+        [style.stroke]="segment.color"
+        [style.stroke-dasharray]="segment.dashArray"
+        [style.stroke-dashoffset]="segment.dashOffset"
+      >
+        <title>{{ segment.label }}: {{ segment.value }} ({{ segment.percent | number: '1.0-0' }}%)</title>
+      </circle>
+    }
+  </svg>
+  <div class="donut-chart__center">
+    <span class="donut-chart__center-value">{{ total() }}</span>
+    @if (centerLabel()) {
+      <span class="donut-chart__center-label">{{ centerLabel() }}</span>
+    }
+  </div>
+</div>
+
+<ul class="donut-chart__legend" role="list">
+  @for (segment of segments(); track segment.label) {
+    <li class="donut-chart__legend-row">
+      <span class="donut-chart__legend-swatch" [style.background]="segment.color"></span>
+      <span class="donut-chart__legend-label">{{ segment.label }}</span>
+      <span class="donut-chart__legend-value">{{ segment.value }}</span>
+    </li>
+  }
+</ul>
