@@ -1,0 +1,167 @@
+<div class="vo-page">
+
+  <!-- Header -->
+  <div class="vo-header">
+    <div class="vo-header__icon">
+      <i class="fa-solid fa-truck"></i>
+    </div>
+    <div>
+      <h2 class="vo-header__title">Vehicle Order</h2>
+      <p class="vo-header__sub">Search and view vehicle–order mappings by date range</p>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="vo-card">
+    <div class="vo-filters">
+
+      <div class="vo-field">
+        <label class="vo-label">
+          <i class="fa-solid fa-calendar-days"></i> From Date
+        </label>
+        <input type="date" class="vo-input" [(ngModel)]="fromDate" />
+      </div>
+
+      <div class="vo-field">
+        <label class="vo-label">
+          <i class="fa-solid fa-calendar-check"></i> To Date
+        </label>
+        <input type="date" class="vo-input" [(ngModel)]="toDate" />
+      </div>
+
+      <button class="vo-search-btn" (click)="search()" [disabled]="isLoading">
+        @if (isLoading) {
+        <i class="fa-solid fa-spinner fa-spin"></i> Searching...
+        } @else {
+        <i class="fa-solid fa-magnifying-glass"></i> Search
+        }
+      </button>
+
+    </div>
+
+    <!-- Client search -->
+    @if (allData.length > 0) {
+    <div class="vo-search-wrap">
+      <i class="fa-solid fa-filter vo-search-icon"></i>
+      <input type="text" class="vo-search-input" placeholder="Filter by Vehicle No or Order No..."
+        [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+      @if (searchTerm) {
+      <button class="vo-search-clear" (click)="searchTerm = ''; onSearchChange()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      }
+    </div>
+    }
+
+    @if (errorMsg) {
+    <div class="vo-alert vo-alert--error">
+      <i class="fa-solid fa-circle-exclamation"></i> {{ errorMsg }}
+    </div>
+    }
+  </div>
+
+  <!-- Loading shuttle animation -->
+  @if (isLoading) {
+  <div class="vo-loading">
+    <div class="vo-shuttle">
+      <i class="fa-solid fa-truck-fast"></i>
+    </div>
+    <p class="vo-loading__text">Fetching data...</p>
+  </div>
+  }
+
+  <!-- Table -->
+  @if (!isLoading && searched) {
+  <div class="vo-table-section">
+
+    <!-- Table meta -->
+    <div class="vo-table-meta">
+      <span class="vo-table-info">
+        Showing
+        <strong>{{ (currentPage - 1) * pageSize + 1 }}–{{ Math.min(currentPage * pageSize, filteredData.length)
+          }}</strong>
+        of <strong>{{ filteredData.length }}</strong> records
+        @if (searchTerm) { <span class="vo-filter-tag">filtered</span> }
+      </span>
+      <div class="vo-page-size">
+        <label>Rows:</label>
+        <select [(ngModel)]="pageSize" (ngModelChange)="currentPage = 1; applyFilter()">
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+          <option [value]="100">100</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Scrollable table -->
+    <div class="vo-table-wrap">
+      <table class="vo-table">
+        <thead>
+          <tr>
+            <th>#</th>
+
+            <th>Order No</th>
+            <th>Vehicle No</th>
+            <th>Upload Date</th>
+            <th>Uploaded By</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (pagedData.length === 0) {
+          <tr>
+            <td colspan="5" class="vo-empty">
+              <i class="fa-solid fa-box-open"></i>
+              <span>No records found</span>
+            </td>
+          </tr>
+          }
+          @for (row of pagedData; track row.id) {
+          <tr>
+            <td class="vo-td--num">{{ (currentPage - 1) * pageSize + $index + 1 }}</td>
+
+            <td>
+              <span class="vo-order-badge">{{ row.orderNo || '-' }}</span>
+            </td>
+            <td>
+              <span class="vo-vehicle-badge">
+                <i class="fa-solid fa-truck"></i> {{ row.vehicleNo || '-' }}
+              </span>
+            </td>
+            <td>{{ formatDate(row.uploadDate) }}</td>
+            <td class="vo-email">{{ row.createdByEmail || '-' }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+    <div class="vo-pagination">
+      <button class="vo-page-btn" (click)="goToPage(1)" [disabled]="currentPage === 1" title="First">
+        <i class="fa-solid fa-angles-left"></i>
+      </button>
+      <button class="vo-page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" title="Previous">
+        <i class="fa-solid fa-angle-left"></i>
+      </button>
+
+      @for (page of pageNumbers; track page) {
+      <button class="vo-page-btn" [class.vo-page-btn--active]="page === currentPage" (click)="goToPage(page)">{{ page
+        }}</button>
+      }
+
+      <button class="vo-page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+        title="Next">
+        <i class="fa-solid fa-angle-right"></i>
+      </button>
+      <button class="vo-page-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" title="Last">
+        <i class="fa-solid fa-angles-right"></i>
+      </button>
+    </div>
+    }
+
+  </div>
+  }
+
+</div>

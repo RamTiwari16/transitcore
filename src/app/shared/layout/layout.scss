@@ -1,0 +1,624 @@
+* {
+    box-sizing: border-box;
+}
+
+// Color Variables
+$primary-yellow: #f9d71c;
+$primary-dark: #e6c200;
+$secondary-gray: #6c757d;
+$nav-bg: linear-gradient(180deg, #333333 0%, #2a2a2a 100%);
+$nav-hover: linear-gradient(135deg, #3a3a3a 0%, #4a4a4a 100%);
+$text-dark: #333333;
+$text-light: #555555;
+$accent-yellow: #fff3cd;
+$white: #ffffff;
+$border-gray: #e0e0e0;
+$shadow-light: rgba(0, 0, 0, 0.1);
+$shadow-medium: rgba(0, 0, 0, 0.15);
+$shadow-dark: rgba(0, 0, 0, 0.2);
+
+// ── Top Bar Height (single source of truth) ──────────
+$topbar-height: 52px;
+$sidenav-collapsed-width: 14rem;
+$sidenav-icon-width: 3.6rem;
+
+// ── Sidenav ──────────────────────────────────────────
+.sidenav {
+    background: $nav-bg;
+    transition: all 0.3s ease;
+    position: fixed;
+    top: $topbar-height;
+    left: 0;
+    width: $sidenav-icon-width;
+    height: calc(100vh - #{$topbar-height});
+    box-shadow: 0.063rem 0 1.25rem 0 $shadow-dark;
+    border-right: 1px solid #444;
+ 
+
+    &-collapsed {
+        width: $sidenav-collapsed-width;
+    }
+}
+
+// ── Logo Container ────────────────────────────────────
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 0.75rem;
+    width: 100%;
+    min-height: 3.5rem;
+
+    &.expanded {
+        justify-content: space-between;
+    }
+}
+
+.navbar i {
+    color: #ffffff !important;
+}
+
+.white-icon {
+    color: #ffffff;
+}
+
+// ── Toggle Button ─────────────────────────────────────
+.btn-toggle {
+    width: 2.25rem;
+    height: 2.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background: none;
+    border: none;
+    border-radius: 6px;
+
+    &:hover {
+        transform: scale(1.05);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    i {
+        color: $white;
+        font-size: 16px;
+        font-weight: bold;
+    }
+}
+
+// ── User Info ─────────────────────────────────────────
+.user-info-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+}
+
+.logo-text {
+    font-weight: 700;
+    color: $white;
+    font-size: 15px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 9rem;
+}
+
+// ── Close Button ──────────────────────────────────────
+.btn-close {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+
+    &:hover {
+        background: rgba(249, 215, 28, 0.2);
+    }
+
+    .close-icon {
+        color: $white;
+        font-size: 15px;
+    }
+}
+
+// ── Scroll Wrapper ────────────────────────────────────
+.scrollwrap {
+    overflow-y: auto;
+    visibility: hidden;
+    height: calc(100vh - #{$topbar-height} - 3.5rem);
+    margin-top: 0;
+
+    &:hover,
+    &:focus {
+        visibility: visible;
+    }
+
+    &_delayed {
+        transition: visibility 0.5s 0.2s;
+
+        &:hover {
+            transition: visibility 0.2s 0.2s;
+        }
+    }
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, $primary-yellow, #666);
+        border-radius: 20px;
+    }
+
+    scrollbar-width: thin;
+    scrollbar-color: $primary-yellow transparent;
+}
+
+.sidenav-nav,
+.scrollwrap:hover,
+.scrollwrap:focus {
+    visibility: visible;
+}
+
+// ── Sidenav Navigation ────────────────────────────────
+.sidenav-nav {
+    list-style: none;
+    padding: 0.5rem 0.35rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidenav-nav-item {
+    width: 100%;
+    margin-bottom: 0.3rem;
+}
+
+.sidenav-nav-link {
+    display: flex;
+    align-items: center;
+    height: 2.5rem;
+    color: #ddd;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 0 0.4rem;
+
+    &:hover {
+        background: $nav-hover;
+        color: $white;
+        transform: translateX(4px);
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+
+    &.has-submenu {
+        position: relative;
+
+        &.expanded {
+            background: linear-gradient(135deg, $primary-yellow 0%, $primary-dark 100%);
+            color: $text-dark;
+            box-shadow: 0 3px 10px rgba(249, 215, 28, 0.35);
+
+            .submenu-arrow {
+                transform: rotate(180deg);
+                color: $text-dark;
+            }
+        }
+    }
+}
+
+.sidenav-link-icon {
+    font-size: 17px;
+    width: 1.75rem;
+    //min-width: 1.75rem;
+    margin: 0 0.4rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    color: #ddd;
+}
+
+.sidenav-nav-text {
+    margin-left: 0.5rem;
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+// ── Submenu ───────────────────────────────────────────
+.submenu-arrow {
+    margin-left: auto;
+    font-size: 11px;
+    transition: all 0.3s ease;
+    color: #ddd;
+    font-weight: bold;
+}
+
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: linear-gradient(135deg, rgba(249, 215, 28, 0.08) 0%, rgba(0, 0, 0, 0.2) 100%);
+    border-left: 2px solid $primary-yellow;
+    border-radius: 0 0 0.4rem 0.4rem;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.25s ease-out;
+    overflow: hidden;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        max-height: 300px;
+        transform: translateY(0);
+    }
+}
+
+.submenu-item {
+    width: 100%;
+    border-bottom: 1px solid rgba(249, 215, 28, 0.08);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.submenu-link {
+    display: flex;
+    align-items: center;
+    height: 2.1rem;
+    padding: 0 0.75rem 0 2rem;
+    color: #ccc;
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    border-radius: 0.3rem;
+    margin: 0.1rem 0.4rem;
+    white-space: nowrap;
+
+    &:hover {
+        background: $nav-hover;
+        color: $white;
+        transform: translateX(6px);
+        box-shadow: 0 2px 6px rgba(249, 215, 28, 0.15);
+
+        .submenu-icon {
+            color: $primary-yellow;
+            transform: scale(1.1);
+        }
+    }
+
+    &.active {
+        background: linear-gradient(135deg, $primary-yellow 0%, $primary-dark 100%);
+        color: $text-dark;
+        font-weight: 600;
+        box-shadow: 0 2px 6px rgba(249, 215, 28, 0.25);
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: $text-dark;
+            border-radius: 0 2px 2px 0;
+        }
+    }
+}
+
+.submenu-icon {
+    font-size: 13px;
+    width: 1.1rem;
+    min-width: 1.1rem;
+    margin-right: 0.6rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    color: #aaa;
+}
+
+// ── Body ──────────────────────────────────────────────
+.body {
+    width: calc(100% - #{$sidenav-icon-width});
+    margin-left: $sidenav-icon-width;
+    margin-top: $topbar-height;
+    z-index: 0;
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 0;
+    background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+    min-height: calc(100vh - #{$topbar-height});
+
+    &-trimmed {
+        width: calc(100% - #{$sidenav-collapsed-width});
+        margin-left: $sidenav-collapsed-width;
+    }
+
+    &-md-screen {
+        width: calc(100% - #{$sidenav-icon-width});
+        margin-left: $sidenav-icon-width;
+    }
+}
+
+// ── Top Menu Bar ──────────────────────────────────────
+.menu-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0 1.25rem;
+    width: 100%;
+    height: $topbar-height;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, $primary-yellow 0%, $primary-dark 100%);
+    border-bottom: 2px solid $primary-dark;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+}
+
+// ── Logo Section (top bar) ────────────────────────────
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    a {
+        display: flex;
+        align-items: center;
+    }
+
+    .top-bar-logo {
+        height: 36px;
+        width: auto;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: scale(1.05);
+        }
+    }
+
+    .app-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: $text-dark;
+        letter-spacing: 0.5px;
+    }
+}
+
+// ── User Profile ──────────────────────────────────────
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: $white;
+        border: 2px solid $white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 12px;
+        color: $text-dark;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: $text-dark;
+        font-size: 13px;
+        white-space: nowrap;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+// ── Logout Button ─────────────────────────────────────
+.logout-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid rgba(228, 12, 12, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+    flex-shrink: 0;
+
+    i {
+        font-size: 15px;
+        color: $text-dark;
+    }
+
+    &:hover {
+        transform: scale(1.1);
+        background-color: rgba(236, 94, 94, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+}
+
+
+// ── Content Wrapper ───────────────────────────────────
+.content-wrapper {
+    padding: 1.25rem;
+    overflow-y: auto;
+    min-height: calc(100vh - #{$topbar-height});
+}
+
+// ── Active States ─────────────────────────────────────
+.active {
+    background: rgba(255, 255, 255, 0.12) !important;
+    backdrop-filter: blur(15px) saturate(180%);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    color: white !important;
+    border-radius: 10px;
+    box-shadow:
+        0 8px 32px rgba(255, 255, 255, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.2);
+
+    .sidenav-link-icon,
+    .sidenav-nav-text {
+        color: white !important;
+        font-weight: bold;
+    }
+}
+
+.active-sublevel {
+    color: $primary-yellow !important;
+    font-weight: 600 !important;
+}
+
+// ── Utility ───────────────────────────────────────────
+.d-flex { display: flex; }
+.gap-3 { gap: 0.75rem; }
+.align-items-center { align-items: center; }
+
+// ── Responsive ────────────────────────────────────────
+@media (max-width: 1280px) {
+    // Laptop tweaks — slightly tighter
+    .content-wrapper {
+        padding: 1rem;
+    }
+
+    .logo-text {
+        font-size: 14px;
+    }
+
+    .sidenav-nav-text {
+        font-size: 12.5px;
+    }
+}
+
+@media (max-width: 1024px) {
+    $sidenav-collapsed-width: 13rem;
+
+    .sidenav-collapsed {
+        width: 13rem;
+    }
+
+    .body-trimmed {
+        width: calc(100% - 13rem);
+        margin-left: 13rem;
+    }
+
+    .menu-top {
+        padding: 0 1rem;
+    }
+
+    .user-profile .user-name {
+        max-width: 90px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidenav {
+        width: 0;
+        overflow: hidden;
+
+        &-collapsed {
+            width: $sidenav-collapsed-width;
+        }
+    }
+
+    .body,
+    .body-md-screen {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .body-trimmed {
+        width: calc(100% - #{$sidenav-collapsed-width});
+        margin-left: $sidenav-collapsed-width;
+    }
+
+    .menu-top {
+        padding: 0 0.75rem;
+    }
+
+    .logo-section {
+        .app-title { display: none; }
+        .top-bar-logo { height: 30px; }
+    }
+
+    .user-profile .user-name {
+        display: none;
+    }
+
+    .submenu-link {
+        padding: 0 0.6rem 0 1.75rem;
+        font-size: 12px;
+        height: 2rem;
+        margin: 0.1rem 0.3rem;
+
+        &:hover { transform: translateX(4px); }
+    }
+
+    .submenu-icon {
+        font-size: 12px;
+        width: 0.9rem;
+        min-width: 0.9rem;
+        margin-right: 0.4rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .content-wrapper {
+        padding: 0.75rem;
+    }
+
+    .notification-panel {
+        width: 290px;
+    }
+
+    .gap-3 {
+        gap: 0.5rem;
+    }
+}

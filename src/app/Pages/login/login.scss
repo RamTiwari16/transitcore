@@ -1,0 +1,310 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(90deg, #f3c041 0%, #ed9235 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 16px; // prevents card from touching edges
+}
+
+.shuttle {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  animation: shuttleMove 15s infinite linear;
+  opacity: 0.3;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    right: -100px;
+    bottom: -100px;
+    background: inherit;
+    clip-path: inherit;
+    animation: shuttleRotate 3s infinite linear;
+  }
+}
+
+@keyframes shuttleMove {
+  0%   { top: -60px; left: -60px; }
+  25%  { top: -60px; left: calc(100% + 60px); }
+  50%  { top: calc(100% + 60px); left: calc(100% + 60px); }
+  75%  { top: calc(100% + 60px); left: -60px; }
+  100% { top: -60px; left: -60px; }
+}
+
+@keyframes shuttleRotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// ── Card ──────────────────────────────────────────────
+.login-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 40px 48px;       // reduced from 48px 64px
+  text-align: center;
+  max-width: 480px;
+  width: 100%;              // fills container up to max-width
+  z-index: 1;
+  box-sizing: border-box;
+
+  @media (max-width: 600px) {
+    padding: 28px 20px;
+    border-radius: 8px;
+  }
+
+  @media (min-width: 601px) and (max-width: 900px) {
+    padding: 36px 36px;
+  }
+}
+
+// ── Logo ──────────────────────────────────────────────
+.logo-section {
+  margin-bottom: 24px;      // reduced from 48px
+
+  @media (max-width: 600px) {
+    margin-bottom: 16px;
+  }
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.logo-sis {
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--text-gray);
+  position: relative;
+
+  @media (max-width: 600px) {
+    font-size: 28px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-red);
+    border-radius: 50%;
+  }
+}
+
+.logo-prosegur {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: 1px;
+
+  @media (max-width: 600px) {
+    font-size: 28px;
+  }
+}
+
+.tagline {
+  font-size: 11px;
+  color: var(--text-gray);
+  letter-spacing: 2px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &::after {
+    content: '▶';
+    color: var(--accent-orange);
+    font-size: 10px;
+  }
+}
+
+// ── Title ─────────────────────────────────────────────
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary-blue);
+  margin: 0 0 24px 0;       // reduced from 48px
+  line-height: 1.4;
+
+  @media (max-width: 600px) {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+}
+
+// ── Login section ─────────────────────────────────────
+.login-section {
+  margin-top: 16px;         // reduced from 32px
+}
+
+.login-heading {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-dark);
+  margin: 0 0 20px 0;
+
+  @media (max-width: 600px) {
+    font-size: 16px;
+  }
+}
+
+// ── Form ──────────────────────────────────────────────
+.form-group {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-dark);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    border-color: #ed9235;
+    box-shadow: 0 0 0 3px rgba(237, 146, 53, 0.15);
+  }
+
+  @media (max-width: 600px) {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+.password-wrapper {
+  position: relative;
+
+  .form-input {
+    padding-right: 42px;
+  }
+
+  .toggle-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+  }
+}
+
+// ── Error ─────────────────────────────────────────────
+.error-msg {
+  color: #d32f2f;
+  font-size: 13px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+// ── Buttons ───────────────────────────────────────────
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(90deg, #f3c041 0%, #ed9235 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 14px;
+    padding: 12px;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  color: #aaa;
+  font-size: 13px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+  }
+}
+
+.microsoft-btn {
+  background-color: var(--btn-dark);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 13px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: var(--btn-dark-hover);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 600px) {
+    font-size: 13px;
+    padding: 12px 16px;
+  }
+}
+
+.microsoft-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}

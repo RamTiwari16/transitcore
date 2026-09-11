@@ -1,0 +1,122 @@
+<div class="sidenav" [ngClass]="collapsed ? 'sidenav-collapsed' : ''">
+    <div class="logo-container" [ngClass]="collapsed ? 'expanded' : ''">
+        @if (!collapsed) {
+        <!-- Toggle button when not collapsed -->
+
+        <i class="fas fa-bars btn-toggle white-icon" (click)="collapsed = true"></i>
+
+        <!-- <button class="btn-toggle" (click)="collapsed = true">
+           
+        </button> -->
+        }
+
+        @if (collapsed) {
+        <div class="user-info-container">
+            <!-- <div class="logo-text">Hi, {{ LoggedInName }}</div>
+            <div class="logo-text">({{ LoggedInRoleName }})</div> -->
+            <div class="logo-text">Bharat EMart</div>
+        </div>
+        <button class="btn-close" (click)="collapsed = false">
+            <i class="fas fa-times close-icon"></i>
+        </button>
+        }
+    </div>
+
+    <div class="scrollwrap scrollwrap_delayed">
+        <ul class="sidenav-nav">
+            @for(menu of Menus; track menu.id) {
+            @if(menu.active === 1 && menu.role.includes(currentRole)) {
+
+            <!-- Parent menu with children -->
+            @if(menu.children && menu.children.length > 0) {
+            <li class="sidenav-nav-item">
+                <a class="sidenav-nav-link has-submenu" [class.expanded]="menu.expanded"
+                    (click)="menu.expanded = !menu.expanded">
+                    <i class="sidenav-link-icon" [ngClass]="menu.iconClass"></i>
+                    @if (collapsed) {
+                    <span class="sidenav-nav-text">
+                        {{ menu.menuText }}
+                        <i class="submenu-arrow fas"
+                            [ngClass]="menu.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </span>
+                    }
+                </a>
+
+                @if (collapsed && menu.expanded) {
+                <ul class="submenu">
+                    @for(subMenu of menu.children; track subMenu.id) {
+                    @if(subMenu.active === 1 && subMenu.role.includes(currentRole)) {
+                    <li class="submenu-item">
+                        <a class="submenu-link" routerLinkActive="active" [routerLink]="subMenu.pageUrl">
+                            <i class="submenu-icon" [ngClass]="subMenu.iconClass"></i>
+                            <span>{{ subMenu.menuText }}</span>
+                        </a>
+                    </li>
+                    }
+                    }
+                </ul>
+                }
+            </li>
+            }
+
+            <!-- Normal menu item -->
+            @else {
+            <li class="sidenav-nav-item">
+                <a class="sidenav-nav-link" routerLinkActive="active" [routerLink]="menu.pageUrl">
+                    <i class="sidenav-link-icon" [ngClass]="menu.iconClass"></i>
+                    @if (collapsed) {
+                    <span class="sidenav-nav-text">{{ menu.menuText }}</span>
+                    }
+                </a>
+            </li>
+            }
+            }
+            }
+        </ul>
+
+    </div>
+</div>
+
+<div class="body" [ngClass]="getBodyClass()">
+    <div class="menu-top">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <a href="#/careDashboard">
+                <img src="assets/img/logo.gif" alt="Company Logo" class="top-bar-logo" />
+            </a>
+
+        </div>
+
+        <!-- Right side actions -->
+        <div class="d-flex gap-3 align-items-center position-relative">
+           <!-- <button class="inbox-btn" (click)="toggleNotificationPanel()">
+                <i class="fa-regular fa-bell"></i>
+                @if(getUnreadNotificationCount())
+                {
+                <span class="msg-count">{{ getUnreadNotificationCount() }}</span>
+                }
+            </button> -->
+   <!-- NotificationIcon -->
+          
+
+            <!-- User Profile -->
+            <div class="user-profile">
+                <div class="user-avatar" [ngStyle]="{ 'background-color': avatarColor }">
+
+                    {{ LoggedInName?.charAt(0) }}
+                </div>
+                <span class="user-name">{{ LoggedInName }}</span>
+            </div>
+            <button class="logout-btn" (click)="logOut()">
+                <i class="fa-solid fa-right-from-bracket text-danger"></i>
+            
+            </button>
+
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-wrapper">
+        <router-outlet></router-outlet>
+    </div>
+</div>

@@ -1,0 +1,78 @@
+<div class="login-container">
+  <div class="shuttle"></div>
+
+  <div class="login-card">
+    <div class="logo-section">
+      <div class="logo">
+        <nav aria-label="breadcrumb" class="d-flex align-items-center">
+          <a href="#/careDashboard">
+            <img src="assets/img/logo.gif" alt="Company Logo"
+              style="height:40px; width:auto; margin-right:10px; cursor:pointer;" />
+            <!-- <img src="/assets/img/sis_logo.svg" alt="Company Logo"
+                    style="height:40px; width:auto; margin-right:10px; cursor:pointer;" /> -->
+          </a>
+        </nav>
+
+      </div>
+
+    </div>
+
+    <h1 class="title">Bharat E Mart portal</h1>
+
+    <div class="login-section">
+      <h2 class="login-heading">Login</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input id="email" type="email" class="form-input" placeholder="Enter your email" [(ngModel)]="email" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="password-wrapper">
+          <input id="password" [type]="showPassword ? 'text' : 'password'" class="form-input"
+            placeholder="Enter your password" [(ngModel)]="password" />
+          <span class="toggle-eye" (click)="showPassword = !showPassword">
+
+            <i class="fa" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'">
+            </i>
+
+          </span>
+        </div>
+      </div>
+
+      <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+      <button class="login-btn" (click)="login()" [disabled]="isLoading">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+
+      <!-- <div class="divider"><span>or</span></div>
+
+  <button class="microsoft-btn" (click)="continueWithMicrosoft()">
+    <svg class="microsoft-icon" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
+      <path fill="#f35325" d="M1 1h10v10H1z"/>
+      <path fill="#81bc06" d="M12 1h10v10H12z"/>
+      <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+      <path fill="#ffba08" d="M12 12h10v10H12z"/>
+    </svg>
+    Continue with Microsoft
+  </button> -->
+    </div>
+
+    <!-- <div class="login-section">
+      <h2 class="login-heading">Login</h2>
+      <button class="microsoft-btn" (click)="continueWithMicrosoft()">
+        <svg class="microsoft-icon" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
+          <path fill="#f35325" d="M1 1h10v10H1z"/>
+          <path fill="#81bc06" d="M12 1h10v10H12z"/>
+          <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+          <path fill="#ffba08" d="M12 12h10v10H12z"/>
+        </svg>
+        Continue with Microsoft
+      </button>
+    </div> -->
+  </div>
+</div>
