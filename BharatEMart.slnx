@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="BharatEMart.Api/BharatEMart.Api.csproj" />
-  <Project Path="BharatEMart.Core/BharatEMart.Core.csproj" />
-  <Project Path="BharatEMart.Infrastructure/BharatEMart.Infrastructure.csproj" />
-</Solution>

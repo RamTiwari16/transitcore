@@ -1,6 +1,0 @@
-@BharatEMart.Api_HostAddress = http://localhost:5296
-
-GET {{BharatEMart.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
