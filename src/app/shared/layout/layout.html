@@ -1,122 +1,101 @@
-<div class="sidenav" [ngClass]="collapsed ? 'sidenav-collapsed' : ''">
-    <div class="logo-container" [ngClass]="collapsed ? 'expanded' : ''">
-        @if (!collapsed) {
-        <!-- Toggle button when not collapsed -->
+<mat-sidenav-container class="app-shell">
+  <mat-sidenav
+    mode="side"
+    opened
+    class="app-shell__sidenav"
+    [class.app-shell__sidenav--collapsed]="collapsed()"
+  >
+    <div class="app-shell__brand">
+      <mat-icon aria-hidden="true">local_shipping</mat-icon>
+      @if (!collapsed()) {
+        <span class="app-shell__brand-name">TransitCore</span>
+      }
+    </div>
 
-        <i class="fas fa-bars btn-toggle white-icon" (click)="collapsed = true"></i>
-
-        <!-- <button class="btn-toggle" (click)="collapsed = true">
-           
-        </button> -->
-        }
-
-        @if (collapsed) {
-        <div class="user-info-container">
-            <!-- <div class="logo-text">Hi, {{ LoggedInName }}</div>
-            <div class="logo-text">({{ LoggedInRoleName }})</div> -->
-            <div class="logo-text">TransitCore</div>
+    <nav class="app-shell__nav" aria-label="Primary">
+      @for (group of navGroups; track group.label) {
+        <div class="app-shell__nav-group">
+          @if (!collapsed()) {
+            <span class="app-shell__nav-group-label">{{ group.label }}</span>
+          }
+          <mat-nav-list>
+            @for (item of group.items; track item.path) {
+              <a
+                mat-list-item
+                [routerLink]="item.path"
+                routerLinkActive="app-shell__nav-item--active"
+                [matTooltip]="collapsed() ? item.label : ''"
+                matTooltipPosition="right"
+              >
+                <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+                @if (!collapsed()) {
+                  <span matListItemTitle>{{ item.label }}</span>
+                }
+              </a>
+            }
+          </mat-nav-list>
         </div>
-        <button class="btn-close" (click)="collapsed = false">
-            <i class="fas fa-times close-icon"></i>
+      }
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="app-shell__content">
+    <mat-toolbar class="app-shell__topbar">
+      <button mat-icon-button (click)="toggleSidenav()" aria-label="Toggle navigation">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <span class="app-shell__breadcrumb">{{ breadcrumb() }}</span>
+
+      <mat-form-field appearance="outline" class="app-shell__search" subscriptSizing="dynamic">
+        <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+        <input matInput placeholder="Search" aria-label="Search" />
+      </mat-form-field>
+
+      <span class="app-shell__spacer"></span>
+
+      <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme" aria-label="Toggle light/dark theme">
+        <mat-icon>dark_mode</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="notificationsMenu"
+        matTooltip="Notifications"
+        aria-label="Notifications"
+        matBadge="0"
+        matBadgeSize="small"
+        [matBadgeHidden]="true"
+      >
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <mat-menu #notificationsMenu="matMenu">
+        <div class="app-shell__notifications-empty">No new notifications</div>
+      </mat-menu>
+
+      <button mat-button [matMenuTriggerFor]="userMenu" class="app-shell__user-trigger">
+        <span class="app-shell__avatar">{{ avatarInitial }}</span>
+        <span class="app-shell__user-name">{{ displayName }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="app-shell__user-menu-header">
+          <strong>{{ displayName }}</strong>
+          <span>{{ email }}</span>
+        </div>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Log out</span>
         </button>
-        }
-    </div>
+      </mat-menu>
+    </mat-toolbar>
 
-    <div class="scrollwrap scrollwrap_delayed">
-        <ul class="sidenav-nav">
-            @for(menu of Menus; track menu.id) {
-            @if(menu.active === 1 && menu.role.includes(currentRole)) {
+    @if (loadingService.isLoading()) {
+      <mat-progress-bar mode="indeterminate" class="app-shell__loading-bar"></mat-progress-bar>
+    }
 
-            <!-- Parent menu with children -->
-            @if(menu.children && menu.children.length > 0) {
-            <li class="sidenav-nav-item">
-                <a class="sidenav-nav-link has-submenu" [class.expanded]="menu.expanded"
-                    (click)="menu.expanded = !menu.expanded">
-                    <i class="sidenav-link-icon" [ngClass]="menu.iconClass"></i>
-                    @if (collapsed) {
-                    <span class="sidenav-nav-text">
-                        {{ menu.menuText }}
-                        <i class="submenu-arrow fas"
-                            [ngClass]="menu.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                    </span>
-                    }
-                </a>
-
-                @if (collapsed && menu.expanded) {
-                <ul class="submenu">
-                    @for(subMenu of menu.children; track subMenu.id) {
-                    @if(subMenu.active === 1 && subMenu.role.includes(currentRole)) {
-                    <li class="submenu-item">
-                        <a class="submenu-link" routerLinkActive="active" [routerLink]="subMenu.pageUrl">
-                            <i class="submenu-icon" [ngClass]="subMenu.iconClass"></i>
-                            <span>{{ subMenu.menuText }}</span>
-                        </a>
-                    </li>
-                    }
-                    }
-                </ul>
-                }
-            </li>
-            }
-
-            <!-- Normal menu item -->
-            @else {
-            <li class="sidenav-nav-item">
-                <a class="sidenav-nav-link" routerLinkActive="active" [routerLink]="menu.pageUrl">
-                    <i class="sidenav-link-icon" [ngClass]="menu.iconClass"></i>
-                    @if (collapsed) {
-                    <span class="sidenav-nav-text">{{ menu.menuText }}</span>
-                    }
-                </a>
-            </li>
-            }
-            }
-            }
-        </ul>
-
-    </div>
-</div>
-
-<div class="body" [ngClass]="getBodyClass()">
-    <div class="menu-top">
-        <!-- Logo Section -->
-        <div class="logo-section">
-            <a href="#/careDashboard">
-                <img src="assets/img/logo.gif" alt="Company Logo" class="top-bar-logo" />
-            </a>
-
-        </div>
-
-        <!-- Right side actions -->
-        <div class="d-flex gap-3 align-items-center position-relative">
-           <!-- <button class="inbox-btn" (click)="toggleNotificationPanel()">
-                <i class="fa-regular fa-bell"></i>
-                @if(getUnreadNotificationCount())
-                {
-                <span class="msg-count">{{ getUnreadNotificationCount() }}</span>
-                }
-            </button> -->
-   <!-- NotificationIcon -->
-          
-
-            <!-- User Profile -->
-            <div class="user-profile">
-                <div class="user-avatar" [ngStyle]="{ 'background-color': avatarColor }">
-
-                    {{ LoggedInName?.charAt(0) }}
-                </div>
-                <span class="user-name">{{ LoggedInName }}</span>
-            </div>
-            <button class="logout-btn" (click)="logOut()">
-                <i class="fa-solid fa-right-from-bracket text-danger"></i>
-            
-            </button>
-
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <div class="content-wrapper">
-        <router-outlet></router-outlet>
-    </div>
-</div>
+    <main class="app-shell__main">
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

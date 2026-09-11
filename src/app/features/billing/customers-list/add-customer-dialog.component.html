@@ -1,0 +1,24 @@
+<h2 mat-dialog-title>Add Customer</h2>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="add-customer-dialog__field">
+      <mat-label>Code</mat-label>
+      <input matInput formControlName="code" required />
+      @if (form.controls.code.hasError('required') && form.controls.code.touched) {
+        <mat-error>Code is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="add-customer-dialog__field">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required />
+      @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+        <mat-error>Name is required</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="dialogRef.close()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit">Add Customer</button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,27 @@
+.error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 100%;
+  padding: var(--tc-space-8);
+  gap: var(--tc-space-2);
+}
+
+.error-page__code {
+  font-size: 4rem;
+  font-weight: var(--tc-font-weight-bold);
+  color: var(--tc-color-primary-surface);
+  line-height: 1;
+}
+
+.error-page h1 {
+  font-size: var(--tc-font-size-2xl);
+  margin: 0;
+}
+
+.error-page p {
+  color: var(--tc-text-secondary);
+  margin: 0 0 var(--tc-space-4);
+}

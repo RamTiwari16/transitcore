@@ -1,0 +1,79 @@
+<div class="page-header">
+  <h1>Add Vehicle</h1>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Registration No</mat-label>
+      <input matInput formControlName="registrationNo" required />
+      @if (form.controls.registrationNo.hasError('required') && form.controls.registrationNo.touched) {
+        <mat-error>Registration number is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Vehicle Type</mat-label>
+      <mat-select formControlName="vehicleTypeId" required>
+        @for (type of vehicleTypes(); track type.id) {
+          <mat-option [value]="type.id">{{ type.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.vehicleTypeId.hasError('required') && form.controls.vehicleTypeId.touched) {
+        <mat-error>Vehicle type is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Make</mat-label>
+      <input matInput formControlName="make" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Model</mat-label>
+      <input matInput formControlName="model" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Manufacture Year</mat-label>
+      <input matInput type="number" formControlName="manufactureYear" />
+      @if (form.controls.manufactureYear.hasError('min') || form.controls.manufactureYear.hasError('max')) {
+        <mat-error>Enter a year between 1980 and 2100</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Capacity (kg)</mat-label>
+      <input matInput type="number" formControlName="capacityKg" required />
+      @if (form.controls.capacityKg.hasError('required') && form.controls.capacityKg.touched) {
+        <mat-error>Capacity is required</mat-error>
+      }
+      @if (form.controls.capacityKg.hasError('min')) {
+        <mat-error>Capacity must be greater than 0</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="statusId" required>
+        @for (status of statusOptions(); track status.id) {
+          <mat-option [value]="status.id">{{ status.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.statusId.hasError('required') && form.controls.statusId.touched) {
+        <mat-error>Status is required</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="form-actions">
+    <a mat-button routerLink="/fleet/vehicles">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save Vehicle
+      }
+    </button>
+  </div>
+</form>

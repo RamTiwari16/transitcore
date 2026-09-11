@@ -1,24 +1,6 @@
-// import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-// import { provideRouter, withHashLocation } from '@angular/router';
-
-// import { routes } from './app.routes';
-// import { provideToastr } from 'ngx-toastr';
-
-// export const appConfig: ApplicationConfig = {
-//   providers: [
-//     provideBrowserGlobalErrorListeners(),
-//     provideRouter(routes),
-//         provideRouter(routes,withHashLocation()),
-//      provideToastr({
-//       timeOut: 3000,
-//       positionClass: 'toast-top-right',
-//       preventDuplicates: true,
-//     }),
-//   ]
-// };
-
 import {
   ApplicationConfig,
+  ErrorHandler,
   provideBrowserGlobalErrorListeners
 } from '@angular/core';
 
@@ -38,13 +20,11 @@ import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
-
-
+import { loadingInterceptor } from './core/interceptors/loading-interceptor';
+import { GlobalErrorHandler } from './core/services/global-error-handler';
 
 export const appConfig: ApplicationConfig = {
-
   providers: [
-
     provideBrowserGlobalErrorListeners(),
 
     provideRouter(
@@ -54,7 +34,8 @@ export const appConfig: ApplicationConfig = {
 
     provideHttpClient(
       withInterceptors([
-        authInterceptor
+        authInterceptor,
+        loadingInterceptor
       ])
     ),
 
@@ -64,8 +45,8 @@ export const appConfig: ApplicationConfig = {
       timeOut: 3000,
       positionClass: 'toast-top-right',
       preventDuplicates: true,
-    })
+    }),
 
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
   ]
-
 };

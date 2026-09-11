@@ -49,3 +49,49 @@ a {
   outline: 2px solid var(--tc-color-primary-surface);
   outline-offset: 2px;
 }
+
+// Shared list-page header (title + primary action) - used identically
+// across Vehicles/Trips/Invoices/Customers rather than duplicated per page.
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--tc-space-4);
+
+  h1 {
+    font-size: var(--tc-font-size-2xl);
+    margin: 0;
+  }
+}
+
+// Shared reactive-form layout - used by every create/edit form page.
+.form-card {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
+  padding: var(--tc-space-6);
+  max-width: 48rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 var(--tc-space-4);
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--tc-space-2);
+  margin-top: var(--tc-space-4);
+  padding-top: var(--tc-space-4);
+  border-top: 1px solid var(--tc-border);
+}

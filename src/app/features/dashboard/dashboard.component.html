@@ -1,0 +1,76 @@
+<div class="dashboard">
+  <h1 class="dashboard__title">Dashboard</h1>
+
+  <div class="dashboard__stats">
+    <app-stat-card
+      label="Active Trips"
+      [value]="activeTrips().length.toString()"
+      icon="route"
+      tone="primary"
+      hint="Scheduled or in transit"
+    ></app-stat-card>
+    <app-stat-card
+      label="Total Invoiced (30d)"
+      [value]="formatCurrency(totalInvoiced())"
+      icon="receipt_long"
+      tone="info"
+    ></app-stat-card>
+    <app-stat-card
+      label="Outstanding"
+      [value]="formatCurrency(totalOutstanding())"
+      icon="account_balance_wallet"
+      tone="warning"
+    ></app-stat-card>
+    <app-stat-card
+      label="Vehicles in Maintenance"
+      [value]="vehiclesInMaintenance().toString()"
+      icon="build"
+      tone="danger"
+    ></app-stat-card>
+  </div>
+
+  <div class="dashboard__grid">
+    <section class="dashboard__panel">
+      <h2>Fleet Utilisation (30 days)</h2>
+      @if (!loading() && utilisationChartData().length > 0) {
+        <app-bar-chart [items]="utilisationChartData()"></app-bar-chart>
+      } @else if (!loading()) {
+        <app-empty-state title="No utilisation data" icon="local_shipping"></app-empty-state>
+      }
+    </section>
+
+    <section class="dashboard__panel">
+      <h2>Active Trips</h2>
+      @if (!loading() && activeTrips().length > 0) {
+        <ul class="dashboard__list">
+          @for (trip of activeTrips(); track trip.id) {
+            <li>
+              <div class="dashboard__list-main">
+                <span class="dashboard__list-title">{{ trip.routeName }}</span>
+                <span class="dashboard__list-meta">{{ trip.registrationNo }} - {{ trip.driverName }}</span>
+              </div>
+              <span class="dashboard__list-status" [attr.data-status]="trip.statusName">{{ trip.statusName }}</span>
+            </li>
+          }
+        </ul>
+        <a routerLink="/ops/trips" class="dashboard__panel-link">View all trips</a>
+      } @else if (!loading()) {
+        <app-empty-state title="No active trips" icon="route"></app-empty-state>
+      }
+    </section>
+
+    <section class="dashboard__panel dashboard__panel--alerts">
+      <h2>Alerts</h2>
+      <ul class="dashboard__alerts">
+        <li>
+          <span class="dashboard__alert-count">{{ vehiclesInMaintenance() }}</span>
+          vehicle(s) currently in maintenance
+        </li>
+        <li>
+          <span class="dashboard__alert-count">{{ overdueInvoiceCount() }}</span>
+          overdue invoice(s)
+        </li>
+      </ul>
+    </section>
+  </div>
+</div>

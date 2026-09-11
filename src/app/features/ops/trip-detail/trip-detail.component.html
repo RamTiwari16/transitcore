@@ -1,0 +1,59 @@
+@if (!loading() && trip(); as t) {
+  <div class="page-header">
+    <h1>{{ t.routeName }}</h1>
+    <a mat-button routerLink="/ops/trips">
+      <mat-icon>arrow_back</mat-icon>
+      Back to trips
+    </a>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="trip-detail__panel">
+        <dl class="trip-detail__summary">
+          <div><dt>Vehicle</dt><dd>{{ t.registrationNo }}</dd></div>
+          <div><dt>Driver</dt><dd>{{ t.driverName }}</dd></div>
+          <div><dt>Scheduled Departure</dt><dd>{{ formatDateTime(t.scheduledDeparture) }}</dd></div>
+          <div><dt>Scheduled Arrival</dt><dd>{{ formatDateTime(t.scheduledArrival) }}</dd></div>
+          <div><dt>Actual Departure</dt><dd>{{ formatDateTime(t.actualDeparture) }}</dd></div>
+          <div><dt>Actual Arrival</dt><dd>{{ formatDateTime(t.actualArrival) }}</dd></div>
+          <div><dt>Current Status</dt><dd>{{ t.statusName }}</dd></div>
+        </dl>
+
+        <div class="trip-detail__status-update">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Update status</mat-label>
+            <mat-select [value]="pendingStatusId()" (selectionChange)="pendingStatusId.set($event.value)">
+              @for (status of statusOptions(); track status.id) {
+                <mat-option [value]="status.id">{{ status.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="applyStatusChange()">Apply</button>
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Status History">
+      <div class="trip-detail__panel">
+        @if (t.statusHistory.length > 0) {
+          <ul class="trip-detail__history">
+            @for (entry of t.statusHistory; track entry.id) {
+              <li>
+                <span class="trip-detail__history-status">{{ entry.statusName }}</span>
+                <span class="trip-detail__history-date">{{ formatDateTime(entry.changedAt) }}</span>
+                @if (entry.notes) {
+                  <span class="trip-detail__history-notes">{{ entry.notes }}</span>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p>No status changes recorded yet.</p>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (!loading()) {
+  <p>Trip not found.</p>
+}

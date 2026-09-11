@@ -1,0 +1,21 @@
+<div class="page-header">
+  <h1>Vehicles</h1>
+  <a mat-flat-button color="primary" routerLink="new">
+    <mat-icon>add</mat-icon>
+    Add Vehicle
+  </a>
+</div>
+
+<app-data-table
+  [columns]="columns()"
+  [rows]="rows()"
+  [totalCount]="totalCount()"
+  [loading]="loading()"
+  [pageIndex]="pageIndex()"
+  [pageSize]="pageSize()"
+  [rowId]="rowId"
+  emptyTitle="No vehicles yet"
+  emptyDescription="Add your first vehicle to start tracking your fleet."
+  (pageChange)="onPage($event)"
+  (sortChange)="onSort($event)"
+></app-data-table>

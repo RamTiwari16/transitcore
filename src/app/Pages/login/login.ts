@@ -1,153 +1,68 @@
-  // import { Component, OnInit } from '@angular/core';
-  // import { Router } from '@angular/router';
-  // import { MsalService } from '@azure/msal-angular';
-
-  // import { AuthService } from '../../services/auth-service';
-  // import { CryptoUtil } from '../../services/crypto.util';
-  // import { AuthenticationResult, AccountInfo } from '@azure/msal-browser';
-  // import { ToastrService } from 'ngx-toastr';
-
-  // @Component({
-  //   selector: 'app-login',
-  //   standalone: true,
-  //   templateUrl: './login.html',
-  //   styleUrl: './login.scss'
-  // })
-  // export class Login implements OnInit {
-
-  //   isSubmitting = false;
-
-  //   constructor(
-      
-  //     private authService: AuthService,
-  //     private router: Router,
-  //     private toastr: ToastrService
-  //   ) {}
-
-  //   ngOnInit(): void {
-    
-  //   }
-  //   // ngOnInit(): void {
-  //   //   this.msalService.handleRedirectObservable().subscribe({
-  //   //     next: (result: AuthenticationResult | null) => {
-  //   //       if (result?.account) {
-  //   //         this.msalService.instance.setActiveAccount(result.account);
-  //   //         this.loginWithBackend(result.account);
-  //   //       } else {
-  //   //         const account = this.msalService.instance.getActiveAccount() 
-  //   //           || this.msalService.instance.getAllAccounts()[0];
-
-  //   //         if (account) {
-  //   //           this.msalService.instance.setActiveAccount(account);
-  //   //           this.loginWithBackend(account);
-  //   //         }
-  //   //       }
-  //   //     },
-  //   //     error: (error) => {
-  //   //       console.error('MSAL Redirect Error:', error);
-  //   //       this.toastr.error('Microsoft login failed');
-  //   //     }
-  //   //   });
-  //   // }
-
-  //   // continueWithMicrosoft(): void {
-  //   //   this.msalService.loginRedirect({
-  //   //     scopes: ['user.read'],
-  //   //     prompt: 'select_account'
-  //   //   });
-  //   // }
-  //   continueWithMicrosoft(): void {
-    
-  //   }
-
-  //   private loginWithBackend(account: AccountInfo): void {
-  //     this.isSubmitting = true;
-
-  //     const payload = {
-  //       email: account.username
-  //     };
-
-  //     this.authService.login(payload).subscribe({
-  //       next: (res) => {
-  //         if (res?.data?.token) {
-  //           const encryptedUser = CryptoUtil.encryptData(res.data);
-
-  //           localStorage.setItem('token', res.data.token);
-  //           sessionStorage.setItem('authToken', res.data.token);
-  //           localStorage.setItem('userData', encryptedUser);
-
-  //           this.toastr.success('Login successful');
-  //           this.router.navigate(['/dashboard']);
-  //         } else {
-  //           this.toastr.error('Invalid login response');
-  //         }
-  //       },
-  //       error: () => {
-  //         this.toastr.error('Authentication failed');
-  //       },
-  //       complete: () => {
-  //         this.isSubmitting = false;
-  //       }
-  //     });
-  //   }
-  // }
-
-  import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth-service';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { CryptoUtil } from '../../services/crypto.util';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from '../../services/auth-service';
+import { CryptoUtil } from '../../services/crypto.util';
 
+interface LoginFormModel {
+  email: FormControl<string>;
+  password: FormControl<string>;
+}
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, FormsModule,MatIconModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
-  styleUrls: ['./login.scss']
+  styleUrls: ['./login.scss'],
 })
 export class Login {
-  email = '';
-  password = '';
-  showPassword = false;
-  isLoading = false;
-  errorMsg = '';
+  readonly showPassword = signal(false);
+  readonly isLoading = signal(false);
+  readonly errorMsg = signal('');
 
-  constructor(private authService: AuthService, private router: Router) {}
+  readonly form = new FormGroup<LoginFormModel>({
+    email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
+    password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+  });
 
-  login() {
-    // this.router.navigate(['/bulkupload']);
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
-    
-    this.errorMsg = '';
+  togglePasswordVisibility(): void {
+    this.showPassword.update((v) => !v);
+  }
 
-    if (!this.email || !this.password) {
-      this.errorMsg = 'Please enter both email and password.';
+  login(): void {
+    this.errorMsg.set('');
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
-    
 
-    this.isLoading = true;
-   
-    this.authService.login({ email: this.email, password: this.password }).subscribe({
+    this.isLoading.set(true);
+    const { email, password } = this.form.getRawValue();
+
+    this.authService.login({ email, password }).subscribe({
       next: (res) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         localStorage.setItem('authToken', res.data.accessToken);
 
         const encryptedUser = CryptoUtil.encryptData(res.data);
         localStorage.setItem('userData', encryptedUser);
-        this.router.navigate(['/bulkupload']);
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMsg = err?.error?.message || 'Invalid email or password.';
-      }
+        this.isLoading.set(false);
+        this.errorMsg.set(err?.error?.message || 'Invalid email or password.');
+      },
     });
-  }
-
-  continueWithMicrosoft() {
-    // your existing Microsoft SSO logic
   }
 }
