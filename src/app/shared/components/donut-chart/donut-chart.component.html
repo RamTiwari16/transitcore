@@ -1,6 +1,25 @@
 <div class="donut-chart">
   <svg class="donut-chart__svg" viewBox="0 0 36 36" role="img" [attr.aria-label]="centerLabel()">
+    <defs>
+      @for (segment of segments(); track segment.label) {
+        <!--
+          Radial, not linear: shading goes inner-edge -> outer-edge of the
+          ring's own stroke width (a tube's cross-section), so every segment
+          gets the same cylindrical shine regardless of where it sits on the
+          circle. A gradient anchored to screen position instead would make
+          whichever segment happens to land at 12 o'clock double up with the
+          highlight arc below and wash out.
+        -->
+        <radialGradient [attr.id]="segment.gradientId" cx="18" cy="18" r="17.5" gradientUnits="userSpaceOnUse">
+          <stop offset="80%" [attr.stop-color]="'color-mix(in oklch, ' + segment.color + ' 100%, black 22%)'"></stop>
+          <stop offset="91%" [attr.stop-color]="'color-mix(in oklch, ' + segment.color + ' 100%, white 30%)'"></stop>
+          <stop offset="100%" [attr.stop-color]="'color-mix(in oklch, ' + segment.color + ' 100%, black 22%)'"></stop>
+        </radialGradient>
+      }
+    </defs>
+
     <circle class="donut-chart__track" cx="18" cy="18" r="15.9155" fill="none"></circle>
+
     @for (segment of segments(); track segment.label) {
       <circle
         class="donut-chart__segment"
@@ -8,7 +27,7 @@
         cy="18"
         r="15.9155"
         fill="none"
-        [style.stroke]="segment.color"
+        [attr.stroke]="'url(#' + segment.gradientId + ')'"
         [style.stroke-dasharray]="segment.dashArray"
         [style.stroke-dashoffset]="segment.dashOffset"
       >
