@@ -42,6 +42,15 @@ export interface DriverModel {
   statusName: string;
 }
 
+export interface CreateDriverRequest {
+  fullName: string;
+  phoneNo?: string;
+  email?: string;
+  dateOfBirth?: string;
+  hireDate?: string;
+  statusId: number;
+}
+
 export interface FleetUtilisationModel {
   vehicleId: number;
   registrationNo: string;

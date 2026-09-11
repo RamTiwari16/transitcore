@@ -18,4 +18,10 @@ export const FLEET_ROUTES: Routes = [
     loadComponent: () =>
       import('./drivers-list/drivers-list.component').then((m) => m.DriversListComponent),
   },
+  {
+    path: 'drivers/new',
+    loadComponent: () =>
+      import('./driver-form/driver-form.component').then((m) => m.DriverFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
 ];

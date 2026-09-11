@@ -1,0 +1,61 @@
+<div class="page-header">
+  <h1>Add Driver</h1>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Full Name</mat-label>
+      <input matInput formControlName="fullName" required />
+      @if (form.controls.fullName.hasError('required') && form.controls.fullName.touched) {
+        <mat-error>Full name is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="statusId" required>
+        @for (status of statusOptions(); track status.id) {
+          <mat-option [value]="status.id">{{ status.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.statusId.hasError('required') && form.controls.statusId.touched) {
+        <mat-error>Status is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone No</mat-label>
+      <input matInput formControlName="phoneNo" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" />
+      @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+        <mat-error>Enter a valid email address</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Date of Birth</mat-label>
+      <input matInput type="date" formControlName="dateOfBirth" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Hire Date</mat-label>
+      <input matInput type="date" formControlName="hireDate" />
+    </mat-form-field>
+  </div>
+
+  <div class="form-actions">
+    <a mat-button routerLink="/fleet/drivers">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save Driver
+      }
+    </button>
+  </div>
+</form>

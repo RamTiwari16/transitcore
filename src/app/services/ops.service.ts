@@ -4,6 +4,7 @@ import { ApiRoutes } from '../constants/apiRoutes';
 import { ApiResponse } from '../models/api-response';
 import { PagedResult } from '../models/paged-result';
 import {
+  CreateRouteRequest,
   CreateShipmentRequest,
   CreateTripRequest,
   RouteModel,
@@ -23,6 +24,10 @@ export class OpsService {
 
   getRoutes(): Observable<RouteModel[]> {
     return this.api.get<ApiResponse<RouteModel[]>>(ApiRoutes.Routes).pipe(map((res) => res.data));
+  }
+
+  createRoute(request: CreateRouteRequest): Observable<number> {
+    return this.api.post<ApiResponse<number>>(ApiRoutes.Routes, request).pipe(map((res) => res.data));
   }
 
   getTrips(filter: TripFilter, pageNumber = 1, pageSize = 25): Observable<PagedResult<TripModel>> {

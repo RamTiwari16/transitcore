@@ -1,0 +1,106 @@
+<div class="page-header">
+  <h1>Add Invoice</h1>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card invoice-form">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Invoice No</mat-label>
+      <input matInput formControlName="invoiceNo" required />
+      @if (form.controls.invoiceNo.hasError('required') && form.controls.invoiceNo.touched) {
+        <mat-error>Invoice number is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Customer</mat-label>
+      <mat-select formControlName="customerId" required>
+        @for (customer of customers(); track customer.id) {
+          <mat-option [value]="customer.id">{{ customer.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.customerId.hasError('required') && form.controls.customerId.touched) {
+        <mat-error>Customer is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Invoice Date</mat-label>
+      <input matInput type="date" formControlName="invoiceDate" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Due Date</mat-label>
+      <input matInput type="date" formControlName="dueDate" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tax Amount</mat-label>
+      <input matInput type="number" formControlName="taxAmount" />
+      @if (form.controls.taxAmount.hasError('min')) {
+        <mat-error>Tax amount cannot be negative</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="statusId" required>
+        @for (status of statusOptions(); track status.id) {
+          <mat-option [value]="status.id">{{ status.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.statusId.hasError('required') && form.controls.statusId.touched) {
+        <mat-error>Status is required</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <h2 class="invoice-form__lines-title">Lines</h2>
+
+  <div class="invoice-form__lines">
+    @for (line of lines.controls; track $index) {
+      <div [formGroup]="line" class="invoice-form__line-row">
+        <mat-form-field appearance="outline" class="invoice-form__line-description">
+          <mat-label>Description</mat-label>
+          <input matInput formControlName="description" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="invoice-form__line-quantity">
+          <mat-label>Qty</mat-label>
+          <input matInput type="number" formControlName="quantity" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="invoice-form__line-price">
+          <mat-label>Unit Price</mat-label>
+          <input matInput type="number" formControlName="unitPrice" required />
+        </mat-form-field>
+
+        <button
+          mat-icon-button
+          type="button"
+          (click)="removeLine($index)"
+          [disabled]="lines.length === 1"
+          aria-label="Remove line"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  <button mat-button type="button" (click)="addLine()">
+    <mat-icon>add</mat-icon>
+    Add Line
+  </button>
+
+  <div class="form-actions">
+    <a mat-button routerLink="/billing/invoices">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save Invoice
+      }
+    </button>
+  </div>
+</form>

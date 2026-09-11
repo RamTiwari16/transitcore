@@ -20,6 +20,11 @@ export const OPS_ROUTES: Routes = [
     loadComponent: () => import('./routes-list/routes-list.component').then((m) => m.RoutesListComponent),
   },
   {
+    path: 'routes/new',
+    loadComponent: () => import('./route-form/route-form.component').then((m) => m.RouteFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
     path: 'shipments',
     loadComponent: () =>
       import('./shipments-list/shipments-list.component').then((m) => m.ShipmentsListComponent),

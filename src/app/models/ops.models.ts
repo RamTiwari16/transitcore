@@ -8,6 +8,13 @@ export interface RouteModel {
   distanceKm: number | null;
 }
 
+export interface CreateRouteRequest {
+  name: string;
+  originCityId: number;
+  destinationCityId: number;
+  distanceKm?: number;
+}
+
 export interface TripFilter {
   fromDate?: string;
   toDate?: string;

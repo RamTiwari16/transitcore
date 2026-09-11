@@ -4,6 +4,7 @@ import { ApiRoutes } from '../constants/apiRoutes';
 import { ApiResponse } from '../models/api-response';
 import { PagedResult } from '../models/paged-result';
 import {
+  CreateDriverRequest,
   CreateVehicleRequest,
   DriverModel,
   FleetUtilisationModel,
@@ -58,6 +59,12 @@ export class FleetService {
   getDrivers(statusId?: number): Observable<DriverModel[]> {
     return this.api
       .get<ApiResponse<DriverModel[]>>(ApiRoutes.Drivers, statusId ? { statusId } : undefined)
+      .pipe(map((res) => res.data));
+  }
+
+  createDriver(request: CreateDriverRequest): Observable<number> {
+    return this.api
+      .post<ApiResponse<number>>(ApiRoutes.Drivers, request)
       .pipe(map((res) => res.data));
   }
 
