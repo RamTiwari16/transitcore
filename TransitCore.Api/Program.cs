@@ -82,7 +82,15 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+// Skipped in Development: the dev frontend deliberately targets the HTTP
+// endpoint (no trusted local dev cert set up - see PLAN.md). Redirecting to
+// HTTPS here would run before UseCors below, so every request would bounce
+// to https://localhost:7195 with no CORS headers on the redirect response -
+// the browser reports that as a CORS failure even though the policy is wide open.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("AllowAll");
 
