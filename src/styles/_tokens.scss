@@ -43,17 +43,6 @@ $tc-breakpoint-desktop: 1280px;
   --tc-color-primary-surface: oklch(1 0 0);
   --tc-color-primary-surface-contrast: oklch(0.2 0.008 265);
 
-  // ---- Brand secondary ----
-  // A logistics-authentic second brand color (tracking-blue primary +
-  // delivery-orange secondary is a deliberate two-color combination, the
-  // way carrier brands do it) - decorative/highlight use only, e.g. calling
-  // out one "hero" metric. Never a status color: that's still warning's
-  // job (also orange-family, but a distinct hue - 55 vs 38 - and a distinct
-  // role, so the two don't get confused in place).
-  --tc-color-secondary: oklch(0.5 0.156 38);
-  --tc-color-secondary-contrast: oklch(1 0 0);
-  --tc-color-secondary-surface: oklch(0.95 0.0244 38);
-
   // ---- Semantic ----
   // Info gets its own hue (230, true blue) rather than reusing primary's
   // 265 (violet-leaning) - otherwise info state and brand accent would be
@@ -155,10 +144,6 @@ $tc-breakpoint-desktop: 1280px;
   // would put a very bright panel next to an otherwise dark UI).
   --tc-color-primary-surface: oklch(0.2 0.008 265);
   --tc-color-primary-surface-contrast: oklch(0.95 0.004 265);
-
-  --tc-color-secondary: oklch(0.78 0.124 38);
-  --tc-color-secondary-contrast: oklch(0.15 0.02 38);
-  --tc-color-secondary-surface: oklch(0.28 0.06 38);
 
   --tc-color-success: oklch(0.78 0.17 150);
   --tc-color-success-surface: oklch(0.27 0.06 150);

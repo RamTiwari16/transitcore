@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
-export type StatCardTone = 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
+export type StatCardTone = 'primary' | 'success' | 'warning' | 'danger' | 'info';
 
 @Component({
   selector: 'app-stat-card',
