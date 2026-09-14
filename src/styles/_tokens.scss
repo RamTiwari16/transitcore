@@ -28,52 +28,57 @@ $tc-breakpoint-desktop: 1280px;
 
 :root {
   // ---- Brand ----
-  // Calm, desaturated blue (H 254, low chroma throughout - restrained
-  // chroma is what reads as "calm", not the hue choice alone). "Primary
-  // surface" is a separate token for the app shell's sidebar and the login
-  // page's brand panel - in light mode that's a light neutral (matching the
-  // rest of the light theme), not the brand hue itself; dark mode keeps its
-  // own dark neutral further down so the sidebar stays dark in both themes'
-  // own way.
-  --tc-color-primary: oklch(0.47 0.09 254);
-  --tc-color-primary-hover: oklch(0.54 0.09 254);
-  --tc-color-primary-active: oklch(0.41 0.09 254);
+  // Punchy indigo/blue-violet (H 265, chroma pushed to near the sRGB gamut
+  // boundary at each lightness/hue rather than an arbitrary high number -
+  // "punchy" without clipping into color the browser can't actually show).
+  // "Primary surface" is a separate token for the app shell's sidebar and
+  // the login page's brand panel - in light mode that's a light neutral
+  // (matching the rest of the light theme), not the brand hue itself; dark
+  // mode keeps its own dark neutral further down so the sidebar stays dark
+  // in both themes' own way.
+  --tc-color-primary: oklch(0.42 0.19 265);
+  --tc-color-primary-hover: oklch(0.49 0.19 265);
+  --tc-color-primary-active: oklch(0.36 0.19 265);
   --tc-color-primary-contrast: oklch(1 0 0);
   --tc-color-primary-surface: oklch(1 0 0);
-  --tc-color-primary-surface-contrast: oklch(0.22 0.006 254);
+  --tc-color-primary-surface-contrast: oklch(0.2 0.008 265);
 
   // ---- Semantic ----
-  // Info gets its own hue (210, teal-leaning) rather than reusing primary's
-  // 254 - otherwise info state and brand accent would be indistinguishable.
-  --tc-color-success: oklch(0.42 0.1 145);
-  --tc-color-success-surface: oklch(0.95 0.025 145);
-  --tc-color-warning: oklch(0.48 0.095 75);
-  --tc-color-warning-surface: oklch(0.96 0.025 75);
-  --tc-color-danger: oklch(0.5 0.17 25);
-  --tc-color-danger-surface: oklch(0.95 0.025 25);
-  --tc-color-info: oklch(0.48 0.075 210);
-  --tc-color-info-surface: oklch(0.95 0.02 210);
+  // Info gets its own hue (230, true blue) rather than reusing primary's
+  // 265 (violet-leaning) - otherwise info state and brand accent would be
+  // indistinguishable. All four pushed to vivid, gamut-safe chroma to match
+  // the primary's energy rather than reading as muted afterthoughts.
+  --tc-color-success: oklch(0.42 0.11 150);
+  --tc-color-success-surface: oklch(0.94 0.04 150);
+  --tc-color-warning: oklch(0.46 0.108 55);
+  --tc-color-warning-surface: oklch(0.95 0.027 55);
+  --tc-color-danger: oklch(0.48 0.18 25);
+  --tc-color-danger-surface: oklch(0.94 0.028 25);
+  --tc-color-info: oklch(0.46 0.087 230);
+  --tc-color-info-surface: oklch(0.94 0.035 230);
 
   // ---- Surfaces ----
-  // A faint 254 tint (C 0.003-0.014) instead of pure neutral gray, so the
-  // whole system reads as one palette rather than a blue accent on top of
-  // generic gray - subtle enough not to read as "colored" on its own.
-  --tc-surface-canvas: oklch(0.985 0.003 254);
+  // A faint 265 tint (C 0.003-0.016) instead of pure neutral gray, so the
+  // whole system reads as one palette rather than a vivid accent bolted onto
+  // generic gray - subtle enough not to read as "colored" on its own; the
+  // punch comes from the accent/semantic colors popping against clean,
+  // still-mostly-neutral surfaces (60-30-10: neutral dominates, accent pops).
+  --tc-surface-canvas: oklch(0.983 0.004 265);
   --tc-surface-raised: oklch(1 0 0);
-  --tc-surface-sunken: oklch(0.95 0.004 254);
-  --tc-surface-overlay: oklch(0.99 0.002 254);
-  --tc-border: oklch(0.66 0.012 254);
-  --tc-border-strong: oklch(0.58 0.014 254);
-  --tc-divider: oklch(0.95 0.004 254);
+  --tc-surface-sunken: oklch(0.95 0.005 265);
+  --tc-surface-overlay: oklch(0.99 0.003 265);
+  --tc-border: oklch(0.66 0.014 265);
+  --tc-border-strong: oklch(0.58 0.016 265);
+  --tc-divider: oklch(0.95 0.005 265);
 
   // ---- Text ----
-  --tc-text-primary: oklch(0.22 0.006 254);
-  --tc-text-secondary: oklch(0.44 0.008 254);
-  --tc-text-tertiary: oklch(0.53 0.008 254);
-  --tc-text-disabled: oklch(0.78 0.006 254);
+  --tc-text-primary: oklch(0.2 0.008 265);
+  --tc-text-secondary: oklch(0.44 0.01 265);
+  --tc-text-tertiary: oklch(0.53 0.01 265);
+  --tc-text-disabled: oklch(0.78 0.006 265);
   --tc-text-on-primary: oklch(1 0 0);
-  --tc-text-on-primary-surface: oklch(0.22 0.006 254);
-  --tc-text-link: oklch(0.47 0.09 254);
+  --tc-text-on-primary-surface: oklch(0.2 0.008 265);
+  --tc-text-link: oklch(0.42 0.19 265);
 
   // ---- Typography ----
   --tc-font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -124,44 +129,46 @@ $tc-breakpoint-desktop: 1280px;
 }
 
 @mixin tc-dark-palette {
-  // A genuine remap, not an inversion: primary flips from a dark navy
-  // (button fill against light surfaces) to a light sky-blue (needs to pop
-  // off a dark surface instead) - same hue (254), different role in the
-  // lightness scale.
-  --tc-color-primary: oklch(0.75 0.11 254);
-  --tc-color-primary-hover: oklch(0.78 0.1 254);
-  --tc-color-primary-active: oklch(0.68 0.11 254);
-  --tc-color-primary-contrast: oklch(0.15 0.02 254);
+  // A genuine remap, not an inversion: primary flips from a deep indigo
+  // (button fill against light surfaces) to a lighter, still-vivid periwinkle
+  // (needs to pop off a dark surface instead) - same hue (265), different
+  // role in the lightness scale. Chroma per stop is the max the sRGB gamut
+  // allows at that lightness (binary-searched, then backed off ~6% for
+  // headroom) - not an arbitrary "high" number, which would silently clip.
+  --tc-color-primary: oklch(0.72 0.135 265);
+  --tc-color-primary-hover: oklch(0.77 0.109 265);
+  --tc-color-primary-active: oklch(0.65 0.174 265);
+  --tc-color-primary-contrast: oklch(0.15 0.02 265);
   // The sidebar/login brand panel keep a dark neutral surface in dark mode
   // too (rather than following "primary" all the way to near-white, which
   // would put a very bright panel next to an otherwise dark UI).
-  --tc-color-primary-surface: oklch(0.22 0.006 254);
-  --tc-color-primary-surface-contrast: oklch(0.95 0.004 254);
+  --tc-color-primary-surface: oklch(0.2 0.008 265);
+  --tc-color-primary-surface-contrast: oklch(0.95 0.004 265);
 
-  --tc-color-success: oklch(0.76 0.14 145);
-  --tc-color-success-surface: oklch(0.28 0.045 145);
-  --tc-color-warning: oklch(0.82 0.14 75);
-  --tc-color-warning-surface: oklch(0.3 0.05 75);
-  --tc-color-danger: oklch(0.72 0.17 25);
-  --tc-color-danger-surface: oklch(0.3 0.06 25);
-  --tc-color-info: oklch(0.75 0.1 210);
-  --tc-color-info-surface: oklch(0.28 0.045 210);
+  --tc-color-success: oklch(0.78 0.17 150);
+  --tc-color-success-surface: oklch(0.27 0.06 150);
+  --tc-color-warning: oklch(0.8 0.124 55);
+  --tc-color-warning-surface: oklch(0.3 0.06 55);
+  --tc-color-danger: oklch(0.7 0.178 25);
+  --tc-color-danger-surface: oklch(0.3 0.07 25);
+  --tc-color-info: oklch(0.75 0.14 230);
+  --tc-color-info-surface: oklch(0.28 0.055 230);
 
-  --tc-surface-canvas: oklch(0.18 0.004 254);
-  --tc-surface-raised: oklch(0.22 0.004 254);
-  --tc-surface-sunken: oklch(0.26 0.004 254);
-  --tc-surface-overlay: oklch(0.22 0.004 254);
-  --tc-border: oklch(0.53 0.012 254);
-  --tc-border-strong: oklch(0.6 0.014 254);
-  --tc-divider: oklch(0.26 0.004 254);
+  --tc-surface-canvas: oklch(0.17 0.006 265);
+  --tc-surface-raised: oklch(0.21 0.006 265);
+  --tc-surface-sunken: oklch(0.25 0.006 265);
+  --tc-surface-overlay: oklch(0.21 0.006 265);
+  --tc-border: oklch(0.53 0.014 265);
+  --tc-border-strong: oklch(0.56 0.016 265);
+  --tc-divider: oklch(0.25 0.006 265);
 
-  --tc-text-primary: oklch(0.95 0.004 254);
-  --tc-text-secondary: oklch(0.75 0.006 254);
-  --tc-text-tertiary: oklch(0.65 0.006 254);
-  --tc-text-disabled: oklch(0.42 0.006 254);
-  --tc-text-on-primary: oklch(0.15 0.02 254);
-  --tc-text-on-primary-surface: oklch(0.95 0.004 254);
-  --tc-text-link: oklch(0.78 0.09 254);
+  --tc-text-primary: oklch(0.95 0.004 265);
+  --tc-text-secondary: oklch(0.75 0.008 265);
+  --tc-text-tertiary: oklch(0.65 0.008 265);
+  --tc-text-disabled: oklch(0.42 0.006 265);
+  --tc-text-on-primary: oklch(0.15 0.02 265);
+  --tc-text-on-primary-surface: oklch(0.95 0.004 265);
+  --tc-text-link: oklch(0.76 0.114 265);
 
   --tc-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);
   --tc-shadow-md: 0 4px 12px oklch(0 0 0 / 0.32);
