@@ -3,8 +3,14 @@
   align-items: flex-start;
   gap: var(--tc-space-4);
   padding: var(--tc-space-5);
-  background: var(--tc-surface-raised);
-  border: 1px solid var(--tc-border);
+  // Frosted glass, not a flat opaque card: background/border reference
+  // --tc-glass-*, which resolve against --tc-surface-canvas (see tokens.scss)
+  // - correct only because this card always sits directly on the page
+  // canvas, never on another card or an image.
+  background: var(--tc-glass-bg);
+  backdrop-filter: blur(var(--tc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tc-glass-blur));
+  border: 1px solid var(--tc-glass-border);
   border-radius: var(--tc-radius-lg);
   box-shadow: var(--tc-shadow-sm);
   min-width: 0;

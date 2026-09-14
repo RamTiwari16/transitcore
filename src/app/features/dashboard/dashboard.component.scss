@@ -35,8 +35,13 @@
 }
 
 .dashboard__panel {
-  background: var(--tc-surface-raised);
-  border: 1px solid var(--tc-border);
+  // Same frosted-glass treatment as the stat cards above (see that file's
+  // comment) - only valid because this panel also sits directly on the
+  // page canvas.
+  background: var(--tc-glass-bg);
+  backdrop-filter: blur(var(--tc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tc-glass-blur));
+  border: 1px solid var(--tc-glass-border);
   border-radius: var(--tc-radius-lg);
   padding: var(--tc-space-5);
 
