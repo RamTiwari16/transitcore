@@ -5,6 +5,9 @@
   Date:         2026-09-11
   Dependencies: 001_lookup_core.sql
 */
+-- Procs keep the QUOTED_IDENTIFIER setting they were created with; tables with filtered indexes reject writes from procs created with it OFF.
+SET QUOTED_IDENTIFIER ON;
+GO
 SET NOCOUNT ON;
 GO
 
@@ -38,7 +41,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
-        SELECT b.Id, b.Name, b.RegionId, r.Name AS RegionName
+        SELECT b.Id, b.Name, b.Code, b.RegionId, r.Name AS RegionName
         FROM lookup.Branches b
         INNER JOIN lookup.Regions r ON r.Id = b.RegionId
         WHERE b.IsDeleted = 0

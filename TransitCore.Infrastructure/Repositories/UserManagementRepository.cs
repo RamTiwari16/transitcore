@@ -45,6 +45,10 @@ public class UserManagementRepository : IUserManagementService
             ? dataSet.Tables[1].Rows.Cast<DataRow>().Select(r => Convert.ToInt32(r["BranchId"])).ToList()
             : new List<int>();
 
+        var roleIds = dataSet.Tables.Count > 2
+            ? dataSet.Tables[2].Rows.Cast<DataRow>().Select(r => Convert.ToInt32(r["RoleId"])).ToList()
+            : new List<int>();
+
         return new UserDetailDto
         {
             Id = Convert.ToInt32(row["Id"]),
@@ -64,7 +68,8 @@ public class UserManagementRepository : IUserManagementService
             IsActive = Convert.ToBoolean(row["IsActive"]),
             CreatedAt = Convert.ToDateTime(row["CreatedAt"]),
             CreatedBy = row["CreatedBy"] as string,
-            BranchIds = branchIds
+            BranchIds = branchIds,
+            RoleIds = roleIds
         };
     }
 
@@ -87,7 +92,8 @@ public class UserManagementRepository : IUserManagementService
             new SqlParameter("@Shift", (object?)request.Shift ?? DBNull.Value),
             new SqlParameter("@Company", (object?)request.Company ?? DBNull.Value),
             new SqlParameter("@CreatedBy", createdBy),
-            BuildBranchesParameter(request.BranchIds)
+            BuildIntListParameter("@Branches", request.BranchIds),
+            BuildIntListParameter("@Roles", request.RoleIds)
         };
 
         var newUserId = await _db.ExecuteScalarProcedureAsync("auth.usp_InsertUser", parameters, cancellationToken);
@@ -109,14 +115,72 @@ public class UserManagementRepository : IUserManagementService
             new SqlParameter("@PunchLocation", (object?)request.PunchLocation ?? DBNull.Value),
             new SqlParameter("@Shift", (object?)request.Shift ?? DBNull.Value),
             new SqlParameter("@Company", (object?)request.Company ?? DBNull.Value),
+            new SqlParameter("@IsActive", request.IsActive),
             new SqlParameter("@ModifiedBy", modifiedBy),
-            BuildBranchesParameter(request.BranchIds),
+            BuildIntListParameter("@Branches", request.BranchIds),
+            BuildIntListParameter("@Roles", request.RoleIds),
             isUpdatedParam
         };
 
         await _db.ExecuteNonQueryProcedureAsync("auth.usp_UpdateUser", parameters, cancellationToken);
 
         return isUpdatedParam.Value is bool b && b;
+    }
+
+    public async Task<IReadOnlyList<RoleDto>> GetRolesAsync(CancellationToken cancellationToken = default)
+    {
+        var table = await _db.QueryProcedureAsync("auth.usp_GetRoles", cancellationToken: cancellationToken);
+
+        return table.Rows.Cast<DataRow>()
+            .Select(row => new RoleDto
+            {
+                Id = Convert.ToInt32(row["Id"]),
+                Name = row["Name"].ToString() ?? string.Empty
+            })
+            .ToList();
+    }
+
+    public async Task<bool> ResetPasswordAsync(ResetPasswordRequest request, string modifiedBy, CancellationToken cancellationToken = default)
+    {
+        var (hash, salt) = _passwordHasher.HashPassword(request.NewPassword);
+        var isUpdatedParam = new SqlParameter("@IsUpdated", SqlDbType.Bit) { Direction = ParameterDirection.Output };
+
+        var parameters = new[]
+        {
+            new SqlParameter("@UserId", request.UserId),
+            new SqlParameter("@PasswordHash", hash),
+            new SqlParameter("@PasswordSalt", salt),
+            new SqlParameter("@ModifiedBy", modifiedBy),
+            isUpdatedParam
+        };
+
+        await _db.ExecuteNonQueryProcedureAsync("auth.usp_ResetUserPassword", parameters, cancellationToken);
+
+        return isUpdatedParam.Value is bool b && b;
+    }
+
+    public async Task<int?> GetPrimaryBranchIdAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var parameters = new[] { new SqlParameter("@UserId", userId) };
+        var table = await _db.QueryProcedureAsync("auth.usp_GetPrimaryBranchId", parameters, cancellationToken);
+
+        return table.Rows.Count == 0 ? null : Convert.ToInt32(table.Rows[0]["BranchId"]);
+    }
+
+    public async Task<bool> SetPrimaryBranchAsync(int userId, SetPrimaryBranchRequest request, CancellationToken cancellationToken = default)
+    {
+        var successParam = new SqlParameter("@Success", SqlDbType.Bit) { Direction = ParameterDirection.Output };
+
+        var parameters = new[]
+        {
+            new SqlParameter("@UserId", userId),
+            new SqlParameter("@BranchId", request.BranchId),
+            successParam
+        };
+
+        await _db.ExecuteNonQueryProcedureAsync("auth.usp_SetPrimaryBranch", parameters, cancellationToken);
+
+        return successParam.Value is bool b && b;
     }
 
     private static UserSummaryDto MapSummary(DataRow row) => new()
@@ -137,17 +201,20 @@ public class UserManagementRepository : IUserManagementService
         IsActive = Convert.ToBoolean(row["IsActive"]),
         BranchNames = row["BranchNames"] == DBNull.Value
             ? Array.Empty<string>()
-            : row["BranchNames"]!.ToString()!.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            : row["BranchNames"]!.ToString()!.Split(',', StringSplitOptions.RemoveEmptyEntries),
+        RoleNames = row["RoleNames"] == DBNull.Value
+            ? Array.Empty<string>()
+            : row["RoleNames"]!.ToString()!.Split(',', StringSplitOptions.RemoveEmptyEntries)
     };
 
-    private static SqlParameter BuildBranchesParameter(IEnumerable<int> branchIds)
+    private static SqlParameter BuildIntListParameter(string parameterName, IEnumerable<int> ids)
     {
         var table = new DataTable();
         table.Columns.Add("Id", typeof(int));
-        foreach (var id in branchIds)
+        foreach (var id in ids)
             table.Rows.Add(id);
 
-        return new SqlParameter("@Branches", SqlDbType.Structured)
+        return new SqlParameter(parameterName, SqlDbType.Structured)
         {
             TypeName = "auth.IntList_TVP",
             Value = table

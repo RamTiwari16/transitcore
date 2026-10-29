@@ -52,6 +52,7 @@ public class LookupRepository : ILookupService
             {
                 Id = Convert.ToInt32(row["Id"]),
                 Name = row["Name"].ToString() ?? string.Empty,
+                Code = row["Code"].ToString() ?? string.Empty,
                 RegionId = Convert.ToInt32(row["RegionId"]),
                 RegionName = row["RegionName"].ToString() ?? string.Empty
             })

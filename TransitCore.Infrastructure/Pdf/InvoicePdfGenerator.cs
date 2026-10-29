@@ -91,6 +91,14 @@ public class InvoicePdfGenerator : IInvoicePdfGenerator
                     r.RelativeItem().AlignRight().Text("Subtotal");
                     r.ConstantItem(100).AlignRight().Text(invoice.Subtotal.ToString("N2"));
                 });
+                if (invoice.DiscountAmount > 0)
+                {
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().AlignRight().Text("Discount");
+                        r.ConstantItem(100).AlignRight().Text($"-{invoice.DiscountAmount:N2}");
+                    });
+                }
                 col.Item().Row(r =>
                 {
                     r.RelativeItem().AlignRight().Text("Tax");
@@ -101,6 +109,30 @@ public class InvoicePdfGenerator : IInvoicePdfGenerator
                     r.RelativeItem().AlignRight().Text("Total").Bold();
                     r.ConstantItem(100).AlignRight().Text(invoice.TotalAmount.ToString("N2")).Bold();
                 });
+                if (invoice.PaidAmount > 0)
+                {
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().AlignRight().Text("Paid");
+                        r.ConstantItem(100).AlignRight().Text(invoice.PaidAmount.ToString("N2"));
+                    });
+                }
+                if (invoice.DeductionAmount > 0)
+                {
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().AlignRight().Text("Deduction");
+                        r.ConstantItem(100).AlignRight().Text($"-{invoice.DeductionAmount:N2}");
+                    });
+                }
+                if (invoice.PaidAmount > 0 || invoice.DeductionAmount > 0)
+                {
+                    col.Item().Row(r =>
+                    {
+                        r.RelativeItem().AlignRight().Text("Balance Due").Bold();
+                        r.ConstantItem(100).AlignRight().Text((invoice.TotalAmount - invoice.PaidAmount - invoice.DeductionAmount).ToString("N2")).Bold();
+                    });
+                }
             });
         });
     }

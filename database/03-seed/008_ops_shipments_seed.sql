@@ -11,8 +11,16 @@ GO
 
 DECLARE @SeedAnchorDate DATE = '2026-09-11';
 
-INSERT INTO ops.Shipments (CustomerId, OriginCityId, DestinationCityId, StatusId, ShipmentDate, CreatedBy)
-SELECT c.Id, oc.Id, dc.Id, sc.Id, DATEADD(DAY, s.DayOffset, @SeedAnchorDate), 'seed'
+-- FreightPaymentTypeId defaults every seeded shipment to ToBeBilled, same
+-- default 01-schema/014_freight_parties_consignment_notes_schema.sql's
+-- backfill uses for pre-existing rows - that column is NOT NULL and this
+-- file's own INSERT needs to supply it directly on a from-scratch database
+-- (01-schema, including that NOT NULL tightening, runs before any 03-seed
+-- file in run-all.sql).
+DECLARE @ToBeBilledStatusId INT = (SELECT Id FROM lookup.StatusCodes WHERE Category = 'FreightPaymentType' AND Code = 'TOBEBILLED');
+
+INSERT INTO ops.Shipments (CustomerId, OriginCityId, DestinationCityId, StatusId, ShipmentDate, FreightPaymentTypeId, ConsignorCustomerId, CreatedBy)
+SELECT c.Id, oc.Id, dc.Id, sc.Id, DATEADD(DAY, s.DayOffset, @SeedAnchorDate), @ToBeBilledStatusId, c.Id, 'seed'
 FROM (VALUES
     ('CUST001', 'Mumbai',   'Delhi',     -8, 'DELIVERED'),
     ('CUST002', 'Mumbai',   'Bengaluru', -7, 'DELIVERED'),

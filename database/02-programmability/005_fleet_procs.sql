@@ -5,6 +5,9 @@
   Date:         2026-09-11
   Dependencies: 006_fleet_schema.sql, 008_ops_routes_trips_shipments_schema.sql
 */
+-- Procs keep the QUOTED_IDENTIFIER setting they were created with; tables with filtered indexes reject writes from procs created with it OFF.
+SET QUOTED_IDENTIFIER ON;
+GO
 SET NOCOUNT ON;
 GO
 

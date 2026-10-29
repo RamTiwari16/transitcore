@@ -7,24 +7,32 @@
 SET NOCOUNT ON;
 GO
 
+-- CapacityCbm values are rough, reasonable-for-demo-data estimates (not
+-- precise real-world dimensions) - there's no admin CRUD endpoint for
+-- VehicleTypes in the app today, so seed data (here, MERGE-inserted) plus
+-- 01-schema/015's own backfill (for names already in an existing database)
+-- are the only ways this column gets populated at all.
 MERGE fleet.VehicleTypes AS target
 USING (VALUES
-    ('Small Truck', 'Up to 3 ton payload', 3000),
-    ('Medium Truck', 'Up to 8 ton payload', 8000),
-    ('Large Truck', 'Up to 16 ton payload', 16000),
-    ('Container Truck', '20/40 ft container carrier', 28000),
-    ('Trailer', 'Multi-axle trailer', 35000),
-    ('Refrigerated Truck', 'Temperature-controlled cargo', 10000),
-    ('Tanker', 'Bulk liquid transport', 20000),
-    ('Van', 'Last-mile / light cargo', 1200)
-) AS source (Name, Description, CapacityKg)
+    ('Small Truck', 'Up to 3 ton payload', 3000, 9),
+    ('Medium Truck', 'Up to 8 ton payload', 8000, 20),
+    ('Large Truck', 'Up to 16 ton payload', 16000, 35),
+    ('Container Truck', '20/40 ft container carrier', 28000, 45),
+    ('Trailer', 'Multi-axle trailer', 35000, 55),
+    ('Refrigerated Truck', 'Temperature-controlled cargo', 10000, 18),
+    ('Tanker', 'Bulk liquid transport', 20000, 20),
+    ('Van', 'Last-mile / light cargo', 1200, 6)
+) AS source (Name, Description, CapacityKg, CapacityCbm)
 ON target.Name = source.Name
 WHEN NOT MATCHED THEN
-    INSERT (Name, Description, CapacityKg, CreatedBy) VALUES (source.Name, source.Description, source.CapacityKg, 'seed');
+    INSERT (Name, Description, CapacityKg, CapacityCbm, CreatedBy) VALUES (source.Name, source.Description, source.CapacityKg, source.CapacityCbm, 'seed');
 GO
 
-INSERT INTO fleet.Vehicles (RegistrationNo, VehicleTypeId, Make, Model, ManufactureYear, CapacityKg, StatusId, CreatedBy)
-SELECT v.RegistrationNo, vt.Id, v.Make, v.Model, v.ManufactureYear, v.CapacityKg, sc.Id, 'seed'
+-- Vehicles inherit their type's CapacityCbm directly (no per-vehicle figure
+-- in this seed data, matching how each vehicle's own CapacityKg IS
+-- hand-tuned per row but CapacityCbm has no equivalent hand-tuned source).
+INSERT INTO fleet.Vehicles (RegistrationNo, VehicleTypeId, Make, Model, ManufactureYear, CapacityKg, CapacityCbm, StatusId, CreatedBy)
+SELECT v.RegistrationNo, vt.Id, v.Make, v.Model, v.ManufactureYear, v.CapacityKg, vt.CapacityCbm, sc.Id, 'seed'
 FROM (VALUES
     ('TC-DL-01-1001', 'Small Truck',       'Tata',     'Ace',        2021, 3000,  'ACTIVE'),
     ('TC-DL-01-1002', 'Small Truck',       'Mahindra', 'Bolero Pik', 2022, 2800,  'ACTIVE'),

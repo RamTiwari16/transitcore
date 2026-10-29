@@ -18,4 +18,33 @@
     <ProjectReference Include="..\TransitCore.Infrastructure\TransitCore.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Embeds every schema/programmability/seed .sql file plus run-all.sql
+       itself (read at startup only to determine file ORDER - see
+       DatabaseBootstrapper) so a published single-file exe carries the full
+       database setup with no separate SQL files alongside it. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\database\**\*.sql">
+      <LogicalName>Database/%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- Copies the Angular production build (run `npm run build` in
+       TransitCore.Web first) into the PUBLISHED wwwroot so a published
+       single-file exe serves the whole app from one process. Deliberately
+       AfterTargets="Publish", copying straight into $(PublishDir) rather
+       than the project's own wwwroot/ folder: the SDK's web-asset content
+       items are globbed once at project evaluation time, before any
+       target runs, so files a BeforeTargets="Publish" copy step writes to
+       the project's wwwroot never make it into that already-computed
+       publish file list. Copying into the finished output side-steps that
+       glob-timing problem entirely. No-ops if the Angular app hasn't been
+       built yet, rather than failing an ordinary `dotnet publish` that
+       isn't producing the standalone exe. -->
+  <Target Name="CopyAngularBuildOutput" AfterTargets="Publish" Condition="Exists('..\..\TransitCore.Web\dist\transitcore-web\browser')">
+    <ItemGroup>
+      <AngularBuildFiles Include="..\..\TransitCore.Web\dist\transitcore-web\browser\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AngularBuildFiles)" DestinationFolder="$(PublishDir)wwwroot\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

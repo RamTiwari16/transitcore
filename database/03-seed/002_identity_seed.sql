@@ -13,6 +13,9 @@
   TransitCore.Infrastructure.Security.PasswordHasher — see that class if you
   need to generate hashes for additional seed users.
 */
+-- auth.UserBranches has a filtered index; writes to it need QUOTED_IDENTIFIER ON.
+SET QUOTED_IDENTIFIER ON;
+GO
 SET NOCOUNT ON;
 GO
 
@@ -91,4 +94,13 @@ WHERE (
   AND NOT EXISTS (
       SELECT 1 FROM auth.UserRoles ur WHERE ur.UserId = u.Id AND ur.RoleId = r.Id
   );
+GO
+
+-- Creating a shipment requires the creator to have a primary branch.
+INSERT INTO auth.UserBranches (UserId, BranchId, IsPrimary)
+SELECT u.Id, b.Id, 1
+FROM auth.Users u
+CROSS JOIN (SELECT TOP 1 Id FROM lookup.Branches WHERE IsDeleted = 0 ORDER BY Id) b
+WHERE u.Email IN ('admin@transitcore.local', 'manager@transitcore.local', 'ops@transitcore.local')
+  AND NOT EXISTS (SELECT 1 FROM auth.UserBranches ub WHERE ub.UserId = u.Id);
 GO

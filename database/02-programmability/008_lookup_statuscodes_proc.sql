@@ -6,6 +6,9 @@
   Date:         2026-09-11
   Dependencies: 005_lookup_extended.sql
 */
+-- Procs keep the QUOTED_IDENTIFIER setting they were created with; tables with filtered indexes reject writes from procs created with it OFF.
+SET QUOTED_IDENTIFIER ON;
+GO
 SET NOCOUNT ON;
 GO
 

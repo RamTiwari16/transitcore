@@ -46,21 +46,28 @@ WHEN NOT MATCHED THEN
     INSERT (Name, CreatedBy) VALUES (source.Name, 'seed');
 GO
 
+-- Code values match 01-schema/014_freight_parties_consignment_notes_schema.sql's
+-- backfill mapping exactly (that file adds Code as NOT NULL) - kept in sync
+-- here too since on a brand-new database run-all.sql runs every 01-schema
+-- file, including that NOT NULL tightening, before any 03-seed file runs;
+-- without Code supplied here, this INSERT would violate that constraint on
+-- a from-scratch database (only an existing, already-seeded database's
+-- rows get their Code via that file's own backfill UPDATE).
 MERGE lookup.Branches AS target
 USING (
-    SELECT v.Name, rg.Id AS RegionId
+    SELECT v.Name, rg.Id AS RegionId, v.Code
     FROM (VALUES
-        ('Delhi Central', 'North'), ('Gurgaon Hub', 'North'), ('Chandigarh', 'North'),
-        ('Chennai Port', 'South'), ('Bengaluru Tech Park', 'South'), ('Coimbatore', 'South'),
-        ('Kolkata Docks', 'East'), ('Guwahati', 'North-East'), ('Bhubaneswar', 'East'),
-        ('Mumbai Central', 'West'), ('Pune Depot', 'West'), ('Ahmedabad', 'West'),
-        ('Jaipur', 'North-West'), ('Hyderabad', 'South-East'), ('Kochi Port', 'South-West'),
-        ('Nagpur', 'Central'), ('Bhopal', 'Central'), ('Vizag Port', 'Coastal'),
-        ('Goa', 'Coastal'), ('Lucknow', 'North')
-    ) AS v (Name, RegionName)
+        ('Delhi Central', 'North', 'DEL'), ('Gurgaon Hub', 'North', 'GGN'), ('Chandigarh', 'North', 'CHD'),
+        ('Chennai Port', 'South', 'CHN'), ('Bengaluru Tech Park', 'South', 'BLR'), ('Coimbatore', 'South', 'CBE'),
+        ('Kolkata Docks', 'East', 'CCU'), ('Guwahati', 'North-East', 'GAU'), ('Bhubaneswar', 'East', 'BBI'),
+        ('Mumbai Central', 'West', 'BOM'), ('Pune Depot', 'West', 'PNQ'), ('Ahmedabad', 'West', 'AMD'),
+        ('Jaipur', 'North-West', 'JAI'), ('Hyderabad', 'South-East', 'HYD'), ('Kochi Port', 'South-West', 'COK'),
+        ('Nagpur', 'Central', 'NAG'), ('Bhopal', 'Central', 'BHO'), ('Vizag Port', 'Coastal', 'VTZ'),
+        ('Goa', 'Coastal', 'GOI'), ('Lucknow', 'North', 'LKO')
+    ) AS v (Name, RegionName, Code)
     INNER JOIN lookup.Regions rg ON rg.Name = v.RegionName
-) AS source (Name, RegionId)
+) AS source (Name, RegionId, Code)
 ON target.Name = source.Name
 WHEN NOT MATCHED THEN
-    INSERT (Name, RegionId, CreatedBy) VALUES (source.Name, source.RegionId, 'seed');
+    INSERT (Name, RegionId, Code, CreatedBy) VALUES (source.Name, source.RegionId, source.Code, 'seed');
 GO
