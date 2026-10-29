@@ -119,6 +119,37 @@
   background: oklch(0 0 0 / 0.24);
 }
 
+// `animate.enter`/`animate.leave` (layout.html) add these classes exactly
+// while the @if-driven overlay/flyout are mounting/unmounting, which - unlike
+// a plain `animation` property on the base class - gets a real exit
+// animation too: Angular holds the element in the DOM until the class's
+// animation finishes before actually removing it.
+.tc-overlay-enter {
+  animation: tc-overlay-fade-in 0.18s ease-out;
+}
+
+.tc-overlay-leave {
+  animation: tc-overlay-fade-out 0.15s ease-in;
+}
+
+@keyframes tc-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tc-overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 .nav-flyout {
   position: fixed;
   top: 0;
@@ -131,17 +162,18 @@
   z-index: 255;
   display: flex;
   flex-direction: column;
-  // Angular's @if removes the panel from the DOM on close rather than just
-  // hiding it, so there's no "before" state for a transition to animate
-  // from - a plain @keyframes animation instead, which fires automatically
-  // on mount. Close is instant (no exit animation) - a deliberate
-  // simplification rather than pulling in @angular/animations for one
-  // panel's exit transition.
-  animation: tc-flyout-in 0.22s ease;
 
   @media (max-width: 599px) {
     width: calc(100vw - var(--tc-rail-width));
   }
+}
+
+.tc-flyout-enter {
+  animation: tc-flyout-in 0.22s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.tc-flyout-leave {
+  animation: tc-flyout-out 0.16s cubic-bezier(0.4, 0, 1, 1);
 }
 
 @keyframes tc-flyout-in {
@@ -152,6 +184,26 @@
   to {
     transform: translate3d(0, 0, 0);
     opacity: 1;
+  }
+}
+
+@keyframes tc-flyout-out {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(-12px, 0, 0);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-overlay-enter,
+  .tc-overlay-leave,
+  .tc-flyout-enter,
+  .tc-flyout-leave {
+    animation: none;
   }
 }
 

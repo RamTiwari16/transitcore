@@ -41,8 +41,8 @@
   </aside>
 
   @if (openGroup(); as group) {
-    <div class="nav-flyout-overlay" (click)="closeGroup()"></div>
-    <div class="nav-flyout">
+    <div class="nav-flyout-overlay" animate.enter="tc-overlay-enter" animate.leave="tc-overlay-leave" (click)="closeGroup()"></div>
+    <div class="nav-flyout" animate.enter="tc-flyout-enter" animate.leave="tc-flyout-leave">
       <div class="nav-flyout__header">
         <span class="nav-flyout__title">{{ group.label }}</span>
         <button type="button" class="nav-flyout__close" (click)="closeGroup()" aria-label="Close menu">
@@ -61,7 +61,7 @@
   }
 
   @if (isHandset().matches && mobileNavOpen()) {
-    <div class="icon-rail-overlay" (click)="toggleMobileNav()"></div>
+    <div class="icon-rail-overlay" animate.enter="tc-overlay-enter" animate.leave="tc-overlay-leave" (click)="toggleMobileNav()"></div>
   }
 
   <div class="app-shell__content">
@@ -112,7 +112,7 @@
 
       <span class="app-shell__spacer"></span>
 
-      <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme" aria-label="Toggle light/dark theme">
+      <button mat-icon-button (click)="toggleTheme($event)" matTooltip="Toggle theme" aria-label="Toggle light/dark theme">
         <mat-icon>dark_mode</mat-icon>
       </button>
 

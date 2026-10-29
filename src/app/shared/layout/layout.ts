@@ -199,11 +199,66 @@ export class Layout {
     this.openGroupIndex.set(null);
   }
 
-  toggleTheme(): void {
-    this.themeService.toggle();
+  toggleTheme(event: MouseEvent): void {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!document.startViewTransition || prefersReducedMotion) {
+      this.themeService.toggle();
+      return;
+    }
+
+    // Route transitions (see styles.scss) give .app-shell__main its own
+    // view-transition-name so nav stays put during a page change. A theme
+    // swap wants the opposite - one circular wipe across the *whole*
+    // viewport - so main-content is dropped back into the root snapshot
+    // for just this one transition, then restored once it's done.
+    const mainEl = document.querySelector<HTMLElement>('.app-shell__main');
+    mainEl?.style.setProperty('view-transition-name', 'none');
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      this.themeService.toggle();
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`
+          ],
+          // Softens the growing edge into a gentle focus-pull instead of a
+          // hard-edged circle - sharpens back to normal as it finishes.
+          filter: ['blur(28px)', 'blur(0px)']
+        },
+        {
+          duration: 950,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          pseudoElement: '::view-transition-new(root)'
+        }
+      );
+    });
+
+    transition.finished.finally(() => {
+      mainEl?.style.removeProperty('view-transition-name');
+    });
   }
 
   logout(): void {
+    // Login replaces this whole component (see app.routes.ts), so there's
+    // no "after" to restore this on - it just disappears along with
+    // everything else here. Dropping it avoids main-content fading out on
+    // its own small route-change animation (styles.scss) on top of the
+    // full-viewport blur dissolve this navigation gets (app.config.ts).
+    document.querySelector<HTMLElement>('.app-shell__main')
+      ?.style.setProperty('view-transition-name', 'none');
+
     this.authService.logout();
     sessionStorage.clear();
     this.router.navigate(['/login']);
