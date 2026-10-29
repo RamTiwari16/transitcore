@@ -184,10 +184,11 @@ a {
   mix-blend-mode: normal;
 }
 
-// Theme toggle (layout.ts toggleTheme()) grows a circle clip-path on the
-// *new* root snapshot from the clicked button outward, so the incoming
-// theme visibly wipes over the outgoing one instead of just popping in -
-// this just has to stay on top of the old, unclipped snapshot underneath.
+// Theme toggle (layout.ts toggleTheme()) and login (app.config.ts) both grow
+// a circle clip-path on the *new* root snapshot from a clicked point
+// outward, so the incoming view visibly wipes over the outgoing one instead
+// of just popping in - this just has to stay on top of the old, unclipped
+// snapshot underneath.
 ::view-transition-new(root) {
   z-index: 2147483647;
 }
@@ -196,9 +197,24 @@ a {
   z-index: 1;
 }
 
+// Logout (app.config.ts) runs the same wipe in reverse - the *old* dashboard
+// shrinks away to nothing instead of a new view expanding over it - so it's
+// old that needs to stay on top this time, with the login page undisturbed
+// underneath. handleAuthTransition toggles this class for just that one
+// transition.
+:root.vt-collapse-old {
+  &::view-transition-old(root) {
+    z-index: 2147483647;
+  }
+
+  &::view-transition-new(root) {
+    z-index: 1;
+  }
+}
+
 ::view-transition-old(main-content),
 ::view-transition-new(main-content) {
-  animation-duration: 180ms;
+  animation-duration: 240ms;
   animation-fill-mode: both;
 }
 
@@ -212,29 +228,36 @@ a {
 // (per MD motion guidance, arriving content settles rather than snapping in).
 ::view-transition-new(main-content) {
   animation-name: tc-page-enter;
-  animation-duration: 220ms;
+  animation-duration: 320ms;
   animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
+// 6px/no-blur read as barely-there against a busy page (charts, tables) -
+// a bigger offset plus the same light blur used for the theme/login/logout
+// transitions makes this one actually register as a deliberate transition.
 @keyframes tc-page-exit {
   from {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0px);
   }
   to {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-16px);
+    filter: blur(4px);
   }
 }
 
 @keyframes tc-page-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(16px);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0px);
   }
 }
 

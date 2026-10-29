@@ -102,7 +102,7 @@
         <p class="login-card__error" role="alert">{{ errorMsg() }}</p>
       }
 
-      <button mat-flat-button color="primary" type="submit" class="login-card__submit" [disabled]="isLoading()">
+      <button #submitBtn mat-flat-button color="primary" type="submit" class="login-card__submit" [disabled]="isLoading()">
         @if (isLoading()) {
           Logging in...
         } @else {

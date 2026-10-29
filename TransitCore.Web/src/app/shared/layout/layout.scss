@@ -506,8 +506,19 @@
   background: var(--tc-surface-canvas);
   overflow-y: auto;
 
-  // Named so the router's view transition (app.config.ts) can crossfade just
-  // this region - see the ::view-transition-* rules in styles.scss - instead
-  // of the whole document, which would otherwise flash the rail/topbar too.
-  view-transition-name: main-content;
+  // Named (once --named is added - see layout.ts mainContentTransitionReady)
+  // so the router's view transition (app.config.ts) can crossfade just this
+  // region - see the ::view-transition-* rules in styles.scss - instead of
+  // the whole document, which would otherwise flash the rail/topbar too.
+  //
+  // Starting unnamed on the very first render and flipping it on shortly
+  // after - rather than just always naming it - matters specifically for
+  // login success: the browser decides which elements get their own
+  // transition snapshot at render time, before any later JS can undo it, so
+  // naming this from the start would make it double-animate against the
+  // circular wipe that transition gets (app.config.ts) instead of being
+  // part of it.
+  &--named {
+    view-transition-name: main-content;
+  }
 }
