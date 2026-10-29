@@ -6,7 +6,8 @@ import {
 
 import {
   provideRouter,
-  withHashLocation
+  withHashLocation,
+  withViewTransitions
 } from '@angular/router';
 
 import {
@@ -30,7 +31,11 @@ export const appConfig: ApplicationConfig = {
 
     provideRouter(
       routes,
-      withHashLocation()
+      withHashLocation(),
+      // Crossfades the main content between routes using the native View
+      // Transitions API (see styles.scss for the page-content keyframes).
+      // No-ops silently on browsers that don't support it.
+      withViewTransitions()
     ),
 
     provideHttpClient(
