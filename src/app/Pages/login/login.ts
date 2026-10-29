@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth-service';
 import { ToastService } from '../../core/services/toast.service';
+import { AuthTransitionOriginService } from '../../core/services/auth-transition-origin.service';
 
 interface LoginFormModel {
   email: FormControl<string>;
@@ -26,6 +27,11 @@ export class Login {
   readonly errorMsg = signal('');
   readonly proofInitials = ['JD', 'MK', 'AR'];
 
+  // The circular-wipe origin on success (app.config.ts) - the sign-in
+  // button's own position, so it works the same whether login was
+  // submitted by clicking it or pressing Enter in a field.
+  @ViewChild('submitBtn', { read: ElementRef }) private submitBtn?: ElementRef<HTMLButtonElement>;
+
   readonly form = new FormGroup<LoginFormModel>({
     email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
     password: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -35,6 +41,7 @@ export class Login {
     private authService: AuthService,
     private router: Router,
     private toast: ToastService,
+    private authTransitionOrigin: AuthTransitionOriginService,
   ) {}
 
   togglePasswordVisibility(): void {
@@ -58,6 +65,11 @@ export class Login {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
+    }
+
+    if (this.submitBtn) {
+      const rect = this.submitBtn.nativeElement.getBoundingClientRect();
+      this.authTransitionOrigin.capture(rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
 
     this.isLoading.set(true);

@@ -30,7 +30,7 @@
       <button
         type="button"
         class="icon-rail__link"
-        (click)="logout()"
+        (click)="logout($event)"
         matTooltip="Log out"
         matTooltipPosition="right"
         aria-label="Log out"
@@ -141,7 +141,7 @@
           <strong>{{ displayName }}</strong>
           <span>{{ email }}</span>
         </div>
-        <button mat-menu-item (click)="logout()">
+        <button mat-menu-item (click)="logout($event)">
           <mat-icon>logout</mat-icon>
           <span>Log out</span>
         </button>
@@ -152,7 +152,7 @@
       <mat-progress-bar mode="indeterminate" class="app-shell__loading-bar"></mat-progress-bar>
     }
 
-    <main class="app-shell__main">
+    <main class="app-shell__main" [class.app-shell__main--named]="mainContentTransitionReady()">
       <router-outlet></router-outlet>
     </main>
   </div>

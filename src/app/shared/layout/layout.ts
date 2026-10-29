@@ -1,8 +1,18 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, computed, effect, inject, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationSkipped,
+  NavigationStart,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet
+} from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -19,6 +29,7 @@ import { SearchResultModel } from '../../models/search.models';
 import { ThemeService } from '../../core/services/theme.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { PageTitleService } from '../../core/services/page-title.service';
+import { AuthTransitionOriginService } from '../../core/services/auth-transition-origin.service';
 import { NAV_GROUPS, NavGroup } from './nav-items';
 
 interface SearchResultGroup {
@@ -70,6 +81,7 @@ export class Layout {
   readonly themeService = inject(ThemeService);
   readonly loadingService = inject(LoadingService);
   private readonly pageTitleService = inject(PageTitleService);
+  private readonly authTransitionOrigin = inject(AuthTransitionOriginService);
 
   readonly searchTerm = signal('');
   readonly searchOpen = signal(false);
@@ -153,7 +165,37 @@ export class Layout {
     return active?.label ?? 'Dashboard';
   });
 
+  // Starts false so .app-shell__main renders unnamed the very first time
+  // (see the view-transition-name comment in layout.scss) - this component
+  // is only ever created once per login, so this only ever needs to flip
+  // once. setTimeout rather than an effect/afterNextRender: the view
+  // transition's snapshot of this render happens essentially immediately
+  // once Angular finishes rendering, before a microtask-scheduled callback
+  // would run, so only a macrotask reliably lands after it.
+  readonly mainContentTransitionReady = signal(false);
+
   constructor() {
+    setTimeout(() => this.mainContentTransitionReady.set(true), 0);
+
+    // loadingService's progress bar (see the template) was wired to
+    // HttpClient traffic only (loading-interceptor.ts), so switching to a
+    // lazy-loaded section showed nothing at all while its chunk was being
+    // fetched/parsed - just a silent gap before the page suddenly appeared,
+    // which reads as the nav having lagged rather than animated. Counting
+    // the navigation itself alongside HTTP requests closes that gap.
+    this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.loadingService.start();
+      } else if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError ||
+        event instanceof NavigationSkipped
+      ) {
+        this.loadingService.stop();
+      }
+    });
+
     // Close the flyout and the mobile rail overlay after navigating - both
     // would otherwise stay open on top of the page the user just picked.
     effect(() => {
@@ -250,12 +292,17 @@ export class Layout {
     });
   }
 
-  logout(): void {
+  logout(event: MouseEvent): void {
+    // The circular-wipe origin for this navigation (app.config.ts) - there's
+    // no other way for that router-level hook to know where on screen this
+    // particular click happened.
+    this.authTransitionOrigin.capture(event.clientX, event.clientY);
+
     // Login replaces this whole component (see app.routes.ts), so there's
     // no "after" to restore this on - it just disappears along with
     // everything else here. Dropping it avoids main-content fading out on
     // its own small route-change animation (styles.scss) on top of the
-    // full-viewport blur dissolve this navigation gets (app.config.ts).
+    // full-viewport circular wipe this navigation gets (app.config.ts).
     document.querySelector<HTMLElement>('.app-shell__main')
       ?.style.setProperty('view-transition-name', 'none');
 

@@ -9,7 +9,13 @@
 
 .bar-chart__row {
   display: grid;
-  grid-template-columns: minmax(0, 7rem) 1fr 3rem;
+  // A fixed 3rem value column fit "400610"/"0%" but not longer values like
+  // "13 shipments" - "shipments" alone doesn't fit in 3rem and, as a single
+  // unbreakable word, overflowed past the card edge instead of wrapping.
+  // max-content lets the column grow to whatever the value actually needs,
+  // with 3rem as a floor for short values; 1fr (the bar) absorbs the
+  // difference instead of forcing an overflow.
+  grid-template-columns: minmax(0, 7rem) 1fr minmax(3rem, max-content);
   align-items: center;
   gap: var(--tc-space-3);
 }
@@ -41,4 +47,5 @@
   font-weight: var(--tc-font-weight-medium);
   color: var(--tc-text-primary);
   text-align: right;
+  white-space: nowrap;
 }

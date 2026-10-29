@@ -1,6 +1,7 @@
 import {
   ApplicationConfig,
   ErrorHandler,
+  inject,
   provideBrowserGlobalErrorListeners
 } from '@angular/core';
 
@@ -26,12 +27,15 @@ import { authInterceptor } from './core/interceptors/auth-interceptor';
 import { errorInterceptor } from './core/interceptors/error-interceptor';
 import { loadingInterceptor } from './core/interceptors/loading-interceptor';
 import { GlobalErrorHandler } from './core/services/global-error-handler';
+import { AuthTransitionOriginService } from './core/services/auth-transition-origin.service';
 
 // Login and logout each swap the *entire* page rather than just the routed
 // content inside it - Login is a sibling route to Layout, not nested under
-// it (app.routes.ts) - so both get one full-viewport blur dissolve instead
-// of the small main-content fade every other route change gets
-// (styles.scss). `from`/`to` are the root of their route trees, so matching
+// it (app.routes.ts) - so both get the same circular blur wipe as the
+// theme toggle (layout.ts) instead of the small main-content fade every
+// other route change gets (styles.scss): login expands it from the sign-in
+// button outward, logout collapses it back down to whichever logout button
+// was clicked. `from`/`to` are the root of their route trees, so matching
 // has to walk down to the activated leaf rather than reading
 // `snapshot.routeConfig` directly.
 function isLoginRoute(snapshot: ActivatedRouteSnapshot): boolean {
@@ -52,43 +56,55 @@ function handleAuthTransition({ transition, from, to }: ViewTransitionInfo): voi
     return;
   }
 
-  // .app-shell__main carries its own view-transition-name (layout.scss) so
-  // in-app page changes stay scoped away from the rail/topbar. Neither side
-  // of an auth transition needs that: logout has nothing left to scope once
-  // the shell is gone, and login success has no rail/topbar yet to protect.
-  // Left in place, main-content would just double up with this dissolve as
-  // a second, slightly-offset animation layered on top of it.
-  let mainEl: HTMLElement | null = null;
+  // onViewTransitionCreated runs in an injection context (Angular's own
+  // docs on the option), so this can read the click position login.ts /
+  // layout.ts captured instead of needing it threaded in as an argument.
+  const { x, y } = inject(AuthTransitionOriginService);
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  );
 
+  // .app-shell__main only carries its view-transition-name once
+  // mainContentTransitionReady flips true (layout.ts/.scss) - never true yet
+  // on login success, since Layout has just this instant been created, so
+  // there's nothing to suppress on that side. Logout is the mirror image:
+  // the shell has been live for a while and does carry the name, but the
+  // browser decides which elements get their own transition snapshot the
+  // moment this navigation starts, before this hook even runs - too late to
+  // undo here, so logout() (layout.ts) already clears it before navigating.
   if (loggingOut) {
-    // Shell is still live right now and is about to be destroyed - no need
-    // to restore this afterward.
-    mainEl = document.querySelector<HTMLElement>('.app-shell__main');
-    mainEl?.style.setProperty('view-transition-name', 'none');
-  } else {
-    // Dashboard doesn't exist until the router finishes swapping in the new
-    // route - updateCallbackDone fires right after that, and before the
-    // browser captures the "new" snapshot that view-transition-name would
-    // affect. This page sticks around afterward, so it does need restoring.
-    transition.updateCallbackDone.then(() => {
-      mainEl = document.querySelector<HTMLElement>('.app-shell__main');
-      mainEl?.style.setProperty('view-transition-name', 'none');
-    });
+    // Logout collapses the *old* dashboard away instead of the new (login)
+    // view expanding over it, so the layer doing the clip-path animation
+    // flips - this class (styles.scss) swaps which one sits on top to match.
+    document.documentElement.classList.add('vt-collapse-old');
   }
 
   transition.ready.then(() => {
-    document.documentElement.animate(
-      { opacity: [1, 0], filter: ['blur(0px)', 'blur(18px)'] },
-      { duration: 450, easing: 'cubic-bezier(0.4, 0, 1, 1)', pseudoElement: '::view-transition-old(root)' }
-    );
-    document.documentElement.animate(
-      { opacity: [0, 1], filter: ['blur(18px)', 'blur(0px)'] },
-      { duration: 500, easing: 'cubic-bezier(0, 0, 0.2, 1)', pseudoElement: '::view-transition-new(root)' }
-    );
+    if (loggingOut) {
+      // Dashboard shrinks away to the clicked logout button, revealing the
+      // login page underneath - same recipe as the theme toggle, mirrored.
+      document.documentElement.animate(
+        {
+          clipPath: [`circle(${endRadius}px at ${x}px ${y}px)`, `circle(0px at ${x}px ${y}px)`],
+          filter: ['blur(0px)', 'blur(28px)']
+        },
+        { duration: 750, easing: 'cubic-bezier(0.4, 0, 1, 1)', pseudoElement: '::view-transition-old(root)' }
+      );
+    } else {
+      // Dashboard grows in from the sign-in button over the login page.
+      document.documentElement.animate(
+        {
+          clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
+          filter: ['blur(28px)', 'blur(0px)']
+        },
+        { duration: 750, easing: 'cubic-bezier(0, 0, 0.2, 1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    }
   });
 
   transition.finished.finally(() => {
-    mainEl?.style.removeProperty('view-transition-name');
+    document.documentElement.classList.remove('vt-collapse-old');
   });
 }
 
@@ -102,7 +118,7 @@ export const appConfig: ApplicationConfig = {
       // Crossfades the main content between routes using the native View
       // Transitions API (see styles.scss for the page-content keyframes).
       // No-ops silently on browsers that don't support it.
-      withViewTransitions({ onViewTransitionCreated: handleAuthTransition })
+      withViewTransitions({ skipInitialTransition: true, onViewTransitionCreated: handleAuthTransition })
     ),
 
     provideHttpClient(
