@@ -173,8 +173,27 @@ a {
 // topbar stay put instead of flashing on every navigation. Pseudo-elements
 // live on the document's transition tree, not inside any component's
 // encapsulated styles, so these rules have to stay global.
-::view-transition-group(root) {
-  animation-duration: 0s;
+// Root itself never animates on its own - route nav wants the rail/topbar
+// to snap instead of crossfade (handled by giving main-content its own
+// named transition above), and the theme toggle below drives root with its
+// own one-off clip-path animation instead of this default fade.
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+// Theme toggle (layout.ts toggleTheme()) grows a circle clip-path on the
+// *new* root snapshot from the clicked button outward, so the incoming
+// theme visibly wipes over the outgoing one instead of just popping in -
+// this just has to stay on top of the old, unclipped snapshot underneath.
+::view-transition-new(root) {
+  z-index: 2147483647;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
 }
 
 ::view-transition-old(main-content),
