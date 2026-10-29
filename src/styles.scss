@@ -166,3 +166,63 @@ a {
   padding-top: var(--tc-space-4);
   border-top: 1px solid var(--tc-border);
 }
+
+// Route transitions (withViewTransitions() in app.config.ts). The root's
+// default crossfade is switched off below so only the named `main-content`
+// region (.app-shell__main in layout.scss) animates - the nav rail and
+// topbar stay put instead of flashing on every navigation. Pseudo-elements
+// live on the document's transition tree, not inside any component's
+// encapsulated styles, so these rules have to stay global.
+::view-transition-group(root) {
+  animation-duration: 0s;
+}
+
+::view-transition-old(main-content),
+::view-transition-new(main-content) {
+  animation-duration: 180ms;
+  animation-fill-mode: both;
+}
+
+// Material standard "accelerate" curve - exiting content should leave fast.
+::view-transition-old(main-content) {
+  animation-name: tc-page-exit;
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+// Material standard "decelerate" curve, and a touch longer than the exit
+// (per MD motion guidance, arriving content settles rather than snapping in).
+::view-transition-new(main-content) {
+  animation-name: tc-page-enter;
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes tc-page-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes tc-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

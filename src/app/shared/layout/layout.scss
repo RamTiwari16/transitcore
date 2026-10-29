@@ -453,4 +453,9 @@
   padding: var(--tc-space-8) var(--tc-space-6) var(--tc-space-6);
   background: var(--tc-surface-canvas);
   overflow-y: auto;
+
+  // Named so the router's view transition (app.config.ts) can crossfade just
+  // this region - see the ::view-transition-* rules in styles.scss - instead
+  // of the whole document, which would otherwise flash the rail/topbar too.
+  view-transition-name: main-content;
 }
