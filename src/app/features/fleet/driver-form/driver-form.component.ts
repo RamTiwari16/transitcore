@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { FleetService } from '../../../services/fleet.service';
 import { LookupService } from '../../../services/lookup.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PageTitleService } from '../../../core/services/page-title.service';
 import { StatusCodeModel } from '../../../models/lookup.models';
 import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
 
@@ -30,7 +32,11 @@ interface DriverFormModel {
 export class DriverFormComponent implements CanComponentDeactivate {
   readonly statusOptions = signal<StatusCodeModel[]>([]);
   readonly saving = signal(false);
+  readonly loading = signal(false);
   private submitted = false;
+
+  private readonly driverId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.driverId() !== null);
 
   readonly form = new FormGroup<DriverFormModel>({
     fullName: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] }),
@@ -46,11 +52,34 @@ export class DriverFormComponent implements CanComponentDeactivate {
     private lookupService: LookupService,
     private toast: ToastService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {
-    this.lookupService.getStatusCodes('Driver').subscribe({
-      next: (statuses) => this.statusOptions.set(statuses),
-      error: () => this.toast.error('Failed to load status options'),
-    });
+    const pageTitleService = inject(PageTitleService);
+    effect(() => pageTitleService.setTitle(this.isEditMode() ? 'Edit Driver' : 'Add Driver'));
+    inject(DestroyRef).onDestroy(() => pageTitleService.setTitle(null));
+
+    this.lookupService.getStatusCodes('Driver').subscribe((statuses) => this.statusOptions.set(statuses));
+
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      const id = Number(idParam);
+      this.driverId.set(id);
+      this.loading.set(true);
+      this.fleetService.getDriverById(id).subscribe({
+        next: (driver) => {
+          this.form.patchValue({
+            fullName: driver.fullName,
+            phoneNo: driver.phoneNo ?? '',
+            email: driver.email ?? '',
+            dateOfBirth: driver.dateOfBirth ?? '',
+            hireDate: driver.hireDate ?? '',
+            statusId: driver.statusId,
+          });
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+    }
   }
 
   hasUnsavedChanges(): boolean {
@@ -64,27 +93,31 @@ export class DriverFormComponent implements CanComponentDeactivate {
     }
 
     const value = this.form.getRawValue();
+    const request = {
+      fullName: value.fullName,
+      phoneNo: value.phoneNo || undefined,
+      email: value.email || undefined,
+      dateOfBirth: value.dateOfBirth || undefined,
+      hireDate: value.hireDate || undefined,
+      statusId: value.statusId!,
+    };
+
     this.saving.set(true);
 
-    this.fleetService
-      .createDriver({
-        fullName: value.fullName,
-        phoneNo: value.phoneNo || undefined,
-        email: value.email || undefined,
-        dateOfBirth: value.dateOfBirth || undefined,
-        hireDate: value.hireDate || undefined,
-        statusId: value.statusId!,
-      })
-      .subscribe({
-        next: () => {
-          this.submitted = true;
-          this.toast.success('Driver added successfully');
-          this.router.navigate(['/fleet/drivers']);
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.toast.error(err?.error?.message || 'Failed to add driver');
-        },
-      });
+    const id = this.driverId();
+    const save$: Observable<unknown> = id
+      ? this.fleetService.updateDriver({ ...request, driverId: id })
+      : this.fleetService.createDriver(request);
+
+    save$.subscribe({
+      next: () => {
+        this.submitted = true;
+        this.toast.success(id ? 'Driver updated successfully' : 'Driver added successfully');
+        this.router.navigate(['/fleet/drivers']);
+      },
+      // errorInterceptor already surfaces the failure as a toast - this
+      // only needs to re-enable the form so the user can retry.
+      error: () => this.saving.set(false),
+    });
   }
 }

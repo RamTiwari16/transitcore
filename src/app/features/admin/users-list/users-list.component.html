@@ -1,0 +1,34 @@
+<div class="page-header">
+  <a mat-flat-button color="primary" routerLink="new">
+    <mat-icon>add</mat-icon>
+    Add User
+  </a>
+</div>
+
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  emptyTitle="No users yet"
+  emptyDescription="Add your first user to grant access to TransitCore."
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+  (rowClick)="openUser($event)"
+>
+  <ng-template #rowActions let-row>
+    <button
+      mat-icon-button
+      (click)="resetPassword(row)"
+      matTooltip="Reset password"
+      [attr.aria-label]="'Reset password for ' + row.displayName"
+    >
+      <mat-icon>key</mat-icon>
+    </button>
+  </ng-template>
+</app-data-table>

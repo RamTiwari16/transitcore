@@ -1,7 +1,3 @@
-<div class="page-header">
-  <h1>Add Shipment</h1>
-</div>
-
 <form [formGroup]="form" (ngSubmit)="save()" class="form-card shipment-form">
   <div class="form-grid">
     <mat-form-field appearance="outline">
@@ -56,58 +52,92 @@
         <mat-error>Status is required</mat-error>
       }
     </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Freight Payment</mat-label>
+      <mat-select formControlName="freightPaymentTypeId" required>
+        @for (type of freightPaymentTypes(); track type.id) {
+          <mat-option [value]="type.id">{{ type.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.freightPaymentTypeId.hasError('required') && form.controls.freightPaymentTypeId.touched) {
+        <mat-error>Freight payment is required</mat-error>
+      }
+    </mat-form-field>
   </div>
 
   <h2 class="shipment-form__items-title">Items</h2>
 
-  <div class="shipment-form__items">
-    @for (item of items.controls; track $index) {
-      <div [formGroup]="item" class="shipment-form__item-row">
-        <mat-form-field appearance="outline" class="shipment-form__item-description">
-          <mat-label>Description</mat-label>
-          <input matInput formControlName="description" required />
-        </mat-form-field>
+  @if (isEditMode()) {
+    <p class="page-header__subtitle">Items aren't editable yet - shown for reference only.</p>
+    <ul class="shipment-form__items-readonly">
+      @for (item of existingItems(); track item.id) {
+        <li>
+          {{ item.description }} - {{ item.quantity }} {{ item.unitOfMeasureCode }}
+          @if (item.weightKg) {
+            ({{ item.weightKg }} kg)
+          }
+          @if (item.volumeCbm) {
+            ({{ item.volumeCbm }} m³)
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="shipment-form__items">
+      @for (item of items.controls; track $index) {
+        <div [formGroup]="item" class="shipment-form__item-row">
+          <mat-form-field appearance="outline" class="shipment-form__item-description">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" required />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="shipment-form__item-quantity">
-          <mat-label>Qty</mat-label>
-          <input matInput type="number" formControlName="quantity" required />
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="shipment-form__item-quantity">
+            <mat-label>Qty</mat-label>
+            <input matInput type="number" formControlName="quantity" required />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="shipment-form__item-unit">
-          <mat-label>Unit</mat-label>
-          <mat-select formControlName="unitOfMeasureId" required>
-            @for (unit of unitsOfMeasure(); track unit.id) {
-              <mat-option [value]="unit.id">{{ unit.code }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="shipment-form__item-unit">
+            <mat-label>Unit</mat-label>
+            <mat-select formControlName="unitOfMeasureId" required>
+              @for (unit of unitsOfMeasure(); track unit.id) {
+                <mat-option [value]="unit.id">{{ unit.code }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="shipment-form__item-weight">
-          <mat-label>Weight (kg)</mat-label>
-          <input matInput type="number" formControlName="weightKg" />
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="shipment-form__item-weight">
+            <mat-label>Weight (kg)</mat-label>
+            <input matInput type="number" formControlName="weightKg" />
+          </mat-form-field>
 
-        <button
-          mat-icon-button
-          type="button"
-          (click)="removeItem($index)"
-          [disabled]="items.length === 1"
-          aria-label="Remove item"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
-      </div>
-    }
-  </div>
+          <mat-form-field appearance="outline" class="shipment-form__item-weight">
+            <mat-label>Volume (m³)</mat-label>
+            <input matInput type="number" formControlName="volumeCbm" />
+          </mat-form-field>
 
-  <button mat-button type="button" (click)="addItem()">
-    <mat-icon>add</mat-icon>
-    Add Item
-  </button>
+          <button
+            mat-icon-button
+            type="button"
+            (click)="removeItem($index)"
+            [disabled]="items.length === 1"
+            aria-label="Remove item"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <button mat-button type="button" (click)="addItem()">
+      <mat-icon>add</mat-icon>
+      Add Item
+    </button>
+  }
 
   <div class="form-actions">
     <a mat-button routerLink="/ops/shipments">Cancel</a>
-    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving() || loading()">
       @if (saving()) {
         Saving...
       } @else {

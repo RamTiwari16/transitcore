@@ -1,15 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { PageEvent } from '@angular/material/paginator';
-import { Sort } from '@angular/material/sort';
 import { BillingService } from '../../../services/billing.service';
-import { ToastService } from '../../../core/services/toast.service';
 import { InvoiceModel } from '../../../models/billing.models';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
+import { createClientPagedListState } from '../../../shared/util/client-paged-list-state';
 
 @Component({
   selector: 'app-invoices-list',
@@ -26,17 +24,10 @@ import { DataTableColumn, DataTableComponent } from '../../../shared/components/
   styleUrl: './invoices-list.component.scss',
 })
 export class InvoicesListComponent {
-  private readonly allInvoices = signal<InvoiceModel[]>([]);
-  readonly loading = signal(true);
-  readonly pageIndex = signal(0);
-  readonly pageSize = signal(10);
-  readonly downloadingId = signal<number | null>(null);
+  private readonly billingService = inject(BillingService);
+  private readonly router = inject(Router);
 
-  readonly totalCount = computed(() => this.allInvoices().length);
-  readonly rows = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    return this.allInvoices().slice(start, start + this.pageSize());
-  });
+  readonly downloadingId = signal<number | null>(null);
 
   readonly columns = computed<DataTableColumn<InvoiceModel>[]>(() => [
     { key: 'invoiceNo', label: 'Invoice No', sortable: true, cell: (row) => row.invoiceNo },
@@ -47,33 +38,17 @@ export class InvoicesListComponent {
     { key: 'statusName', label: 'Status', cell: (row) => row.statusName },
   ]);
 
-  constructor(
-    private billingService: BillingService,
-    private toast: ToastService,
-  ) {
-    this.billingService.getInvoices({}).subscribe({
-      next: (invoices) => {
-        this.allInvoices.set(invoices);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.toast.error('Failed to load invoices');
-      },
-    });
-  }
+  readonly list = createClientPagedListState<InvoiceModel>(() => this.billingService.getInvoices({}));
 
-  onPage(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
-  }
-
-  onSort(_sort: Sort): void {
-    // Client-side pagination only for now - see onSort comment on
-    // VehiclesListComponent for the server-side-sort follow-up note.
+  constructor() {
+    this.list.load();
   }
 
   rowId = (row: InvoiceModel): number => row.id;
+
+  openInvoice(row: InvoiceModel): void {
+    this.router.navigate(['/billing/invoices', row.id]);
+  }
 
   downloadPdf(row: InvoiceModel): void {
     if (this.downloadingId() !== null) return;
@@ -89,10 +64,9 @@ export class InvoicesListComponent {
         link.click();
         URL.revokeObjectURL(url);
       },
-      error: () => {
-        this.downloadingId.set(null);
-        this.toast.error('Failed to generate invoice PDF');
-      },
+      // errorInterceptor already toasts the failure - just clear the
+      // in-flight flag so the button re-enables.
+      error: () => this.downloadingId.set(null),
     });
   }
 

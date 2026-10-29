@@ -1,39 +1,31 @@
 <div class="page-header">
-  <h1>Shipments</h1>
   <a mat-flat-button color="primary" routerLink="new">
     <mat-icon>add</mat-icon>
     Add Shipment
   </a>
 </div>
 
-@if (!loading() && shipments().length > 0) {
-  <table mat-table [dataSource]="shipments()" class="billing-table">
-    <ng-container matColumnDef="customerName">
-      <th mat-header-cell *matHeaderCellDef>Customer</th>
-      <td mat-cell *matCellDef="let row">{{ row.customerName }}</td>
-    </ng-container>
-    <ng-container matColumnDef="originCityName">
-      <th mat-header-cell *matHeaderCellDef>Origin</th>
-      <td mat-cell *matCellDef="let row">{{ row.originCityName }}</td>
-    </ng-container>
-    <ng-container matColumnDef="destinationCityName">
-      <th mat-header-cell *matHeaderCellDef>Destination</th>
-      <td mat-cell *matCellDef="let row">{{ row.destinationCityName }}</td>
-    </ng-container>
-    <ng-container matColumnDef="shipmentDate">
-      <th mat-header-cell *matHeaderCellDef>Date</th>
-      <td mat-cell *matCellDef="let row">{{ formatDate(row.shipmentDate) }}</td>
-    </ng-container>
-    <ng-container matColumnDef="statusName">
-      <th mat-header-cell *matHeaderCellDef>Status</th>
-      <td mat-cell *matCellDef="let row">{{ row.statusName }}</td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-} @else if (!loading()) {
-  <app-empty-state title="No shipments yet" icon="local_shipping">
-    <a mat-flat-button color="primary" routerLink="new">Add your first shipment</a>
-  </app-empty-state>
-}
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  emptyTitle="No shipments yet"
+  emptyDescription="Add your first shipment to start tracking deliveries."
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+>
+  <ng-template #rowActions let-row>
+    <a mat-icon-button [routerLink]="[row.id]" matTooltip="View consignment note" aria-label="View consignment note">
+      <mat-icon>visibility</mat-icon>
+    </a>
+    <a mat-icon-button [routerLink]="[row.id, 'edit']" matTooltip="Edit shipment" aria-label="Edit shipment">
+      <mat-icon>edit</mat-icon>
+    </a>
+  </ng-template>
+</app-data-table>

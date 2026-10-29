@@ -1,7 +1,3 @@
-<div class="page-header">
-  <h1>Add Invoice</h1>
-</div>
-
 <form [formGroup]="form" (ngSubmit)="save()" class="form-card invoice-form">
   <div class="form-grid">
     <mat-form-field appearance="outline">
@@ -32,6 +28,14 @@
     <mat-form-field appearance="outline">
       <mat-label>Due Date</mat-label>
       <input matInput type="date" formControlName="dueDate" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Discount Amount</mat-label>
+      <input matInput type="number" formControlName="discountAmount" />
+      @if (form.controls.discountAmount.hasError('min')) {
+        <mat-error>Discount cannot be negative</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline">

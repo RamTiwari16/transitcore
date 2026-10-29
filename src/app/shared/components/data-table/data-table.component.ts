@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, TemplateRef, computed, contentChild, input, output, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
@@ -30,12 +33,15 @@ export interface DataTableColumn<T> {
   selector: 'app-data-table',
   imports: [
     NgTemplateOutlet,
+    FormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
     MatCheckboxModule,
     MatButtonModule,
+    MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatMenuModule,
     MatTooltipModule,
     EmptyStateComponent,
@@ -56,6 +62,13 @@ export class DataTableComponent<T> {
   readonly rowId = input<(row: T) => string | number>((row) => JSON.stringify(row));
   readonly emptyTitle = input('No records found');
   readonly emptyDescription = input<string>();
+
+  // Controlled from outside (bound to whichever list-state composable the
+  // host page uses) rather than owning its own copy, so a page reset (e.g.
+  // clearing filters) stays in sync without the table needing to know why.
+  readonly filterValue = input('');
+  readonly filterPlaceholder = input('Search');
+  readonly filterChange = output<string>();
 
   // Optional per-row action buttons (e.g. download/delete), projected via
   // `<ng-template #rowActions let-row>...</ng-template>` in the host's
@@ -148,6 +161,10 @@ export class DataTableComponent<T> {
 
   onSort(sort: Sort): void {
     this.sortChange.emit(sort);
+  }
+
+  onFilterInput(event: Event): void {
+    this.filterChange.emit((event.target as HTMLInputElement).value);
   }
 
   exportCsv(): void {

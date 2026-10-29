@@ -1,11 +1,12 @@
 // TransitCore design tokens.
 //
-// Colour values come from a warm-neutral/near-monochrome OKLCH palette
-// (primary acts as an ink colour - near-black on light surfaces, near-white
-// on dark ones - rather than a hue-forward brand colour). Semantic
-// success/warning/info aren't part of that source palette; they're chosen
-// to sit at the same lightness/chroma family so they read as part of one
-// system rather than bolted on.
+// Colour values come from the client's own brand palette (a fresh-grass
+// green primary, #92D050, plus a matched success/warning/danger/info set -
+// see the long comment on --tc-color-primary in :root below for exactly how
+// each hex was converted and re-tuned). Every given "main" tone is light/
+// pastel by nature; each is darkened to a text-safe shade for light mode and
+// used at its original light value for dark mode - see the :root and
+// tc-dark-palette comments respectively for the reasoning.
 //
 // CSS custom properties carry runtime-switchable values (colour, shadow).
 // Breakpoints are SCSS variables since custom properties can't be used
@@ -28,18 +29,29 @@ $tc-breakpoint-desktop: 1280px;
 
 :root {
   // ---- Brand ----
-  // "Modern SaaS Glass" direction: dark-tech emerald (H 158) as primary,
-  // distinct from success's own green (H 140, 18deg apart) so a primary
-  // button and a success badge don't read as the same color despite both
-  // being "green". Chroma is the max the sRGB gamut allows at each
-  // lightness (binary-searched, ~6% headroom), same discipline as the
-  // last two palette rounds - vivid without silently clipping.
-  --tc-color-primary: oklch(0.42 0.094 158);
-  --tc-color-primary-hover: oklch(0.36 0.081 158);
-  --tc-color-primary-active: oklch(0.3 0.069 158);
-  --tc-color-primary-contrast: oklch(1 0 0);
+  // "Fresh grass" direction, replacing the earlier dark-tech emerald
+  // monochrome: hues sourced from the client's own theme palette (--primary:
+  // #92D050 / --color-green: #52C41A / --dark-yellow-300 / --color-red-400 /
+  // --color-alice-blue-border), each converted to OKLCH and then re-tuned in
+  // lightness - see the note below.
+  //
+  // IMPORTANT: every one of those given tones is too light/pastel to pass as
+  // TEXT (checked with real contrast math, not eyeballed): #92D050 is 1.85:1
+  // against white, and this codebase uses --tc-color-primary/-success/etc.
+  // as inline text/icon color in a dozen+ places (stat card icons, status
+  // badges, error text), not just as button fills. So each MAIN token below
+  // is the same hue/character at a darker, ~4.8-6:1-vs-white lightness -
+  // legible as both a button fill (paired with white text, like the old
+  // palette) and as text/icon color on its own. The original light/pastel
+  // hex values are kept verbatim as the *-surface tokens (backgrounds for
+  // badges/tints), where they work fine since text sits on top of them, not
+  // the tint color itself as text.
+  --tc-color-primary: oklch(0.54 0.16 131.2); // ~#4b8000, darkened from #92D050
+  --tc-color-primary-hover: oklch(0.48 0.15 131.2); // darker still, on press-hover
+  --tc-color-primary-active: oklch(0.42 0.13 131.2);
+  --tc-color-primary-contrast: oklch(1 0 0); // white
   --tc-color-primary-surface: oklch(1 0 0);
-  --tc-color-primary-surface-contrast: oklch(0.2 0.01 250);
+  --tc-color-primary-surface-contrast: oklch(0.154 0 90);
 
   // ---- Glass ----
   // Frosted-card treatment: a translucent overlay (composited over
@@ -53,38 +65,50 @@ $tc-breakpoint-desktop: 1280px;
   --tc-glass-blur: 20px;
 
   // ---- Semantic ----
-  // Info gets its own hue (235, true blue) - three hues now sit in the
-  // green/blue family (primary 158, success 140, info 235) but each is far
-  // enough apart, and different enough in role, to stay legible as distinct.
-  --tc-color-success: oklch(0.4 0.124 140);
-  --tc-color-success-surface: oklch(0.94 0.045 140);
-  --tc-color-warning: oklch(0.48 0.095 55);
-  --tc-color-warning-surface: oklch(0.95 0.027 55);
-  --tc-color-danger: oklch(0.48 0.18 25);
-  --tc-color-danger-surface: oklch(0.94 0.028 25);
-  --tc-color-info: oklch(0.46 0.099 235);
-  --tc-color-info-surface: oklch(0.94 0.03 235);
+  // Success uses the palette's own --color-green ramp (H 138.5), distinct
+  // enough from primary (H 131.2) to still read as two different greens.
+  // Warning/danger/info are the closest equivalents the given palette
+  // actually defines (--dark-yellow-300, --color-red-400, and the
+  // alice-blue family respectively) - none of these were explicitly
+  // labeled "warning"/"danger"/"info" in the source, this is a best-fit read.
+  // Same darken-for-text-safety treatment as primary above; warning in
+  // particular can't stay anywhere near "yellow" once darkened enough to
+  // read as text (yellow is inherently high-luminance - see color science,
+  // not a mistake here) - #82690b is an amber/mustard, the standard
+  // resolution most design systems reach for a text-safe "warning" color.
+  --tc-color-success: oklch(0.48 0.15 138.5); // ~#287000, darkened from #52C41A
+  --tc-color-success-surface: oklch(0.969 0.033 131.3); // #EDFAE3 (--green-20), unchanged
+  --tc-color-warning: oklch(0.53 0.105 91.1); // ~#82690b, darkened from #f8d053
+  --tc-color-warning-surface: oklch(0.971 0.046 95.2); // #FFF6D3 (--dark-yellow-50), unchanged
+  --tc-color-danger: oklch(0.56 0.22 24.7); // ~#d81229, darkened from #ED4B4B
+  --tc-color-danger-surface: oklch(0.96 0.02 21.4); // #FFEDEC (--red-50), unchanged
+  --tc-color-info: oklch(0.5 0.155 253.1); // ~#0063b8, darkened from #A3CDFF
+  --tc-color-info-surface: oklch(0.971 0.012 231.7); // #EEF7FC (--alice-blue-50), unchanged
 
   // ---- Surfaces ----
-  // A cool slate tint (H 250) rather than the previous near-neutral gray -
-  // "dark-tech" carries into light mode too as a moodier, less paper-white
-  // canvas, not just a light backdrop for the dark mode to invert from.
-  --tc-surface-canvas: oklch(0.94 0.012 250);
-  --tc-surface-raised: oklch(1 0 0);
-  --tc-surface-sunken: oklch(0.9 0.014 250);
-  --tc-surface-overlay: oklch(0.98 0.006 250);
-  --tc-border: oklch(0.62 0.02 250);
-  --tc-border-strong: oklch(0.54 0.024 250);
-  --tc-divider: oklch(0.9 0.014 250);
+  // Neutral grayscale (no cool-slate tint) straight from the given palette's
+  // --gray-* ramp, rather than the previous H 250 cool-slate system.
+  --tc-surface-canvas: oklch(0.961 0 90); // #F2F2F2 (--gray-100 / --bg-color-light)
+  --tc-surface-raised: oklch(1 0 0); // #FFFFFF
+  --tc-surface-sunken: oklch(0.97 0 90); // #F5F5F5 (--gray-50)
+  --tc-surface-overlay: oklch(0.979 0 90); // #F8F8F8 (--color-gray)
+  --tc-border: oklch(0.882 0 90); // #D8D8D8 (--gray-300 / --secondary)
+  --tc-border-strong: oklch(0.876 0 90); // #D6D6D6 (--gray-400)
+  --tc-divider: oklch(0.946 0 90); // #EDEDED (--gray-200)
 
   // ---- Text ----
-  --tc-text-primary: oklch(0.2 0.01 250);
-  --tc-text-secondary: oklch(0.44 0.012 250);
-  --tc-text-tertiary: oklch(0.53 0.012 250);
-  --tc-text-disabled: oklch(0.75 0.01 250);
-  --tc-text-on-primary: oklch(1 0 0);
-  --tc-text-on-primary-surface: oklch(0.2 0.01 250);
-  --tc-text-link: oklch(0.42 0.094 158);
+  // The given palette's --blue-* scale is actually a text-lightness ramp
+  // (near-black ink down to a mid slate-gray), not a hue family - used here
+  // exactly as such.
+  --tc-text-primary: oklch(0.154 0 90); // #0C0C0C (--color-blue, the "ink")
+  --tc-text-secondary: oklch(0.478 0.019 266.1); // #585D68 (--blue-100)
+  --tc-text-tertiary: oklch(0.559 0.015 266.6); // #70747D (--blue-50)
+  --tc-text-disabled: oklch(0.622 0.024 239.7); // #7a8994 (--blue-25)
+  --tc-text-on-primary: oklch(1 0 0); // white - primary is dark enough again, see note above
+  --tc-text-on-primary-surface: oklch(0.154 0 90);
+  // Same value as --tc-color-primary above - the darkened, text-safe green
+  // doubles as the link color, which is exactly the role it was tuned for.
+  --tc-text-link: oklch(0.54 0.16 131.2); // ~#4b8000
 
   // ---- Typography ----
   --tc-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -127,22 +151,38 @@ $tc-breakpoint-desktop: 1280px;
   --tc-shadow-lg: 0 12px 32px oklch(0.2435 0 0 / 0.14);
 
   // ---- Layout ----
-  --tc-sidebar-width: 260px;
-  --tc-sidebar-width-collapsed: 72px;
+  --tc-rail-width: 70px;
+  --tc-flyout-width: 286px;
   --tc-topbar-height: 64px;
+
+  // ---- Icon rail (primary nav) ----
+  // Sourced from the reference app's own --iconbar-bg/--iconbar-border-color
+  // (#E3E6EB / #CBCBCB) - a cool gray distinct from every other surface
+  // token, since the rail is meant to read as permanent chrome rather than
+  // "a card" or "the canvas".
+  --tc-rail-bg: oklch(0.924 0.008 260.7); // #E3E6EB
+  --tc-rail-border: oklch(0.842 0 90); // #CBCBCB
 
   color-scheme: light;
 }
 
 @mixin tc-dark-palette {
-  // A genuine remap, not an inversion: primary flips from a deep, ink-like
-  // emerald (button fill against light surfaces) to a bright, vivid tech
-  // green (needs to pop off a dark surface instead) - same hue (158),
-  // different role in the lightness scale.
-  --tc-color-primary: oklch(0.76 0.168 158);
-  --tc-color-primary-hover: oklch(0.8 0.176 158);
-  --tc-color-primary-active: oklch(0.68 0.15 158);
-  --tc-color-primary-contrast: oklch(0.15 0.02 250);
+  // Same "genuine remap" relationship the old dark-tech palette had, just
+  // now happening to align with the raw given hex values: light mode darkens
+  // every brand/semantic color for text-safety (see the long comment on
+  // --tc-color-primary in :root above) and pairs it with white text; dark
+  // mode instead uses each color's *original*, light/pastel given value
+  // directly (#92D050, #52C41A, #f8d053, #ED4B4B, #A3CDFF) - already light
+  // enough to pop off a dark canvas unmodified - paired with dark ink text.
+  // Only the *-surface tints (previously near-white, e.g. success-surface
+  // L 0.97) are re-derived dark, since a pale tinted-white card would
+  // disappear against a dark canvas - these follow the same "same hue, low
+  // L, moderate C" recipe the old dark palette used for its own surface
+  // tints.
+  --tc-color-primary: oklch(0.789 0.171 131.2);
+  --tc-color-primary-hover: oklch(0.698 0.208 138.4);
+  --tc-color-primary-active: oklch(0.663 0.203 138.8);
+  --tc-color-primary-contrast: oklch(0.154 0 90);
   // The sidebar/login brand panel keep a dark neutral surface in dark mode
   // too (rather than following "primary" all the way to bright green, which
   // would put a loud panel next to an otherwise dark, moody UI).
@@ -158,14 +198,14 @@ $tc-breakpoint-desktop: 1280px;
   --tc-glass-border: oklch(1 0 0 / 0.08);
   --tc-glass-blur: 20px;
 
-  --tc-color-success: oklch(0.74 0.225 140);
-  --tc-color-success-surface: oklch(0.27 0.06 140);
-  --tc-color-warning: oklch(0.8 0.124 55);
-  --tc-color-warning-surface: oklch(0.3 0.06 55);
-  --tc-color-danger: oklch(0.7 0.178 25);
-  --tc-color-danger-surface: oklch(0.3 0.07 25);
-  --tc-color-info: oklch(0.75 0.13 235);
-  --tc-color-info-surface: oklch(0.28 0.05 235);
+  --tc-color-success: oklch(0.726 0.218 138.5);
+  --tc-color-success-surface: oklch(0.27 0.08 138.5);
+  --tc-color-warning: oklch(0.87 0.147 91.1);
+  --tc-color-warning-surface: oklch(0.3 0.06 91.1);
+  --tc-color-danger: oklch(0.641 0.199 24.7);
+  --tc-color-danger-surface: oklch(0.3 0.08 24.7);
+  --tc-color-info: oklch(0.836 0.083 253.1);
+  --tc-color-info-surface: oklch(0.28 0.05 253.1);
 
   --tc-surface-canvas: oklch(0.15 0.01 250);
   --tc-surface-raised: oklch(0.2 0.01 250);
@@ -179,13 +219,23 @@ $tc-breakpoint-desktop: 1280px;
   --tc-text-secondary: oklch(0.75 0.008 250);
   --tc-text-tertiary: oklch(0.67 0.008 250);
   --tc-text-disabled: oklch(0.42 0.008 250);
-  --tc-text-on-primary: oklch(0.15 0.02 250);
+  --tc-text-on-primary: oklch(0.154 0 90);
   --tc-text-on-primary-surface: oklch(0.95 0.006 250);
-  --tc-text-link: oklch(0.76 0.168 158);
+  // Dark mode doesn't have light mode's white-background contrast problem -
+  // a bright color reads fine as a link against a near-black canvas, so
+  // this reuses the actual brand primary rather than needing a separate
+  // darkened variant the way light mode's --tc-text-link does.
+  --tc-text-link: oklch(0.789 0.171 131.2);
 
   --tc-shadow-sm: 0 1px 2px oklch(0 0 0 / 0.24);
   --tc-shadow-md: 0 4px 12px oklch(0 0 0 / 0.32);
   --tc-shadow-lg: 0 12px 32px oklch(0 0 0 / 0.4);
+
+  // Not given by the reference (it has no dark mode) - kept in the same
+  // "distinct chrome" family as --tc-surface-raised's dark value, just a
+  // shade apart so the rail still reads as its own layer against the canvas.
+  --tc-rail-bg: oklch(0.22 0.01 260.7);
+  --tc-rail-border: oklch(0.35 0.012 260.7);
 
   color-scheme: dark;
 }

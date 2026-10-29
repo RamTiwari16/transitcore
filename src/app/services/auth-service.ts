@@ -67,6 +67,22 @@ export class AuthService {
     return userData?.roles?.[0] ?? null;
   }
 
+  /** Get every role assigned to the user - use this for permission checks */
+  getRoles(): string[] {
+    return this.getUserData()?.roles ?? [];
+  }
+
+  /** Bearer token for the auth interceptor - reads the same encrypted blob
+   * everything else does, rather than a separate plaintext key that can
+   * drift out of sync with it. */
+  getToken(): string | null {
+    return this.getUserData()?.accessToken ?? null;
+  }
+
+  isAuthenticated(): boolean {
+    return this.getToken() !== null;
+  }
+
   /** Clear user data (logout) */
   logout(): void {
     localStorage.removeItem(this.storageKey);

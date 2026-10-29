@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { FleetService } from '../../../services/fleet.service';
 import { LookupService } from '../../../services/lookup.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PageTitleService } from '../../../core/services/page-title.service';
 import { VehicleTypeModel } from '../../../models/fleet.models';
 import { StatusCodeModel } from '../../../models/lookup.models';
 import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
@@ -42,7 +44,13 @@ export class VehicleFormComponent implements CanComponentDeactivate {
   readonly vehicleTypes = signal<VehicleTypeModel[]>([]);
   readonly statusOptions = signal<StatusCodeModel[]>([]);
   readonly saving = signal(false);
+  readonly loading = signal(false);
   private submitted = false;
+
+  // Present on /fleet/vehicles/:id/edit, absent on /fleet/vehicles/new - the
+  // one flag this whole component branches on to be both screens at once.
+  private readonly vehicleId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.vehicleId() !== null);
 
   readonly form = new FormGroup<VehicleFormModel>({
     registrationNo: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(30)] }),
@@ -59,15 +67,36 @@ export class VehicleFormComponent implements CanComponentDeactivate {
     private lookupService: LookupService,
     private toast: ToastService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {
-    this.fleetService.getVehicleTypes().subscribe({
-      next: (types) => this.vehicleTypes.set(types),
-      error: () => this.toast.error('Failed to load vehicle types'),
-    });
-    this.lookupService.getStatusCodes('Vehicle').subscribe({
-      next: (statuses) => this.statusOptions.set(statuses),
-      error: () => this.toast.error('Failed to load status options'),
-    });
+    const pageTitleService = inject(PageTitleService);
+    effect(() => pageTitleService.setTitle(this.isEditMode() ? 'Edit Vehicle' : 'Add Vehicle'));
+    inject(DestroyRef).onDestroy(() => pageTitleService.setTitle(null));
+
+    this.fleetService.getVehicleTypes().subscribe((types) => this.vehicleTypes.set(types));
+    this.lookupService.getStatusCodes('Vehicle').subscribe((statuses) => this.statusOptions.set(statuses));
+
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      const id = Number(idParam);
+      this.vehicleId.set(id);
+      this.loading.set(true);
+      this.fleetService.getVehicleById(id).subscribe({
+        next: (vehicle) => {
+          this.form.patchValue({
+            registrationNo: vehicle.registrationNo,
+            vehicleTypeId: vehicle.vehicleTypeId,
+            make: vehicle.make ?? '',
+            model: vehicle.model ?? '',
+            manufactureYear: vehicle.manufactureYear,
+            capacityKg: vehicle.capacityKg,
+            statusId: vehicle.statusId,
+          });
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+    }
   }
 
   hasUnsavedChanges(): boolean {
@@ -81,28 +110,32 @@ export class VehicleFormComponent implements CanComponentDeactivate {
     }
 
     const value = this.form.getRawValue();
+    const request = {
+      registrationNo: value.registrationNo,
+      vehicleTypeId: value.vehicleTypeId!,
+      make: value.make || undefined,
+      model: value.model || undefined,
+      manufactureYear: value.manufactureYear ?? undefined,
+      capacityKg: value.capacityKg!,
+      statusId: value.statusId!,
+    };
+
     this.saving.set(true);
 
-    this.fleetService
-      .createVehicle({
-        registrationNo: value.registrationNo,
-        vehicleTypeId: value.vehicleTypeId!,
-        make: value.make || undefined,
-        model: value.model || undefined,
-        manufactureYear: value.manufactureYear ?? undefined,
-        capacityKg: value.capacityKg!,
-        statusId: value.statusId!,
-      })
-      .subscribe({
-        next: () => {
-          this.submitted = true;
-          this.toast.success('Vehicle created successfully');
-          this.router.navigate(['/fleet/vehicles']);
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.toast.error(err?.error?.message || 'Failed to create vehicle');
-        },
-      });
+    const id = this.vehicleId();
+    const save$: Observable<unknown> = id
+      ? this.fleetService.updateVehicle({ ...request, vehicleId: id })
+      : this.fleetService.createVehicle(request);
+
+    save$.subscribe({
+      next: () => {
+        this.submitted = true;
+        this.toast.success(id ? 'Vehicle updated successfully' : 'Vehicle created successfully');
+        this.router.navigate(['/fleet/vehicles']);
+      },
+      // errorInterceptor already surfaces the failure as a toast - this
+      // only needs to re-enable the form so the user can retry.
+      error: () => this.saving.set(false),
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,9 +9,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { BillingService } from '../../../services/billing.service';
 import { LookupService } from '../../../services/lookup.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PageTitleService } from '../../../core/services/page-title.service';
 import { CustomerModel } from '../../../models/billing.models';
 import { StatusCodeModel } from '../../../models/lookup.models';
 import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
+import { toLocalIsoDate } from '../../../shared/util/date';
 
 interface InvoiceLineFormModel {
   description: FormControl<string>;
@@ -24,6 +26,7 @@ interface InvoiceFormModel {
   customerId: FormControl<number | null>;
   invoiceDate: FormControl<string>;
   dueDate: FormControl<string>;
+  discountAmount: FormControl<number | null>;
   taxAmount: FormControl<number | null>;
   statusId: FormControl<number | null>;
 }
@@ -54,6 +57,7 @@ export class InvoiceFormComponent implements CanComponentDeactivate {
     customerId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     invoiceDate: new FormControl(this.today(), { nonNullable: true, validators: [Validators.required] }),
     dueDate: new FormControl(this.today(), { nonNullable: true, validators: [Validators.required] }),
+    discountAmount: new FormControl<number | null>(0, { validators: [Validators.min(0)] }),
     taxAmount: new FormControl<number | null>(0, { validators: [Validators.min(0)] }),
     statusId: new FormControl<number | null>(null, { validators: [Validators.required] }),
   });
@@ -66,20 +70,22 @@ export class InvoiceFormComponent implements CanComponentDeactivate {
     private toast: ToastService,
     private router: Router,
   ) {
+    const pageTitleService = inject(PageTitleService);
+    pageTitleService.setTitle('Add Invoice');
+    inject(DestroyRef).onDestroy(() => pageTitleService.setTitle(null));
+
     this.billingService.getCustomers(true).subscribe({
       next: (customers) => this.customers.set(customers),
-      error: () => this.toast.error('Failed to load customers'),
     });
     this.lookupService.getStatusCodes('Invoice').subscribe({
       next: (statuses) => this.statusOptions.set(statuses),
-      error: () => this.toast.error('Failed to load status options'),
     });
 
     this.addLine();
   }
 
   private today(): string {
-    return new Date().toISOString().split('T')[0];
+    return toLocalIsoDate();
   }
 
   addLine(): void {
@@ -119,6 +125,7 @@ export class InvoiceFormComponent implements CanComponentDeactivate {
         customerId: value.customerId!,
         invoiceDate: value.invoiceDate,
         dueDate: value.dueDate,
+        discountAmount: value.discountAmount ?? 0,
         taxAmount: value.taxAmount ?? 0,
         statusId: value.statusId!,
         lines: this.lines.controls.map((group) => {
@@ -136,10 +143,9 @@ export class InvoiceFormComponent implements CanComponentDeactivate {
           this.toast.success('Invoice created successfully');
           this.router.navigate(['/billing/invoices']);
         },
-        error: (err) => {
-          this.saving.set(false);
-          this.toast.error(err?.error?.message || 'Failed to create invoice');
-        },
+        // errorInterceptor already surfaces the failure as a toast - this
+        // only needs to re-enable the form so the user can retry.
+        error: () => this.saving.set(false),
       });
   }
 }

@@ -1,17 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { PageEvent } from '@angular/material/paginator';
-import { Sort } from '@angular/material/sort';
 import { OpsService } from '../../../services/ops.service';
 import { LookupService } from '../../../services/lookup.service';
-import { ToastService } from '../../../core/services/toast.service';
 import { TripModel } from '../../../models/ops.models';
 import { StatusCodeModel } from '../../../models/lookup.models';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
+import { createServerPagedListState } from '../../../shared/util/server-paged-list-state';
 
 @Component({
   selector: 'app-trips-list',
@@ -21,64 +19,40 @@ import { DataTableColumn, DataTableComponent } from '../../../shared/components/
   styleUrl: './trips-list.component.scss',
 })
 export class TripsListComponent {
-  readonly rows = signal<TripModel[]>([]);
-  readonly totalCount = signal(0);
-  readonly loading = signal(true);
-  readonly pageIndex = signal(0);
-  readonly pageSize = signal(10);
+  private readonly opsService = inject(OpsService);
+  private readonly lookupService = inject(LookupService);
+  private readonly router = inject(Router);
+
   readonly statusOptions = signal<StatusCodeModel[]>([]);
   readonly statusFilter = signal<number | null>(null);
 
   readonly columns = computed<DataTableColumn<TripModel>[]>(() => [
     { key: 'routeName', label: 'Route', sortable: true, cell: (row) => row.routeName },
-    { key: 'registrationNo', label: 'Vehicle', cell: (row) => row.registrationNo },
-    { key: 'driverName', label: 'Driver', cell: (row) => row.driverName },
+    { key: 'ownershipType', label: 'Ownership', cell: (row) => row.ownershipType },
+    { key: 'registrationNo', label: 'Vehicle', cell: (row) => row.registrationNo ?? row.hiredVehicleNo ?? '-' },
+    { key: 'driverName', label: 'Driver', cell: (row) => row.driverName ?? row.hiredDriverName ?? '-' },
     { key: 'scheduledDeparture', label: 'Departure', sortable: true, cell: (row) => this.formatDateTime(row.scheduledDeparture) },
     { key: 'scheduledArrival', label: 'Arrival', cell: (row) => this.formatDateTime(row.scheduledArrival) },
     { key: 'statusName', label: 'Status', cell: (row) => row.statusName },
   ]);
 
-  constructor(
-    private opsService: OpsService,
-    private lookupService: LookupService,
-    private toast: ToastService,
-    private router: Router,
-  ) {
-    this.lookupService.getStatusCodes('Trip').subscribe({
-      next: (statuses) => this.statusOptions.set(statuses),
-      error: () => this.toast.error('Failed to load status options'),
-    });
-    this.load();
-  }
+  // statusFilter is a real server-side constraint (a query param the
+  // backend already honours), separate from the data-table's free-text
+  // search box, which only narrows the current page client-side - the two
+  // compose because this closure re-reads statusFilter() on every load().
+  readonly list = createServerPagedListState<TripModel>((pageNumber, pageSize) =>
+    this.opsService.getTrips({ statusId: this.statusFilter() ?? undefined }, pageNumber, pageSize),
+  );
 
-  private load(): void {
-    this.loading.set(true);
-    this.opsService
-      .getTrips({ statusId: this.statusFilter() ?? undefined }, this.pageIndex() + 1, this.pageSize())
-      .subscribe({
-        next: (result) => {
-          this.rows.set(result.items);
-          this.totalCount.set(result.totalCount);
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+  constructor() {
+    this.lookupService.getStatusCodes('Trip').subscribe((statuses) => this.statusOptions.set(statuses));
+    this.list.load();
   }
 
   onStatusFilterChange(statusId: number | null): void {
     this.statusFilter.set(statusId);
-    this.pageIndex.set(0);
-    this.load();
-  }
-
-  onPage(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
-    this.load();
-  }
-
-  onSort(_sort: Sort): void {
-    // Server-side sorting isn't implemented for this endpoint yet.
+    this.list.pageIndex.set(0);
+    this.list.load();
   }
 
   openTrip(row: TripModel): void {

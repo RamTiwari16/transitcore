@@ -1,0 +1,149 @@
+@if (loading()) {
+  <div class="invoice-detail__loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else if (invoice(); as inv) {
+  <div class="page-header">
+    <div>
+      <button mat-button (click)="downloadPdf()" [disabled]="downloadingPdf()">
+        @if (downloadingPdf()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          <mat-icon>picture_as_pdf</mat-icon>
+        }
+        Download PDF
+      </button>
+      <a mat-button routerLink="/billing/invoices">
+        <mat-icon>arrow_back</mat-icon>
+        Back to invoices
+      </a>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="invoice-detail__panel">
+        <dl class="invoice-detail__summary">
+          <div><dt>Customer</dt><dd>{{ inv.customerName }}</dd></div>
+          <div><dt>Status</dt><dd>{{ inv.statusName }}</dd></div>
+          <div><dt>Invoice Date</dt><dd>{{ inv.invoiceDate | date: 'dd MMM yyyy' }}</dd></div>
+          <div><dt>Due Date</dt><dd>{{ inv.dueDate | date: 'dd MMM yyyy' }}</dd></div>
+        </dl>
+
+        <h2 class="invoice-detail__section-title">Lines</h2>
+        @if (inv.lines.length > 0) {
+          <table class="invoice-detail__lines-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="invoice-detail__num">Qty</th>
+                <th class="invoice-detail__num">Unit Price</th>
+                <th class="invoice-detail__num">Line Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of inv.lines; track line.id) {
+                <tr>
+                  <td>{{ line.description }}</td>
+                  <td class="invoice-detail__num">{{ line.quantity }}</td>
+                  <td class="invoice-detail__num">{{ line.unitPrice | inr }}</td>
+                  <td class="invoice-detail__num">{{ line.lineTotal | inr }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <app-empty-state title="No lines on this invoice" icon="receipt_long"></app-empty-state>
+        }
+
+        <dl class="invoice-detail__totals">
+          <div><dt>Subtotal</dt><dd>{{ inv.subtotal | inr }}</dd></div>
+          @if (inv.discountAmount > 0) {
+            <div><dt>Discount</dt><dd>-{{ inv.discountAmount | inr }}</dd></div>
+          }
+          <div><dt>Tax</dt><dd>{{ inv.taxAmount | inr }}</dd></div>
+          <div class="invoice-detail__totals-grand"><dt>Total</dt><dd>{{ inv.totalAmount | inr }}</dd></div>
+          <div><dt>Paid</dt><dd>{{ inv.paidAmount | inr }}</dd></div>
+          <div class="invoice-detail__totals-grand">
+            <dt>Balance Due</dt>
+            <dd [class.invoice-detail__balance--clear]="balanceDue() <= 0">{{ balanceDue() | inr }}</dd>
+          </div>
+        </dl>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Payments ({{ inv.payments.length }})">
+      <div class="invoice-detail__panel">
+        <dl class="invoice-detail__summary">
+          <div><dt>Total Amount</dt><dd>{{ inv.totalAmount | inr }}</dd></div>
+          <div><dt>Total Paid</dt><dd>{{ inv.paidAmount | inr }}</dd></div>
+          <div>
+            <dt>Outstanding Balance</dt>
+            <dd [class.invoice-detail__balance--clear]="balanceDue() <= 0">{{ balanceDue() | inr }}</dd>
+          </div>
+        </dl>
+
+        @if (inv.payments.length > 0) {
+          <ul class="invoice-detail__list">
+            @for (payment of inv.payments; track payment.id) {
+              <li>
+                <div class="invoice-detail__list-main">
+                  <span class="invoice-detail__list-title">{{ payment.amount | inr }} - {{ payment.method }}</span>
+                  <span class="invoice-detail__list-meta">
+                    {{ payment.paymentDate | date: 'dd MMM yyyy' }}
+                    @if (payment.referenceNo) { - Ref: {{ payment.referenceNo }} }
+                  </span>
+                </div>
+                <button mat-icon-button (click)="removePayment(payment)" matTooltip="Remove payment" aria-label="Remove payment">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No payments recorded yet" icon="payments"></app-empty-state>
+        }
+
+        @if (balanceDue() > 0) {
+          <form [formGroup]="paymentForm" (ngSubmit)="recordPayment()" class="invoice-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Payment Date</mat-label>
+              <input matInput type="date" formControlName="paymentDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" formControlName="amount" required />
+              @if (paymentForm.controls.amount.hasError('max')) {
+                <mat-error>Cannot exceed balance of {{ balanceDue() | inr }}</mat-error>
+              } @else if (paymentForm.controls.amount.hasError('min')) {
+                <mat-error>Must be greater than zero</mat-error>
+              } @else if (paymentForm.controls.amount.hasError('required')) {
+                <mat-error>Amount is required</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Method</mat-label>
+              <mat-select formControlName="method" required>
+                @for (method of paymentMethods; track method) {
+                  <mat-option [value]="method">{{ method }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Reference No</mat-label>
+              <input matInput formControlName="referenceNo" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingPayment()">Record Payment</button>
+          </form>
+        } @else {
+          <p class="invoice-detail__paid-note">
+            <mat-icon>task_alt</mat-icon>
+            This invoice is fully paid.
+          </p>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else {
+  <app-empty-state title="Invoice not found" description="It may have been deleted, or the link is wrong." icon="search_off"></app-empty-state>
+}

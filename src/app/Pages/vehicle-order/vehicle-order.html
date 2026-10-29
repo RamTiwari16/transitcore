@@ -1,9 +1,4 @@
-<div class="page-header">
-  <h1>Vehicle Orders</h1>
-</div>
-<p class="vehicle-order__subtitle">Search vehicle-order mappings by upload date range.</p>
-
-<div class="vehicle-order__filters">
+<div class="page-header vehicle-order__filters">
   <mat-form-field appearance="outline" subscriptSizing="dynamic">
     <mat-label>From Date</mat-label>
     <input matInput type="date" [value]="fromDate()" (input)="fromDate.set($any($event.target).value)" />
@@ -75,4 +70,10 @@
     (page)="onPage($event)"
     showFirstLastButtons
   ></mat-paginator>
+} @else if (!isLoading() && !searched()) {
+  <app-empty-state
+    title="Select a date range"
+    description="Choose a From and To date above, then click Search to see vehicle-order mappings for that range."
+    icon="date_range"
+  ></app-empty-state>
 }

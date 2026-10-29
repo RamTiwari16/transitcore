@@ -21,6 +21,17 @@
   display: flex;
   align-items: center;
   gap: var(--tc-space-2);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.data-table__filter {
+  width: 100%;
+  max-width: 18rem;
+
+  mat-icon {
+    color: var(--tc-text-tertiary);
+  }
 }
 
 .data-table__toolbar-right {

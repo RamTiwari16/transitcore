@@ -1,0 +1,311 @@
+@if (!loading() && cn(); as note) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/ops/shipments', note.shipmentId, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Edit shipment
+      </a>
+      <a mat-button routerLink="/ops/shipments">
+        <mat-icon>arrow_back</mat-icon>
+        Back to shipments
+      </a>
+      <button mat-button (click)="downloadPdf()" [disabled]="downloadingPdf()">
+        <mat-icon>download</mat-icon>
+        {{ downloadingPdf() ? 'Downloading...' : 'Download CN PDF' }}
+      </button>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="shipment-detail__panel">
+        <dl class="shipment-detail__summary">
+          <div><dt>CN Number</dt><dd>{{ note.cnNumber }}</dd></div>
+          <div><dt>Tracking No</dt><dd>{{ note.trackingNo ?? '-' }}</dd></div>
+          <div><dt>Branch</dt><dd>{{ note.branchName }}</dd></div>
+          <div><dt>Route</dt><dd>{{ note.originCityName }} → {{ note.destinationCityName }}</dd></div>
+          <div><dt>Status</dt><dd>{{ note.statusName }}</dd></div>
+          <div><dt>Freight Payment</dt><dd>{{ note.freightPaymentTypeName }}</dd></div>
+          <div><dt>Packages</dt><dd>{{ note.packages ?? '-' }}</dd></div>
+          <div><dt>Actual / Charged Weight</dt><dd>{{ note.actualWeightKg ?? '-' }} / {{ note.chargedWeightKg ?? '-' }} kg</dd></div>
+          <div><dt>Declared Value</dt><dd>{{ note.declaredValue !== null ? (note.declaredValue | inr) : '-' }}</dd></div>
+          <div><dt>Freight Amount</dt><dd>{{ note.freightAmount !== null ? (note.freightAmount | inr) : '-' }}</dd></div>
+          @if (note.tripId) {
+            <div><dt>Trip</dt><dd>{{ note.vehicleRegistrationNo ?? 'Hired vehicle' }} - {{ note.driverName ?? '-' }}</dd></div>
+          }
+        </dl>
+
+        <h3 class="shipment-detail__section-title">Billing Party</h3>
+        <p>{{ note.billingPartyName }}</p>
+
+        <h3 class="shipment-detail__section-title">Consignor</h3>
+        <p>
+          {{ note.consignorCustomerName ?? note.consignorName ?? '-' }}
+          @if (note.consignorAddress) { <br />{{ note.consignorAddress }} }
+          @if (note.consignorPhone) { <br />{{ note.consignorPhone }} }
+        </p>
+
+        <h3 class="shipment-detail__section-title">Consignee</h3>
+        <p>
+          {{ note.consigneeCustomerName ?? note.consigneeName ?? '-' }}
+          @if (note.consigneeAddress) { <br />{{ note.consigneeAddress }} }
+          @if (note.consigneePhone) { <br />{{ note.consigneePhone }} }
+        </p>
+
+        <h3 class="shipment-detail__section-title">Items</h3>
+        <ul class="shipment-detail__list">
+          @for (item of note.items; track item.id) {
+            <li>
+              <div class="shipment-detail__list-main">
+                <span class="shipment-detail__list-title">{{ item.description }}</span>
+                <span class="shipment-detail__list-meta">
+                  {{ item.quantity }} {{ item.unitOfMeasureCode }}
+                  @if (item.weightKg) { - {{ item.weightKg }} kg }
+                  @if (item.volumeCbm) { - {{ item.volumeCbm }} m³ }
+                </span>
+              </div>
+            </li>
+          }
+        </ul>
+
+        <h3 class="shipment-detail__section-title">E-way Bill</h3>
+        <form [formGroup]="ewayBillForm" (ngSubmit)="saveEwayBill()" class="shipment-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>E-way Bill No</mat-label>
+            <input matInput formControlName="ewayBillNo" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Generated Date</mat-label>
+            <input matInput type="date" formControlName="ewayBillGeneratedDate" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Valid Until</mat-label>
+            <input matInput type="date" formControlName="ewayBillValidUntil" required />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingEwayBill()">Save E-way Bill</button>
+        </form>
+
+        @if (note.statusName !== 'Cancelled') {
+          <h3 class="shipment-detail__section-title">Cancel Consignment Note</h3>
+          <form [formGroup]="cancelForm" (ngSubmit)="cancelConsignmentNote()" class="shipment-detail__inline-form">
+            <mat-form-field appearance="outline" class="shipment-detail__cancel-reason">
+              <mat-label>Cancellation Reason</mat-label>
+              <input matInput formControlName="cancelReason" required />
+            </mat-form-field>
+            <button mat-flat-button color="warn" type="submit" [disabled]="cancelling()">Cancel Note</button>
+          </form>
+        } @else if (note.cancelReason) {
+          <h3 class="shipment-detail__section-title">Cancellation</h3>
+          <p>{{ note.cancelReason }} - {{ formatDateTime(note.cancelledAt) }} ({{ note.cancelledBy }})</p>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Charges ({{ charges().length }})">
+      <div class="shipment-detail__panel">
+        @if (charges().length > 0) {
+          <ul class="shipment-detail__list">
+            @for (charge of charges(); track charge.id) {
+              <li>
+                <div class="shipment-detail__charge-row">
+                  @if (!charge.isInvoiced) {
+                    <mat-checkbox [checked]="isSelected(charge)" (change)="toggleCharge(charge)"></mat-checkbox>
+                  }
+                  <div class="shipment-detail__list-main">
+                    <span class="shipment-detail__list-title">
+                      {{ charge.chargeType }} - {{ charge.amount | inr }}
+                      @if (charge.isOverridden) { (overridden) }
+                      @if (charge.isInvoiced) { (invoiced) }
+                    </span>
+                    <span class="shipment-detail__list-meta">
+                      @if (charge.description) { {{ charge.description }} }
+                      @if (charge.overrideReason) { - {{ charge.overrideReason }} }
+                    </span>
+                  </div>
+                </div>
+                @if (!charge.isInvoiced) {
+                  <button mat-icon-button (click)="removeCharge(charge)" matTooltip="Remove charge" aria-label="Remove charge">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No charges recorded yet" icon="receipt_long"></app-empty-state>
+        }
+
+        <form [formGroup]="chargeForm" (ngSubmit)="addCharge()" class="shipment-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Charge Type</mat-label>
+            <input matInput formControlName="chargeType" placeholder="Freight, Loading, Detention..." required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" formControlName="amount" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" />
+          </mat-form-field>
+          <mat-checkbox formControlName="isOverridden">Manual override</mat-checkbox>
+          @if (chargeForm.controls.isOverridden.value) {
+            <mat-form-field appearance="outline">
+              <mat-label>Override Reason</mat-label>
+              <input matInput formControlName="overrideReason" required />
+            </mat-form-field>
+          }
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingCharge()">Add Charge</button>
+        </form>
+
+        @if (selectedCharges().length > 0) {
+          <h3 class="shipment-detail__section-title">Generate Invoice from Selected Charges ({{ selectedTotal() | inr }})</h3>
+          <form [formGroup]="generateInvoiceForm" (ngSubmit)="generateInvoice()" class="shipment-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Invoice No</mat-label>
+              <input matInput formControlName="invoiceNo" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Invoice Date</mat-label>
+              <input matInput type="date" formControlName="invoiceDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Due Date</mat-label>
+              <input matInput type="date" formControlName="dueDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Discount</mat-label>
+              <input matInput type="number" formControlName="discountAmount" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Tax</mat-label>
+              <input matInput type="number" formControlName="taxAmount" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="statusId" required>
+                @for (status of invoiceStatusOptions(); track status.id) {
+                  <mat-option [value]="status.id">{{ status.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="generating()">Generate Invoice</button>
+          </form>
+        }
+      </div>
+    </mat-tab>
+    <mat-tab label="Delivery ({{ deliveryLines().length }})">
+      <div class="shipment-detail__panel">
+        @if (deliveryLines().length > 0) {
+          <ul class="shipment-detail__list">
+            @for (line of deliveryLines(); track line.shipmentItemId) {
+              <li class="shipment-detail__delivery-item">
+                <div class="shipment-detail__list-main">
+                  <span class="shipment-detail__list-title">
+                    {{ line.description }} - {{ line.quantity }} {{ line.unitOfMeasureCode }}
+                  </span>
+                </div>
+
+                @if (line.delivery && !isEditingDelivery(line.shipmentItemId)) {
+                  <span class="shipment-detail__list-meta">
+                    Delivered {{ line.delivery.deliveredQty }} / Short {{ line.delivery.shortQty }} / Damaged {{ line.delivery.damagedQty }}
+                    @if (line.delivery.remarks) { - {{ line.delivery.remarks }} }
+                  </span>
+                  @if (line.delivery.photos.length > 0) {
+                    <div class="shipment-detail__photo-grid">
+                      @for (photo of line.delivery.photos; track photo.id) {
+                        <img [src]="fileBaseUrl + photo.filePath" alt="Delivery photo" class="shipment-detail__photo-thumb" />
+                      }
+                    </div>
+                  }
+                  <div class="shipment-detail__delivery-actions">
+                    <button mat-button type="button" (click)="toggleEditDelivery(line.shipmentItemId)">Edit</button>
+                    <input type="file" accept="image/*" multiple (change)="onDeliveryPhotosSelected(line.shipmentItemId, $event)" />
+                    <button mat-button type="button" (click)="addDeliveryPhotos(line)" [disabled]="isSavingDelivery(line.shipmentItemId)">
+                      Add Photos
+                    </button>
+                  </div>
+                } @else {
+                  <form [formGroup]="deliveryFormFor(line)" (ngSubmit)="line.delivery ? saveDeliveryEdit(line) : recordDelivery(line)" class="shipment-detail__inline-form">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Delivered Qty</mat-label>
+                      <input matInput type="number" formControlName="deliveredQty" required />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Short Qty</mat-label>
+                      <input matInput type="number" formControlName="shortQty" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Damaged Qty</mat-label>
+                      <input matInput type="number" formControlName="damagedQty" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Remarks</mat-label>
+                      <input matInput formControlName="remarks" />
+                    </mat-form-field>
+                    @if (!line.delivery) {
+                      <input type="file" accept="image/*" multiple (change)="onDeliveryPhotosSelected(line.shipmentItemId, $event)" />
+                    }
+                    <button mat-flat-button color="primary" type="submit" [disabled]="isSavingDelivery(line.shipmentItemId)">
+                      {{ line.delivery ? 'Save' : 'Record Delivery' }}
+                    </button>
+                    @if (line.delivery) {
+                      <button mat-button type="button" (click)="toggleEditDelivery(line.shipmentItemId)">Cancel</button>
+                    }
+                  </form>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No items on this shipment" icon="inventory_2"></app-empty-state>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Claims ({{ claims().length }})">
+      <div class="shipment-detail__panel">
+        @if (claims().length > 0) {
+          <ul class="shipment-detail__list">
+            @for (claim of claims(); track claim.id) {
+              <li>
+                <a [routerLink]="['/claims', claim.id]" class="shipment-detail__list-main">
+                  <span class="shipment-detail__list-title">{{ claim.claimantName }} - {{ claim.amountClaimed | inr }}</span>
+                  <span class="shipment-detail__list-meta">
+                    {{ claim.statusName }}
+                    @if (claim.settledAmount !== null) { - Settled {{ claim.settledAmount | inr }} via {{ claim.settlementMethod }} }
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No claims raised for this shipment" icon="report_problem"></app-empty-state>
+        }
+
+        <h3 class="shipment-detail__section-title">Raise a Claim</h3>
+        <form [formGroup]="claimForm" (ngSubmit)="raiseClaim()" class="shipment-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Claimant Name</mat-label>
+            <input matInput formControlName="claimantName" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Claimant Phone</mat-label>
+            <input matInput formControlName="claimantPhone" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Amount Claimed</mat-label>
+            <input matInput type="number" formControlName="amountClaimed" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Notes</mat-label>
+            <input matInput formControlName="notes" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingClaim()">Raise Claim</button>
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (!loading()) {
+  <p>Consignment note not found.</p>
+}

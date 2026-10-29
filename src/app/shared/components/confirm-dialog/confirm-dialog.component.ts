@@ -17,7 +17,7 @@ export interface ConfirmDialogData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h2 mat-dialog-title>{{ data.title }}</h2>
-    <mat-dialog-content>{{ data.message }}</mat-dialog-content>
+    <mat-dialog-content style="white-space: pre-line">{{ data.message }}</mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button (click)="dialogRef.close(false)">{{ data.cancelLabel || 'Cancel' }}</button>
       <button

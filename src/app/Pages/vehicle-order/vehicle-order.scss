@@ -1,13 +1,10 @@
-.vehicle-order__subtitle {
-  color: var(--tc-text-secondary);
-  margin: calc(-1 * var(--tc-space-3)) 0 var(--tc-space-4);
-}
-
+// .page-header (shared, see styles.scss) provides the bordered card look
+// and right-aligns its content by default - overridden to flex-start here
+// since From/To/Search read as one left-to-right search group, not "one
+// thing left, one thing right" the way other pages use this row.
 .vehicle-order__filters {
-  display: flex;
+  justify-content: flex-start;
   align-items: flex-start;
-  gap: var(--tc-space-3);
-  margin-bottom: var(--tc-space-4);
   flex-wrap: wrap;
 
   button {

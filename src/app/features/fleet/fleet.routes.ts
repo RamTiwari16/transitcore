@@ -14,6 +14,17 @@ export const FLEET_ROUTES: Routes = [
     canDeactivate: [unsavedChangesGuard],
   },
   {
+    path: 'vehicles/:id/edit',
+    loadComponent: () =>
+      import('./vehicle-form/vehicle-form.component').then((m) => m.VehicleFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'vehicles/:id',
+    loadComponent: () =>
+      import('./vehicle-detail/vehicle-detail.component').then((m) => m.VehicleDetailComponent),
+  },
+  {
     path: 'drivers',
     loadComponent: () =>
       import('./drivers-list/drivers-list.component').then((m) => m.DriversListComponent),
@@ -23,5 +34,16 @@ export const FLEET_ROUTES: Routes = [
     loadComponent: () =>
       import('./driver-form/driver-form.component').then((m) => m.DriverFormComponent),
     canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'drivers/:id/edit',
+    loadComponent: () =>
+      import('./driver-form/driver-form.component').then((m) => m.DriverFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'drivers/:id',
+    loadComponent: () =>
+      import('./driver-detail/driver-detail.component').then((m) => m.DriverDetailComponent),
   },
 ];

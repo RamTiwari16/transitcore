@@ -13,6 +13,7 @@ export interface RegionModel {
 export interface BranchModel {
   id: number;
   name: string;
+  code: string;
   regionId: number;
   regionName: string;
 }

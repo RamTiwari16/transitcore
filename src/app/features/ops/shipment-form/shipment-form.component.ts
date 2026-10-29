@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,15 +11,19 @@ import { OpsService } from '../../../services/ops.service';
 import { BillingService } from '../../../services/billing.service';
 import { LookupService } from '../../../services/lookup.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PageTitleService } from '../../../core/services/page-title.service';
 import { CustomerModel } from '../../../models/billing.models';
 import { CityModel, StatusCodeModel, UnitOfMeasureModel } from '../../../models/lookup.models';
+import { ShipmentItemModel, ShipmentParties } from '../../../models/ops.models';
 import { CanComponentDeactivate } from '../../../core/guards/unsaved-changes.guard';
+import { toLocalIsoDate } from '../../../shared/util/date';
 
 interface ShipmentItemFormModel {
   description: FormControl<string>;
   quantity: FormControl<number | null>;
   unitOfMeasureId: FormControl<number | null>;
   weightKg: FormControl<number | null>;
+  volumeCbm: FormControl<number | null>;
 }
 
 interface ShipmentFormModel {
@@ -27,6 +32,7 @@ interface ShipmentFormModel {
   destinationCityId: FormControl<number | null>;
   statusId: FormControl<number | null>;
   shipmentDate: FormControl<string>;
+  freightPaymentTypeId: FormControl<number | null>;
 }
 
 @Component({
@@ -48,9 +54,21 @@ export class ShipmentFormComponent implements CanComponentDeactivate {
   readonly customers = signal<CustomerModel[]>([]);
   readonly cities = signal<CityModel[]>([]);
   readonly statusOptions = signal<StatusCodeModel[]>([]);
+  readonly freightPaymentTypes = signal<StatusCodeModel[]>([]);
   readonly unitsOfMeasure = signal<UnitOfMeasureModel[]>([]);
   readonly saving = signal(false);
+  readonly loading = signal(false);
   private submitted = false;
+
+  private readonly shipmentId = signal<number | null>(null);
+  readonly isEditMode = computed(() => this.shipmentId() !== null);
+  // Line items aren't editable through this form yet (see
+  // UpdateShipmentRequest's comment) - shown read-only in edit mode instead
+  // of silently dropping them or pretending they can be changed here.
+  readonly existingItems = signal<ShipmentItemModel[]>([]);
+  // Consignor/consignee have no fields on this form yet, but the update
+  // endpoint overwrites them, so an edit sends back what was loaded.
+  private loadedParties: ShipmentParties | null = null;
 
   readonly form = new FormGroup<ShipmentFormModel>({
     customerId: new FormControl<number | null>(null, { validators: [Validators.required] }),
@@ -58,6 +76,7 @@ export class ShipmentFormComponent implements CanComponentDeactivate {
     destinationCityId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     statusId: new FormControl<number | null>(null, { validators: [Validators.required] }),
     shipmentDate: new FormControl(this.today(), { nonNullable: true, validators: [Validators.required] }),
+    freightPaymentTypeId: new FormControl<number | null>(null, { validators: [Validators.required] }),
   });
 
   readonly items = new FormArray<FormGroup<ShipmentItemFormModel>>([]);
@@ -68,29 +87,64 @@ export class ShipmentFormComponent implements CanComponentDeactivate {
     private lookupService: LookupService,
     private toast: ToastService,
     private router: Router,
+    private route: ActivatedRoute,
   ) {
-    this.billingService.getCustomers(true).subscribe({
-      next: (c) => this.customers.set(c),
-      error: () => this.toast.error('Failed to load customers'),
-    });
-    this.lookupService.getCities().subscribe({
-      next: (c) => this.cities.set(c),
-      error: () => this.toast.error('Failed to load cities'),
-    });
-    this.lookupService.getStatusCodes('Shipment').subscribe({
-      next: (s) => this.statusOptions.set(s),
-      error: () => this.toast.error('Failed to load status options'),
-    });
-    this.lookupService.getUnitsOfMeasure().subscribe({
-      next: (u) => this.unitsOfMeasure.set(u),
-      error: () => this.toast.error('Failed to load units of measure'),
+    const pageTitleService = inject(PageTitleService);
+    effect(() => pageTitleService.setTitle(this.isEditMode() ? 'Edit Shipment' : 'Add Shipment'));
+    inject(DestroyRef).onDestroy(() => pageTitleService.setTitle(null));
+
+    this.billingService.getCustomers(true).subscribe((c) => this.customers.set(c));
+    this.lookupService.getCities().subscribe((c) => this.cities.set(c));
+    this.lookupService.getStatusCodes('Shipment').subscribe((s) => this.statusOptions.set(s));
+    this.lookupService.getUnitsOfMeasure().subscribe((u) => this.unitsOfMeasure.set(u));
+
+    const idParam = this.route.snapshot.paramMap.get('id');
+
+    // New shipments default to To Be Billed - the only type Generate Invoice picks up.
+    this.lookupService.getStatusCodes('FreightPaymentType').subscribe((types) => {
+      this.freightPaymentTypes.set(types);
+      const freightControl = this.form.controls.freightPaymentTypeId;
+      if (!idParam && freightControl.value === null) {
+        freightControl.setValue(types.find((t) => t.code === 'TOBEBILLED')?.id ?? null);
+      }
     });
 
-    this.addItem();
+    if (idParam) {
+      const id = Number(idParam);
+      this.shipmentId.set(id);
+      this.loading.set(true);
+      this.opsService.getShipmentById(id).subscribe({
+        next: (shipment) => {
+          this.form.patchValue({
+            customerId: shipment.customerId,
+            originCityId: shipment.originCityId,
+            destinationCityId: shipment.destinationCityId,
+            statusId: shipment.statusId,
+            shipmentDate: shipment.shipmentDate,
+            freightPaymentTypeId: shipment.freightPaymentTypeId,
+          });
+          this.loadedParties = {
+            consignorCustomerId: shipment.consignorCustomerId,
+            consignorName: shipment.consignorName,
+            consignorAddress: shipment.consignorAddress,
+            consignorPhone: shipment.consignorPhone,
+            consigneeCustomerId: shipment.consigneeCustomerId,
+            consigneeName: shipment.consigneeName,
+            consigneeAddress: shipment.consigneeAddress,
+            consigneePhone: shipment.consigneePhone,
+          };
+          this.existingItems.set(shipment.items);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
+    } else {
+      this.addItem();
+    }
   }
 
   private today(): string {
-    return new Date().toISOString().split('T')[0];
+    return toLocalIsoDate();
   }
 
   addItem(): void {
@@ -100,6 +154,7 @@ export class ShipmentFormComponent implements CanComponentDeactivate {
         quantity: new FormControl<number | null>(1, { validators: [Validators.required, Validators.min(0.01)] }),
         unitOfMeasureId: new FormControl<number | null>(null, { validators: [Validators.required] }),
         weightKg: new FormControl<number | null>(null),
+        volumeCbm: new FormControl<number | null>(null),
       }),
     );
   }
@@ -116,42 +171,58 @@ export class ShipmentFormComponent implements CanComponentDeactivate {
 
   save(): void {
     this.form.markAllAsTouched();
-    this.items.markAllAsTouched();
 
-    if (this.form.invalid || this.items.invalid) {
+    const id = this.shipmentId();
+    if (!id) {
+      this.items.markAllAsTouched();
+    }
+
+    if (this.form.invalid || (!id && this.items.invalid) || (id && !this.loadedParties)) {
       return;
     }
 
     const value = this.form.getRawValue();
     this.saving.set(true);
 
-    this.opsService
-      .createShipment({
-        customerId: value.customerId!,
-        originCityId: value.originCityId!,
-        destinationCityId: value.destinationCityId!,
-        statusId: value.statusId!,
-        shipmentDate: value.shipmentDate,
-        items: this.items.controls.map((group) => {
-          const item = group.getRawValue();
-          return {
-            description: item.description,
-            quantity: item.quantity!,
-            unitOfMeasureId: item.unitOfMeasureId!,
-            weightKg: item.weightKg ?? undefined,
-          };
-        }),
-      })
-      .subscribe({
-        next: () => {
-          this.submitted = true;
-          this.toast.success('Shipment created successfully');
-          this.router.navigate(['/ops/shipments']);
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.toast.error(err?.error?.message || 'Failed to create shipment');
-        },
-      });
+    const save$: Observable<unknown> = id
+      ? this.opsService.updateShipment({
+          shipmentId: id,
+          customerId: value.customerId!,
+          originCityId: value.originCityId!,
+          destinationCityId: value.destinationCityId!,
+          statusId: value.statusId!,
+          shipmentDate: value.shipmentDate,
+          freightPaymentTypeId: value.freightPaymentTypeId!,
+          ...this.loadedParties!,
+        })
+      : this.opsService.createShipment({
+          customerId: value.customerId!,
+          originCityId: value.originCityId!,
+          destinationCityId: value.destinationCityId!,
+          statusId: value.statusId!,
+          shipmentDate: value.shipmentDate,
+          freightPaymentTypeId: value.freightPaymentTypeId!,
+          items: this.items.controls.map((group) => {
+            const item = group.getRawValue();
+            return {
+              description: item.description,
+              quantity: item.quantity!,
+              unitOfMeasureId: item.unitOfMeasureId!,
+              weightKg: item.weightKg ?? undefined,
+              volumeCbm: item.volumeCbm ?? undefined,
+            };
+          }),
+        });
+
+    save$.subscribe({
+      next: () => {
+        this.submitted = true;
+        this.toast.success(id ? 'Shipment updated successfully' : 'Shipment created successfully');
+        this.router.navigate(['/ops/shipments']);
+      },
+      // errorInterceptor already surfaces the failure as a toast - this
+      // only needs to re-enable the form so the user can retry.
+      error: () => this.saving.set(false),
+    });
   }
 }

@@ -34,6 +34,12 @@ export class ThemeService {
 
   private readStoredMode(): ThemeMode {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored === 'light' || stored === 'dark' ? stored : 'system';
+    // Defaults to 'light', not 'system' - the app was auto-following the
+    // OS/browser's dark-mode preference for anyone who'd never touched the
+    // toggle, which reads as "randomly going dark" to a user who never
+    // asked for dark mode. Explicitly picking 'dark' via the toggle still
+    // works and still persists (see setMode below); this only changes what
+    // happens before that first explicit choice.
+    return stored === 'light' || stored === 'dark' ? stored : 'light';
   }
 }

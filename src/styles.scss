@@ -88,24 +88,40 @@ a {
   outline-offset: 2px;
 }
 
-// Shared list-page header (title + primary action) - used identically
-// across Vehicles/Trips/Invoices/Customers rather than duplicated per page.
+// Shared list-page action-button row. Used to also carry an <h1> title
+// (hence "page-header" and the space-between layout that title implied),
+// but every page's own title was a duplicate of the topbar's breadcrumb -
+// see PageTitleService - so the title moved there and this is now purely
+// the row of buttons (Add X, Back, etc.).
+//
+// A right-aligned button with nothing else in the row reads as a mistake -
+// "why is the rest of this bar empty" - regardless of how the alignment
+// itself is done, since the blank space is the page canvas showing through,
+// not something CSS alignment can fill. Giving the row its own bordered
+// card (matching the visual language data-table__toolbar already
+// established) turns it into a clearly intentional toolbar instead of
+// stray content floating in empty space.
 .page-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: var(--tc-space-2);
+  min-height: 24px;
   margin-bottom: var(--tc-space-4);
+  padding: var(--tc-space-3) var(--tc-space-4);
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-md);
 
-  h1 {
-    font-size: var(--tc-font-size-2xl);
-    margin: 0;
+  &:empty {
+    display: none;
   }
 }
 
 .page-header__subtitle {
   font-size: var(--tc-font-size-sm);
   color: var(--tc-text-secondary);
-  margin: var(--tc-space-1) 0 0;
+  margin: 0 0 var(--tc-space-4);
 }
 
 // Shared reactive-form layout - used by every create/edit form page.

@@ -1,35 +1,36 @@
 <div class="page-header">
-  <h1>Trips</h1>
-  <a mat-flat-button color="primary" routerLink="new">
+  <mat-form-field appearance="outline" class="trips-list__filter" subscriptSizing="dynamic">
+    <mat-label>Status</mat-label>
+    <mat-select
+      [value]="statusFilter()"
+      (selectionChange)="onStatusFilterChange($event.value)"
+    >
+      <mat-option [value]="null">All statuses</mat-option>
+      @for (status of statusOptions(); track status.id) {
+        <mat-option [value]="status.id">{{ status.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <a mat-flat-button color="primary" routerLink="new" class="trips-list__add">
     <mat-icon>add</mat-icon>
     Schedule Trip
   </a>
 </div>
 
-<mat-form-field appearance="outline" class="trips-list__filter" subscriptSizing="dynamic">
-  <mat-label>Status</mat-label>
-  <mat-select
-    [value]="statusFilter()"
-    (selectionChange)="onStatusFilterChange($event.value)"
-  >
-    <mat-option [value]="null">All statuses</mat-option>
-    @for (status of statusOptions(); track status.id) {
-      <mat-option [value]="status.id">{{ status.name }}</mat-option>
-    }
-  </mat-select>
-</mat-form-field>
-
 <app-data-table
   [columns]="columns()"
-  [rows]="rows()"
-  [totalCount]="totalCount()"
-  [loading]="loading()"
-  [pageIndex]="pageIndex()"
-  [pageSize]="pageSize()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
   [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  filterPlaceholder="Search this page..."
   emptyTitle="No trips found"
   emptyDescription="Schedule a trip to see it listed here."
-  (pageChange)="onPage($event)"
-  (sortChange)="onSort($event)"
+  (pageChange)="list.onPage($event)"
+  (filterChange)="list.onFilter($event)"
   (rowClick)="openTrip($event)"
 ></app-data-table>

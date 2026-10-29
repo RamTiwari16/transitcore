@@ -2,8 +2,11 @@ export const environment = {
     // Was `false` in the reference app - almost certainly a bug, since this
     // is the file the "production" build configuration swaps in.
     production: true,
-    // Placeholder - set the real production API host before deploying.
-    apiUrl: 'https://api.transitcore.example.com',
+    // Empty, not an absolute host - the standalone exe serves the Angular
+    // build and the API from the same Kestrel process/port, so a relative
+    // path resolves correctly on its own. A split deployment (Angular and
+    // API on separate hosts) would need a real absolute URL here instead.
+    apiUrl: '',
     appName: "TransitCore",
     secretKey: "MDaL5DKcnCwbtdbDm/Rtsy9jNJjWppfOXUUBnCHfmXNUyT58cQ6Z9kQEOCM5QXRo",
     msalConfig: {

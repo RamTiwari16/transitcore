@@ -5,6 +5,17 @@
         <span class="data-table__selection-count">{{ selectedCount() }} selected</span>
         <ng-content select="[toolbarActions]"></ng-content>
         <button mat-button (click)="clearSelection()">Clear</button>
+      } @else {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="data-table__filter">
+          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+          <input
+            matInput
+            [value]="filterValue()"
+            (input)="onFilterInput($event)"
+            [placeholder]="filterPlaceholder()"
+            [attr.aria-label]="filterPlaceholder()"
+          />
+        </mat-form-field>
       }
     </div>
     <div class="data-table__toolbar-right">

@@ -42,3 +42,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Claude Code tooling (skills, agent config) - not app source
+.claude/
+.agents/
+skills-lock.json

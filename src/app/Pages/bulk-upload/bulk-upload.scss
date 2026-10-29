@@ -1,25 +1,45 @@
+// Single shared width for the card AND the preview table below it - they
+// were previously misaligned (card capped at 40rem, table stretching to
+// 100% of the page), so the page visibly jogged sideways between the two.
+.bulk-upload__container {
+  max-width: 42rem;
+}
+
 .bulk-upload__subtitle {
   color: var(--tc-text-secondary);
-  margin: calc(-1 * var(--tc-space-3)) 0 var(--tc-space-4);
+  margin: 0 0 var(--tc-space-5);
 }
 
 .bulk-upload__card {
   background: var(--tc-surface-raised);
   border: 1px solid var(--tc-border);
   border-radius: var(--tc-radius-lg);
+  box-shadow: var(--tc-shadow-sm);
   padding: var(--tc-space-6);
-  max-width: 40rem;
 }
 
 .bulk-upload__dropzone {
   border: 2px dashed var(--tc-border-strong);
   border-radius: var(--tc-radius-md);
-  padding: var(--tc-space-8) var(--tc-space-4);
+  padding: var(--tc-space-10) var(--tc-space-4);
   text-align: center;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 
+  &:hover {
+    border-color: var(--tc-color-primary);
+    background: var(--tc-surface-sunken);
+  }
+
   &.bulk-upload__dropzone--active {
     border-color: var(--tc-color-primary);
+    background: var(--tc-color-success-surface);
+  }
+
+  &.bulk-upload__dropzone--has-file {
+    padding: var(--tc-space-5) var(--tc-space-4);
+    text-align: left;
+    border-style: solid;
+    border-color: var(--tc-color-success);
     background: var(--tc-color-success-surface);
   }
 }
@@ -32,15 +52,23 @@
   color: var(--tc-text-secondary);
 
   mat-icon {
-    font-size: 40px;
-    width: 40px;
-    height: 40px;
-    color: var(--tc-text-tertiary);
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--tc-color-primary);
     margin-bottom: var(--tc-space-2);
+  }
+
+  p {
+    margin: 0;
+    font-weight: var(--tc-font-weight-medium);
+    color: var(--tc-text-primary);
   }
 }
 
 .bulk-upload__hint {
+  font-weight: var(--tc-font-weight-regular) !important;
+  color: var(--tc-text-tertiary) !important;
   font-size: var(--tc-font-size-xs);
 }
 
@@ -57,6 +85,14 @@
   align-items: center;
   gap: var(--tc-space-3);
   text-align: left;
+
+  > mat-icon {
+    flex-shrink: 0;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: var(--tc-color-success);
+  }
 }
 
 .bulk-upload__file-info {
@@ -88,6 +124,7 @@
   margin: var(--tc-space-4) 0 0;
 
   mat-icon {
+    flex-shrink: 0;
     font-size: 20px;
     width: 20px;
     height: 20px;
@@ -111,10 +148,32 @@
   margin-top: var(--tc-space-5);
 }
 
+// Restyled from bare tertiary text into a small callout, matching the
+// visual family of the error/success alerts above rather than trailing off
+// as an easy-to-miss caption underneath the buttons.
 .bulk-upload__format {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-2);
   font-size: var(--tc-font-size-xs);
-  color: var(--tc-text-tertiary);
-  margin: var(--tc-space-4) 0 0;
+  color: var(--tc-text-secondary);
+  background: var(--tc-surface-sunken);
+  border-radius: var(--tc-radius-md);
+  padding: var(--tc-space-2) var(--tc-space-3);
+  margin: var(--tc-space-5) 0 0;
+
+  mat-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--tc-text-tertiary);
+  }
+
+  strong {
+    color: var(--tc-text-primary);
+    font-weight: var(--tc-font-weight-medium);
+  }
 }
 
 .bulk-upload__preview {
@@ -125,6 +184,7 @@
     align-items: center;
     gap: var(--tc-space-2);
     font-size: var(--tc-font-size-lg);
+    margin: 0 0 var(--tc-space-3);
   }
 }
 
@@ -139,6 +199,7 @@
   background: var(--tc-surface-raised);
   border: 1px solid var(--tc-border);
   border-radius: var(--tc-radius-lg);
+  box-shadow: var(--tc-shadow-sm);
   overflow: hidden;
 }
 

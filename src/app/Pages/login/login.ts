@@ -6,7 +6,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth-service';
-import { CryptoUtil } from '../../services/crypto.util';
 import { ToastService } from '../../core/services/toast.service';
 
 interface LoginFormModel {
@@ -65,12 +64,11 @@ export class Login {
     const { email, password } = this.form.getRawValue();
 
     this.authService.login({ email, password }).subscribe({
-      next: (res) => {
+      next: () => {
+        // AuthService.login() already persisted the encrypted session as a
+        // side effect (see its own tap()) - this is the only place that
+        // needs to happen, so nothing further to store here.
         this.isLoading.set(false);
-        localStorage.setItem('authToken', res.data.accessToken);
-
-        const encryptedUser = CryptoUtil.encryptData(res.data);
-        localStorage.setItem('userData', encryptedUser);
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {

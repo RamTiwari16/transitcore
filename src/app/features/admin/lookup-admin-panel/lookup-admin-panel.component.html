@@ -1,0 +1,86 @@
+<div class="lookup-admin-panel">
+  @if (!loading() && rows().length > 0) {
+    <ul class="lookup-admin-panel__list">
+      @for (row of rows(); track row.id) {
+        <li>
+          <div class="lookup-admin-panel__list-main">
+            <span class="lookup-admin-panel__list-title">
+              {{ row.name }}
+              @if (row.code) {
+                <span class="lookup-admin-panel__list-meta">({{ row.code }})</span>
+              }
+              @if (hasActiveToggle() && !row.isActive) {
+                <span class="lookup-admin-panel__list-meta">(inactive)</span>
+              }
+            </span>
+            @if (row.parentName) {
+              <span class="lookup-admin-panel__list-meta">{{ row.parentName }}</span>
+            }
+          </div>
+          <div class="lookup-admin-panel__list-actions">
+            <button mat-icon-button (click)="startEdit(row)" matTooltip="Edit" [attr.aria-label]="'Edit ' + row.name">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="deleteRow.emit(row)"
+              matTooltip="Remove"
+              [attr.aria-label]="'Remove ' + row.name"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else if (!loading()) {
+    <app-empty-state [title]="'No ' + entityLabel() + ' records yet'" icon="tune"></app-empty-state>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="lookup-admin-panel__inline-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required />
+      @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+        <mat-error>Name is required</mat-error>
+      }
+    </mat-form-field>
+
+    @if (hasCode()) {
+      <mat-form-field appearance="outline">
+        <mat-label>{{ codeLabel() }}</mat-label>
+        <input matInput formControlName="code" required [maxlength]="codeMaxLength()" />
+        @if (form.controls.code.hasError('required') && form.controls.code.touched) {
+          <mat-error>{{ codeLabel() }} is required</mat-error>
+        } @else if (form.controls.code.hasError('maxlength')) {
+          <mat-error>{{ codeLabel() }} can be at most {{ codeMaxLength() }} characters</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (parentLabel(); as label) {
+      <mat-form-field appearance="outline">
+        <mat-label>{{ label }}</mat-label>
+        <mat-select formControlName="parentId">
+          @for (opt of parentOptions(); track opt.id) {
+            <mat-option [value]="opt.id">{{ opt.name }}</mat-option>
+          }
+        </mat-select>
+        @if (form.controls.parentId.hasError('required') && form.controls.parentId.touched) {
+          <mat-error>{{ label }} is required</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (hasActiveToggle() && editingId() !== null) {
+      <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
+    }
+
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+      {{ editingId() !== null ? 'Save Changes' : 'Add ' + entityLabel() }}
+    </button>
+    @if (editingId() !== null) {
+      <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+    }
+  </form>
+</div>

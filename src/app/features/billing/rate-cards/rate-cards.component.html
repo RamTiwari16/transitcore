@@ -1,0 +1,151 @@
+<div class="rate-cards__panel">
+  <h2 class="rate-cards__section-title">Existing Rate Cards</h2>
+
+  @if (!loading() && rateCards().length > 0) {
+    <ul class="rate-cards__list">
+      @for (card of rateCards(); track card.id) {
+        <li>
+          <div class="rate-cards__list-main">
+            <span class="rate-cards__list-title">
+              {{ card.customerName || 'Any Customer' }}
+              -
+              {{ card.originCityName || 'Any Origin' }} → {{ card.destinationCityName || 'Any Destination' }}
+            </span>
+            <span class="rate-cards__list-meta">
+              {{ card.basis }} - {{ activeRateLabel(card) }}
+              - Effective {{ card.effectiveFrom | date: 'dd MMM yyyy' }}
+              @if (card.effectiveTo) { to {{ card.effectiveTo | date: 'dd MMM yyyy' }} }
+            </span>
+            @if (card.loadingRatePerEvent || card.unloadingRatePerEvent || card.detentionRatePerHour || card.haltingRatePerDay) {
+              <span class="rate-cards__list-meta">
+                Extras:
+                @if (card.loadingRatePerEvent) { Loading {{ card.loadingRatePerEvent | inr }} }
+                @if (card.unloadingRatePerEvent) { · Unloading {{ card.unloadingRatePerEvent | inr }} }
+                @if (card.detentionRatePerHour) { · Detention {{ card.detentionRatePerHour | inr }}/hr after {{ card.detentionFreeHours ?? 0 }}h free }
+                @if (card.haltingRatePerDay) { · Halting {{ card.haltingRatePerDay | inr }}/day }
+              </span>
+            }
+          </div>
+          <button mat-icon-button (click)="removeRateCard(card)" matTooltip="Remove rate card" aria-label="Remove rate card">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else if (!loading()) {
+    <app-empty-state title="No rate cards yet" description="Add a rate card to enable invoice generation from shipments." icon="price_change"></app-empty-state>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="addRateCard()" class="rate-cards__inline-form">
+    <h2 class="rate-cards__section-title rate-cards__section-title--form">Add Rate Card</h2>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Customer</mat-label>
+      <mat-select formControlName="customerId">
+        <mat-option [value]="null">Any Customer</mat-option>
+        @for (customer of customers(); track customer.id) {
+          <mat-option [value]="customer.id">{{ customer.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Origin City</mat-label>
+      <mat-select formControlName="originCityId">
+        <mat-option [value]="null">Any Origin</mat-option>
+        @for (city of cities(); track city.id) {
+          <mat-option [value]="city.id">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Destination City</mat-label>
+      <mat-select formControlName="destinationCityId">
+        <mat-option [value]="null">Any Destination</mat-option>
+        @for (city of cities(); track city.id) {
+          <mat-option [value]="city.id">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Basis</mat-label>
+      <mat-select formControlName="basis" required>
+        @for (basis of bases; track basis) {
+          <mat-option [value]="basis">{{ basis }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @switch (form.controls.basis.value) {
+      @case ('PerTrip') {
+        <mat-form-field appearance="outline">
+          <mat-label>Rate per Trip</mat-label>
+          <input matInput type="number" formControlName="ratePerTrip" required />
+        </mat-form-field>
+      }
+      @case ('PerTon') {
+        <mat-form-field appearance="outline">
+          <mat-label>Rate per Ton</mat-label>
+          <input matInput type="number" formControlName="ratePerTon" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum Chargeable Weight (kg)</mat-label>
+          <input matInput type="number" formControlName="minimumChargeableWeightKg" />
+        </mat-form-field>
+      }
+      @case ('PerPackage') {
+        <mat-form-field appearance="outline">
+          <mat-label>Rate per Package</mat-label>
+          <input matInput type="number" formControlName="ratePerPackage" required />
+        </mat-form-field>
+      }
+      @default {
+        <mat-form-field appearance="outline">
+          <mat-label>Rate per Km</mat-label>
+          <input matInput type="number" formControlName="ratePerKm" required />
+        </mat-form-field>
+      }
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Effective From</mat-label>
+      <input matInput type="date" formControlName="effectiveFrom" required />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Effective To</mat-label>
+      <input matInput type="date" formControlName="effectiveTo" />
+    </mat-form-field>
+
+    <h3 class="rate-cards__section-title rate-cards__section-title--form">Extra Charges (optional)</h3>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Loading Rate / Event</mat-label>
+      <input matInput type="number" formControlName="loadingRatePerEvent" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Unloading Rate / Event</mat-label>
+      <input matInput type="number" formControlName="unloadingRatePerEvent" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Detention Free Hours</mat-label>
+      <input matInput type="number" formControlName="detentionFreeHours" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Detention Rate / Hour</mat-label>
+      <input matInput type="number" formControlName="detentionRatePerHour" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Halting Rate / Day</mat-label>
+      <input matInput type="number" formControlName="haltingRatePerDay" />
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">Add Rate Card</button>
+  </form>
+</div>

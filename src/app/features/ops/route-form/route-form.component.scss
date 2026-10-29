@@ -1,2 +1,69 @@
 // Layout uses the shared .page-header/.form-card/.form-grid/.form-actions
 // utilities from styles.scss.
+
+.route-form__stops-card {
+  margin-top: var(--tc-space-6);
+}
+
+.route-form__stops-list {
+  list-style: none;
+  margin: var(--tc-space-4) 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tc-space-3);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--tc-space-3);
+    padding-bottom: var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.route-form__stop-order {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--tc-radius-full);
+  background: var(--tc-surface-sunken);
+  font-size: var(--tc-font-size-xs);
+  font-weight: var(--tc-font-weight-semibold);
+}
+
+.route-form__stop-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.route-form__stop-city {
+  font-weight: var(--tc-font-weight-medium);
+}
+
+.route-form__stop-meta {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
+}
+
+.route-form__stop-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tc-space-3);
+  padding-top: var(--tc-space-4);
+  border-top: 1px solid var(--tc-border);
+
+  mat-form-field {
+    width: 14rem;
+  }
+}

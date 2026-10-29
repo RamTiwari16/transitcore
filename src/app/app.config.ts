@@ -20,6 +20,7 @@ import { provideToastr } from 'ngx-toastr';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
+import { errorInterceptor } from './core/interceptors/error-interceptor';
 import { loadingInterceptor } from './core/interceptors/loading-interceptor';
 import { GlobalErrorHandler } from './core/services/global-error-handler';
 
@@ -35,6 +36,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([
         authInterceptor,
+        errorInterceptor,
         loadingInterceptor
       ])
     ),

@@ -1,31 +1,33 @@
 <div class="page-header">
-  <h1>Customers</h1>
   <button mat-flat-button color="primary" (click)="openAddCustomerDialog()">
     <mat-icon>add</mat-icon>
     Add Customer
   </button>
 </div>
 
-@if (!loading() && customers().length > 0) {
-  <table mat-table [dataSource]="customers()" class="billing-table">
-    <ng-container matColumnDef="code">
-      <th mat-header-cell *matHeaderCellDef>Code</th>
-      <td mat-cell *matCellDef="let row">{{ row.code }}</td>
-    </ng-container>
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef>Name</th>
-      <td mat-cell *matCellDef="let row">{{ row.name }}</td>
-    </ng-container>
-    <ng-container matColumnDef="isActive">
-      <th mat-header-cell *matHeaderCellDef>Status</th>
-      <td mat-cell *matCellDef="let row">{{ row.isActive ? 'Active' : 'Inactive' }}</td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-} @else if (!loading()) {
-  <app-empty-state title="No customers yet" icon="groups">
-    <button mat-flat-button color="primary" (click)="openAddCustomerDialog()">Add your first customer</button>
-  </app-empty-state>
-}
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  emptyTitle="No customers yet"
+  emptyDescription="Add your first customer to start billing them."
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+>
+  <ng-template #rowActions let-row>
+    <button
+      mat-icon-button
+      (click)="openEditCustomerDialog(row)"
+      matTooltip="Edit customer"
+      aria-label="Edit customer"
+    >
+      <mat-icon>edit</mat-icon>
+    </button>
+  </ng-template>
+</app-data-table>

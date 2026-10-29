@@ -1,23 +1,35 @@
 <div class="page-header">
-  <h1>Invoices</h1>
-  <a mat-flat-button color="primary" routerLink="new">
-    <mat-icon>add</mat-icon>
-    Add Invoice
-  </a>
+  <div>
+    <a mat-button routerLink="aging-report">
+      <mat-icon>schedule</mat-icon>
+      Aging Report
+    </a>
+    <a mat-button routerLink="generate">
+      <mat-icon>auto_awesome</mat-icon>
+      Generate from Shipments
+    </a>
+    <a mat-flat-button color="primary" routerLink="new">
+      <mat-icon>add</mat-icon>
+      Add Invoice
+    </a>
+  </div>
 </div>
 
 <app-data-table
   [columns]="columns()"
-  [rows]="rows()"
-  [totalCount]="totalCount()"
-  [loading]="loading()"
-  [pageIndex]="pageIndex()"
-  [pageSize]="pageSize()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
   [rowId]="rowId"
+  [filterValue]="list.filterText()"
   emptyTitle="No invoices yet"
   emptyDescription="Add your first invoice to start billing customers."
-  (pageChange)="onPage($event)"
-  (sortChange)="onSort($event)"
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+  (rowClick)="openInvoice($event)"
 >
   <ng-template #rowActions let-row>
     <button

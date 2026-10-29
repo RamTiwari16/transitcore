@@ -1,32 +1,23 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { PageEvent } from '@angular/material/paginator';
-import { Sort } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FleetService } from '../../../services/fleet.service';
-import { ToastService } from '../../../core/services/toast.service';
 import { DriverModel } from '../../../models/fleet.models';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
+import { createClientPagedListState } from '../../../shared/util/client-paged-list-state';
 
 @Component({
   selector: 'app-drivers-list',
-  imports: [RouterLink, MatButtonModule, MatIconModule, DataTableComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, DataTableComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './drivers-list.component.html',
   styleUrl: './drivers-list.component.scss',
 })
 export class DriversListComponent {
-  private readonly allDrivers = signal<DriverModel[]>([]);
-  readonly loading = signal(true);
-  readonly pageIndex = signal(0);
-  readonly pageSize = signal(10);
-
-  readonly totalCount = computed(() => this.allDrivers().length);
-  readonly rows = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    return this.allDrivers().slice(start, start + this.pageSize());
-  });
+  private readonly fleetService = inject(FleetService);
+  private readonly router = inject(Router);
 
   readonly columns = computed<DataTableColumn<DriverModel>[]>(() => [
     { key: 'fullName', label: 'Name', sortable: true, cell: (row) => row.fullName },
@@ -36,33 +27,20 @@ export class DriversListComponent {
     { key: 'statusName', label: 'Status', cell: (row) => row.statusName },
   ]);
 
-  constructor(
-    private fleetService: FleetService,
-    private toast: ToastService,
-  ) {
-    this.fleetService.getDrivers().subscribe({
-      next: (drivers) => {
-        this.allDrivers.set(drivers);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.loading.set(false);
-        this.toast.error('Failed to load drivers');
-      },
-    });
-  }
+  // getDrivers() returns the whole list (backend doesn't paginate it) - see
+  // client-paged-list-state.ts for why that makes full client-side
+  // paging/sort/filter the right fit here, not a lesser substitute.
+  readonly list = createClientPagedListState<DriverModel>(() => this.fleetService.getDrivers());
 
-  onPage(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
-  }
-
-  onSort(_sort: Sort): void {
-    // Client-side pagination only for now - see onSort comment on
-    // VehiclesListComponent for the server-side-sort follow-up note.
+  constructor() {
+    this.list.load();
   }
 
   rowId = (row: DriverModel): number => row.id;
+
+  openDriver(row: DriverModel): void {
+    this.router.navigate(['/fleet/drivers', row.id]);
+  }
 
   private formatDate(value: string | null): string {
     if (!value) return '-';

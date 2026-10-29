@@ -4,10 +4,22 @@ import { Layout } from './shared/layout/layout';
 import { VehicleOrder } from './Pages/vehicle-order/vehicle-order';
 import { BulkUpload } from './Pages/bulk-upload/bulk-upload';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
     { path: '', redirectTo: 'login', pathMatch: 'full' },
     { path: 'login', component: Login },
+    // Public, unauthenticated shipment tracking - deliberately outside the
+    // authGuard'd Layout tree below, backed by the equally public
+    // /api/v1/public/track endpoint (see PublicController on the backend).
+    {
+        path: 'track',
+        loadComponent: () => import('./Pages/track/track.component').then((m) => m.TrackComponent),
+    },
+    {
+        path: 'track/:trackingNo',
+        loadComponent: () => import('./Pages/track/track.component').then((m) => m.TrackComponent),
+    },
     {
         path: '',
         component: Layout,
@@ -30,6 +42,25 @@ export const routes: Routes = [
             {
                 path: 'billing',
                 loadChildren: () => import('./features/billing/billing.routes').then((m) => m.BILLING_ROUTES),
+            },
+            {
+                path: 'vendors',
+                loadChildren: () => import('./features/vendors/vendors.routes').then((m) => m.VENDORS_ROUTES),
+            },
+            {
+                path: 'claims',
+                loadChildren: () => import('./features/claims/claims.routes').then((m) => m.CLAIMS_ROUTES),
+            },
+            {
+                path: 'reports',
+                loadComponent: () =>
+                    import('./features/reports/reports.component').then((m) => m.ReportsComponent),
+                canActivate: [roleGuard(['Admin', 'Manager'])],
+            },
+            {
+                path: 'admin',
+                loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+                canActivate: [roleGuard(['Admin'])],
             },
             { path: 'vehicle-order', component: VehicleOrder },
             { path: 'bulk-upload', component: BulkUpload },

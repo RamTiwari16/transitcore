@@ -12,6 +12,11 @@ export const OPS_ROUTES: Routes = [
     canDeactivate: [unsavedChangesGuard],
   },
   {
+    path: 'trips/:id/edit',
+    loadComponent: () => import('./trip-form/trip-form.component').then((m) => m.TripFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
     path: 'trips/:id',
     loadComponent: () => import('./trip-detail/trip-detail.component').then((m) => m.TripDetailComponent),
   },
@@ -25,6 +30,11 @@ export const OPS_ROUTES: Routes = [
     canDeactivate: [unsavedChangesGuard],
   },
   {
+    path: 'routes/:id/edit',
+    loadComponent: () => import('./route-form/route-form.component').then((m) => m.RouteFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
     path: 'shipments',
     loadComponent: () =>
       import('./shipments-list/shipments-list.component').then((m) => m.ShipmentsListComponent),
@@ -34,5 +44,16 @@ export const OPS_ROUTES: Routes = [
     loadComponent: () =>
       import('./shipment-form/shipment-form.component').then((m) => m.ShipmentFormComponent),
     canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'shipments/:id/edit',
+    loadComponent: () =>
+      import('./shipment-form/shipment-form.component').then((m) => m.ShipmentFormComponent),
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'shipments/:id',
+    loadComponent: () =>
+      import('./shipment-detail/shipment-detail.component').then((m) => m.ShipmentDetailComponent),
   },
 ];

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { PageTitleService } from '../../../core/services/page-title.service';
 
 @Component({
   selector: 'app-not-found',
@@ -16,4 +17,13 @@ import { MatButtonModule } from '@angular/material/button';
   `,
   styleUrl: '../error-page.scss',
 })
-export class NotFoundComponent {}
+export class NotFoundComponent {
+  constructor() {
+    // Same reasoning as ForbiddenComponent - no nav item matches an
+    // arbitrary invalid URL, so the topbar would otherwise show a stale/
+    // wrong "Dashboard" instead of anything related to this page.
+    const pageTitleService = inject(PageTitleService);
+    pageTitleService.setTitle('Page Not Found');
+    inject(DestroyRef).onDestroy(() => pageTitleService.setTitle(null));
+  }
+}

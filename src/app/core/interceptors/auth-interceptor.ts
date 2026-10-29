@@ -11,12 +11,14 @@ import { catchError } from 'rxjs/operators';
 
 import { throwError } from 'rxjs';
 
+import { AuthService } from '../../services/auth-service';
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const router = inject(Router);
+  const auth = inject(AuthService);
 
-  const token =
-    localStorage.getItem('authToken');
+  const token = auth.getToken();
 
   let isRedirecting = false;
 
@@ -42,6 +44,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
         console.warn('Unauthorized');
 
+        // Clears the stored session (not just sessionStorage, which never
+        // held it - the encrypted session lives in localStorage) so a
+        // reload after a 401 doesn't still look authenticated.
+        auth.logout();
         sessionStorage.clear();
 
         if (!isRedirecting) {

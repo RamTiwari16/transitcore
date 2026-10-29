@@ -1,0 +1,104 @@
+@if (loading()) {
+  <div class="claim-detail__loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else if (claim(); as c) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/ops/shipments', c.shipmentId]">
+        <mat-icon>arrow_back</mat-icon>
+        Back to shipment {{ c.trackingNo }}
+      </a>
+      <a mat-button routerLink="/claims">All claims</a>
+    </div>
+  </div>
+
+  <div class="claim-detail__panel">
+    <dl class="claim-detail__summary">
+      <div><dt>Shipment</dt><dd>{{ c.trackingNo }}</dd></div>
+      <div><dt>Status</dt><dd>{{ c.statusName }}</dd></div>
+      <div><dt>Amount Claimed</dt><dd>{{ c.amountClaimed | inr }}</dd></div>
+      <div><dt>Raised</dt><dd>{{ formatDateTime(c.createdAt) }}</dd></div>
+      @if (c.settledAmount !== null) {
+        <div><dt>Settled Amount</dt><dd>{{ c.settledAmount | inr }}</dd></div>
+        <div><dt>Settlement Method</dt><dd>{{ c.settlementMethod }}</dd></div>
+      }
+    </dl>
+
+    <h2 class="claim-detail__section-title">Status History</h2>
+    <ul class="claim-detail__history">
+      @for (entry of c.statusHistory; track entry.id) {
+        <li>
+          <span class="claim-detail__history-status">{{ entry.statusName }}</span>
+          <span class="claim-detail__history-date">{{ formatDateTime(entry.changedAt) }}</span>
+          @if (entry.notes) {
+            <span class="claim-detail__history-notes">{{ entry.notes }}</span>
+          }
+        </li>
+      }
+    </ul>
+
+    @if (!isClosed()) {
+      <h2 class="claim-detail__section-title">Edit Claim Details</h2>
+      <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="claim-detail__inline-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Claimant Name</mat-label>
+          <input matInput formControlName="claimantName" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Claimant Phone</mat-label>
+          <input matInput formControlName="claimantPhone" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Amount Claimed</mat-label>
+          <input matInput type="number" formControlName="amountClaimed" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Notes</mat-label>
+          <input matInput formControlName="notes" />
+        </mat-form-field>
+        <button mat-flat-button type="submit" [disabled]="savingEdit()">Save</button>
+      </form>
+
+      <h2 class="claim-detail__section-title">Update Status</h2>
+      <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="claim-detail__inline-form">
+        <mat-form-field appearance="outline">
+          <mat-label>New Status</mat-label>
+          <mat-select formControlName="statusId" required>
+            @for (status of nonSettlementStatusOptions(); track status.id) {
+              <mat-option [value]="status.id">{{ status.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Notes</mat-label>
+          <input matInput formControlName="notes" />
+        </mat-form-field>
+        <button mat-flat-button type="submit" [disabled]="savingStatus()">Update Status</button>
+      </form>
+
+      <h2 class="claim-detail__section-title">Settle Claim</h2>
+      <form [formGroup]="settleForm" (ngSubmit)="settleClaim()" class="claim-detail__inline-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Settled Amount</mat-label>
+          <input matInput type="number" formControlName="settledAmount" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Settlement Method</mat-label>
+          <mat-select formControlName="settlementMethod" required>
+            @for (method of settlementMethods; track method) {
+              <mat-option [value]="method">{{ method }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Notes</mat-label>
+          <input matInput formControlName="notes" />
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="savingSettlement()">Settle Claim</button>
+      </form>
+    }
+  </div>
+} @else {
+  <p>Claim not found.</p>
+}

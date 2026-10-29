@@ -1,60 +1,70 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { BillingService } from '../../../services/billing.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { CustomerModel, CreateCustomerRequest } from '../../../models/billing.models';
-import { AddCustomerDialogComponent } from './add-customer-dialog.component';
+import { CustomerModel } from '../../../models/billing.models';
+import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
+import { createClientPagedListState } from '../../../shared/util/client-paged-list-state';
+import { AddCustomerDialogComponent, AddCustomerDialogResult } from './add-customer-dialog.component';
 
 @Component({
   selector: 'app-customers-list',
-  imports: [MatTableModule, MatButtonModule, MatIconModule, EmptyStateComponent],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule, DataTableComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './customers-list.component.html',
   styleUrl: './customers-list.component.scss',
 })
 export class CustomersListComponent {
   private readonly dialog = inject(MatDialog);
+  private readonly billingService = inject(BillingService);
+  private readonly toast = inject(ToastService);
 
-  readonly customers = signal<CustomerModel[]>([]);
-  readonly loading = signal(true);
-  readonly displayedColumns = ['code', 'name', 'isActive'];
+  readonly columns = computed<DataTableColumn<CustomerModel>[]>(() => [
+    { key: 'code', label: 'Code', sortable: true, cell: (row) => row.code },
+    { key: 'name', label: 'Name', sortable: true, cell: (row) => row.name },
+    { key: 'isActive', label: 'Status', cell: (row) => (row.isActive ? 'Active' : 'Inactive') },
+  ]);
 
-  constructor(
-    private billingService: BillingService,
-    private toast: ToastService,
-  ) {
-    this.load();
+  readonly list = createClientPagedListState<CustomerModel>(() => this.billingService.getCustomers(false));
+
+  constructor() {
+    this.list.load();
   }
 
-  private load(): void {
-    this.loading.set(true);
-    this.billingService.getCustomers(false).subscribe({
-      next: (customers) => {
-        this.customers.set(customers);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
+  rowId = (row: CustomerModel): number => row.id;
 
   openAddCustomerDialog(): void {
     this.dialog
       .open(AddCustomerDialogComponent, { width: '420px' })
       .afterClosed()
-      .subscribe((request: CreateCustomerRequest | undefined) => {
-        if (!request) return;
+      .subscribe((result: AddCustomerDialogResult | undefined) => this.handleDialogResult(result));
+  }
 
-        this.billingService.createCustomer(request).subscribe({
-          next: () => {
-            this.toast.success('Customer added successfully');
-            this.load();
-          },
-          error: (err) => this.toast.error(err?.error?.message || 'Failed to add customer'),
-        });
-      });
+  openEditCustomerDialog(customer: CustomerModel): void {
+    this.dialog
+      .open(AddCustomerDialogComponent, { width: '420px', data: { customer } })
+      .afterClosed()
+      .subscribe((result: AddCustomerDialogResult | undefined) => this.handleDialogResult(result));
+  }
+
+  private handleDialogResult(result: AddCustomerDialogResult | undefined): void {
+    if (!result) return;
+
+    const save$: Observable<unknown> =
+      result.mode === 'create'
+        ? this.billingService.createCustomer(result.request)
+        : this.billingService.updateCustomer(result.request);
+
+    save$.subscribe({
+      next: () => {
+        this.toast.success(result.mode === 'create' ? 'Customer added successfully' : 'Customer updated successfully');
+        this.list.load();
+      },
+      // errorInterceptor already toasts the failure.
+    });
   }
 }

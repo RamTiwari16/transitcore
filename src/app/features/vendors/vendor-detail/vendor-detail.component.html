@@ -1,0 +1,55 @@
+@if (!loading() && vendor(); as v) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/vendors', v.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Edit vendor
+      </a>
+      <a mat-button routerLink="/vendors">
+        <mat-icon>arrow_back</mat-icon>
+        Back to vendors
+      </a>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="vendor-detail__panel">
+        <dl class="vendor-detail__summary">
+          <div><dt>Code</dt><dd>{{ v.code }}</dd></div>
+          <div><dt>Status</dt><dd>{{ v.isActive ? 'Active' : 'Inactive' }}</dd></div>
+          <div><dt>Contact</dt><dd>{{ v.contactName ?? '-' }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ v.contactPhone ?? '-' }}</dd></div>
+          <div><dt>Email</dt><dd>{{ v.contactEmail ?? '-' }}</dd></div>
+          <div><dt>Address</dt><dd>{{ v.address ?? '-' }}</dd></div>
+          <div><dt>Bank Account</dt><dd>{{ v.bankAccountNo ?? '-' }} @if (v.bankIfscCode) { ({{ v.bankIfscCode }}) }</dd></div>
+          <div><dt>PAN / GSTIN</dt><dd>{{ v.panNo ?? '-' }} / {{ v.gstinNo ?? '-' }}</dd></div>
+          @if (outstandingBalance(); as balance) {
+            <div><dt>Outstanding Balance</dt><dd>{{ balance.outstandingBalance | inr }}</dd></div>
+          }
+        </dl>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Bills ({{ bills().length }})">
+      <div class="vendor-detail__panel">
+        @if (bills().length > 0) {
+          <ul class="vendor-detail__list">
+            @for (bill of bills(); track bill.id) {
+              <li>
+                <a [routerLink]="['/vendors/bills', bill.id]" class="vendor-detail__list-main">
+                  <span class="vendor-detail__list-title">{{ bill.billNo }} - {{ bill.amount | inr }}</span>
+                  <span class="vendor-detail__list-meta">{{ bill.statusName }} - Due {{ bill.dueDate }} - Paid {{ bill.paidAmount | inr }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No vendor bills yet" description="Vendor bills are created from a hired trip's detail page." icon="receipt_long"></app-empty-state>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (!loading()) {
+  <app-empty-state title="Vendor not found" icon="search_off"></app-empty-state>
+}

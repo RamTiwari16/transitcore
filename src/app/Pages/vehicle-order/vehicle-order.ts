@@ -6,10 +6,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { VehicleOrderRow, VehicleOrderService } from '../../services/vehicle-order-service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { toLocalIsoDate } from '../../shared/util/date';
 
 @Component({
   selector: 'app-vehicle-order',
-  imports: [MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatTableModule, MatPaginatorModule],
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    EmptyStateComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './vehicle-order.html',
   styleUrl: './vehicle-order.scss',
@@ -43,7 +53,7 @@ export class VehicleOrder {
   constructor(private service: VehicleOrderService) {}
 
   private today(): string {
-    return new Date().toISOString().split('T')[0];
+    return toLocalIsoDate();
   }
 
   search(): void {

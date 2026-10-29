@@ -1,0 +1,159 @@
+<form
+  [formGroup]="filterForm"
+  (ngSubmit)="loadShipments()"
+  class="page-header generate-invoice__filter-form"
+>
+  <mat-form-field appearance="outline">
+    <mat-label>Customer</mat-label>
+    <mat-select formControlName="customerId" required>
+      @for (customer of customers(); track customer.id) {
+        <mat-option [value]="customer.id">{{ customer.name }}</mat-option>
+      }
+    </mat-select>
+    @if (filterForm.controls.customerId.hasError('required') && filterForm.controls.customerId.touched) {
+      <mat-error>Customer is required</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="generate-invoice__date-field">
+    <mat-label>From Date</mat-label>
+    <input matInput type="date" formControlName="fromDate" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="generate-invoice__date-field">
+    <mat-label>To Date</mat-label>
+    <input matInput type="date" formControlName="toDate" required />
+  </mat-form-field>
+
+  <button mat-flat-button color="primary" type="submit" [disabled]="loadingShipments()">
+    @if (loadingShipments()) {
+      Loading...
+    } @else {
+      Load Shipments
+    }
+  </button>
+
+  <a mat-button routerLink="/billing/invoices" class="generate-invoice__back">
+    <mat-icon>arrow_back</mat-icon>
+    Back to invoices
+  </a>
+</form>
+
+@if (shipments(); as list) {
+  @if (list.length > 0) {
+    <table class="generate-invoice__table">
+      <thead>
+        <tr>
+          <th>
+            <mat-checkbox
+              [checked]="allSelected()"
+              [indeterminate]="someSelected()"
+              [disabled]="selectableShipments().length === 0"
+              (change)="toggleAll()"
+              aria-label="Select all priced shipments"
+            ></mat-checkbox>
+          </th>
+          <th>Tracking No</th>
+          <th>Route</th>
+          <th>Date</th>
+          <th class="generate-invoice__num">Weight (kg)</th>
+          <th class="generate-invoice__num">Estimated Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (shipment of list; track shipment.id) {
+          <tr>
+            <td>
+              <mat-checkbox
+                [checked]="isSelected(shipment)"
+                [disabled]="shipment.estimatedAmount === null"
+                (change)="toggle(shipment)"
+                [attr.aria-label]="'Select shipment ' + (shipment.trackingNo || '#' + shipment.id)"
+              ></mat-checkbox>
+            </td>
+            <td>{{ shipment.trackingNo || '#' + shipment.id }}</td>
+            <td>{{ shipment.originCityName }} → {{ shipment.destinationCityName }}</td>
+            <td>{{ shipment.shipmentDate | date: 'dd MMM yyyy' }}</td>
+            <td class="generate-invoice__num">{{ shipment.totalWeightKg.toLocaleString('en-IN') }}</td>
+            <td class="generate-invoice__num">
+              @if (shipment.estimatedAmount !== null) {
+                {{ shipment.estimatedAmount | inr }}
+              } @else {
+                <span class="generate-invoice__no-rate">No rate card - <a routerLink="/billing/rate-cards">add one</a></span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <form [formGroup]="invoiceForm" (ngSubmit)="generate()" class="generate-invoice__invoice-form">
+      <div class="generate-invoice__selected-summary">
+        {{ selectedShipments().length }} shipment(s) selected - Estimated Total: {{ estimatedTotal() | inr }}
+      </div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Invoice No</mat-label>
+          <input matInput formControlName="invoiceNo" required />
+          @if (invoiceForm.controls.invoiceNo.hasError('required') && invoiceForm.controls.invoiceNo.touched) {
+            <mat-error>Invoice number is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Invoice Date</mat-label>
+          <input matInput type="date" formControlName="invoiceDate" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Due Date</mat-label>
+          <input matInput type="date" formControlName="dueDate" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Discount Amount</mat-label>
+          <input matInput type="number" formControlName="discountAmount" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tax Amount</mat-label>
+          <input matInput type="number" formControlName="taxAmount" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="statusId" required>
+            @for (status of statusOptions(); track status.id) {
+              <mat-option [value]="status.id">{{ status.name }}</mat-option>
+            }
+          </mat-select>
+          @if (invoiceForm.controls.statusId.hasError('required') && invoiceForm.controls.statusId.touched) {
+            <mat-error>Status is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="generating() || selectedShipments().length === 0"
+        >
+          @if (generating()) {
+            Generating...
+          } @else {
+            Generate Invoice
+          }
+        </button>
+      </div>
+    </form>
+  } @else {
+    <app-empty-state
+      title="No uninvoiced shipments in this range"
+      description="Try a wider date range or a different customer."
+      icon="inventory_2"
+    ></app-empty-state>
+  }
+}

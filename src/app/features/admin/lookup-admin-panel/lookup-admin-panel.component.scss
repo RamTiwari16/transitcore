@@ -1,0 +1,67 @@
+.lookup-admin-panel {
+  padding: var(--tc-space-4) 0;
+}
+
+.lookup-admin-panel__list {
+  list-style: none;
+  margin: 0 0 var(--tc-space-6);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tc-space-3);
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tc-space-2);
+    padding-bottom: var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.lookup-admin-panel__list-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--tc-space-1);
+}
+
+.lookup-admin-panel__list-title {
+  font-weight: var(--tc-font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-2);
+}
+
+.lookup-admin-panel__list-meta {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
+}
+
+.lookup-admin-panel__list-actions {
+  display: flex;
+  gap: var(--tc-space-1);
+  flex-shrink: 0;
+}
+
+.lookup-admin-panel__inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tc-space-3);
+  padding-top: var(--tc-space-4);
+  border-top: 1px solid var(--tc-border);
+
+  mat-form-field {
+    width: 14rem;
+  }
+
+  button {
+    margin-top: var(--tc-space-1);
+  }
+}

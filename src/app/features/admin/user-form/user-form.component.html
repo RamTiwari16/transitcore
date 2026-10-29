@@ -1,0 +1,129 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" required />
+      @if (isEditMode()) {
+        <mat-hint>Email can't be changed once a user is created.</mat-hint>
+      }
+      @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+        <mat-error>Email is required</mat-error>
+      }
+      @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+        <mat-error>Enter a valid email</mat-error>
+      }
+    </mat-form-field>
+
+    @if (!isEditMode()) {
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" required />
+        @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+          <mat-error>Password is required</mat-error>
+        }
+        @if (form.controls.password.hasError('minlength') && form.controls.password.touched) {
+          <mat-error>Password must be at least 6 characters</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Display Name</mat-label>
+      <input matInput formControlName="displayName" required />
+      @if (form.controls.displayName.hasError('required') && form.controls.displayName.touched) {
+        <mat-error>Display name is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone No</mat-label>
+      <input matInput formControlName="phoneNo" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Employee Code</mat-label>
+      <input matInput formControlName="empCode" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Designation</mat-label>
+      <mat-select formControlName="designationId">
+        <mat-option [value]="null">-</mat-option>
+        @for (d of designations(); track d.id) {
+          <mat-option [value]="d.id">{{ d.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Working Designation</mat-label>
+      <mat-select formControlName="workingDesignationId">
+        <mat-option [value]="null">-</mat-option>
+        @for (wd of workingDesignations(); track wd.id) {
+          <mat-option [value]="wd.id">{{ wd.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Region</mat-label>
+      <mat-select formControlName="regionId">
+        <mat-option [value]="null">-</mat-option>
+        @for (r of regions(); track r.id) {
+          <mat-option [value]="r.id">{{ r.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Punch Location</mat-label>
+      <input matInput formControlName="punchLocation" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Shift</mat-label>
+      <input matInput formControlName="shift" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Company</mat-label>
+      <input matInput formControlName="company" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Branches</mat-label>
+      <mat-select formControlName="branchIds" multiple>
+        @for (b of branches(); track b.id) {
+          <mat-option [value]="b.id">{{ b.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Roles</mat-label>
+      <mat-select formControlName="roleIds" multiple required>
+        @for (role of roles(); track role.id) {
+          <mat-option [value]="role.id">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.roleIds.hasError('required') && form.controls.roleIds.touched) {
+        <mat-error>At least one role is required</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (isEditMode()) {
+    <mat-checkbox formControlName="isActive">Active</mat-checkbox>
+  }
+
+  <div class="form-actions">
+    <a mat-button routerLink="/admin/users">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save User
+      }
+    </button>
+  </div>
+</form>

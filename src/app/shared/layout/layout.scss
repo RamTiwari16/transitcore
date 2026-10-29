@@ -4,78 +4,252 @@
   height: 100vh;
 }
 
-.app-shell__sidenav {
-  width: var(--tc-sidebar-width);
-  background: var(--tc-color-primary-surface);
-  color: var(--tc-color-primary-surface-contrast);
-  border-right: 1px solid var(--tc-border);
-  transition: width 0.2s ease;
+// ---- Icon rail ----
+// Permanently narrow (unlike the old expand/collapse sidenav) - clicking a
+// group icon opens a separate flyout panel instead of the rail itself
+// growing. See layout.ts for the click-to-open/close state.
+.icon-rail {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--tc-rail-width);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  background: var(--tc-rail-bg);
+  border-right: 1px solid var(--tc-rail-border);
+  // Well above 100: Angular CDK's table StickyStyler sets an *inline*
+  // z-index of up to 100 (top) + 1 (left) + 1 (right) on sticky header
+  // cells (confirmed in @angular/cdk/table's source), and an inline style
+  // beats an external non-!important rule at any selector specificity. A
+  // page with a sticky-header data table (e.g. Invoices) was rendering that
+  // header ON TOP of this rail/flyout without a comfortable margin above it.
+  z-index: 260;
 
-  &.app-shell__sidenav--collapsed {
-    width: var(--tc-sidebar-width-collapsed);
+  // Off-canvas by default below the tablet breakpoint (driven by the same
+  // isHandset() signal the topbar hamburger toggles - see layout.ts/.html -
+  // rather than a separate CSS media query, so the two never drift apart).
+  &--handset {
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+  }
+
+  &--mobile-open {
+    transform: translateX(0);
   }
 }
 
-.app-shell__brand {
+.icon-rail__logo {
   display: flex;
   align-items: center;
-  gap: var(--tc-space-2);
-  padding: var(--tc-space-4);
+  justify-content: center;
+  width: var(--tc-rail-width);
   height: var(--tc-topbar-height);
-  color: var(--tc-color-primary-surface-contrast);
+  flex-shrink: 0;
+  color: var(--tc-text-primary);
+}
 
-  mat-icon {
-    flex-shrink: 0;
+.icon-rail__nav {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tc-space-1);
+  width: 100%;
+  padding: var(--tc-space-2) 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
-.app-shell__brand-name {
-  font-weight: var(--tc-font-weight-semibold);
-  font-size: var(--tc-font-size-lg);
-  white-space: nowrap;
+.icon-rail__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--tc-radius-md);
+  color: var(--tc-text-primary);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: color-mix(in oklch, var(--tc-text-primary) 8%, transparent);
+  }
+
+  // Matches the reference's own choice: the active/open rail icon is a
+  // solid ink pill with an inverted (light) icon, not the brand green -
+  // confirmed against their source, --az-color-primary exists but is never
+  // actually applied to this state.
+  &--active,
+  &--open {
+    background: var(--tc-text-primary);
+    color: var(--tc-surface-raised);
+  }
 }
 
-.app-shell__nav {
-  overflow-y: auto;
-  padding-bottom: var(--tc-space-4);
-}
-
-.app-shell__nav-group {
-  padding: var(--tc-space-2) 0;
-}
-
-.app-shell__nav-group-label {
-  display: block;
-  padding: 0 var(--tc-space-4);
-  font-size: var(--tc-font-size-xs);
-  font-weight: var(--tc-font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--tc-text-tertiary);
-  margin-bottom: var(--tc-space-1);
-}
-
-.app-shell__sidenav mat-nav-list {
-  --mat-list-list-item-label-text-color: var(--tc-color-primary-surface-contrast);
-  --mat-list-list-item-icon-color: var(--tc-color-primary-surface-contrast);
-  padding-top: 0;
-}
-
-.app-shell__sidenav--collapsed mat-nav-list a.mdc-list-item {
+.icon-rail__bottom {
+  flex-shrink: 0;
+  padding: var(--tc-space-3) 0 var(--tc-space-4);
+  display: flex;
   justify-content: center;
 }
 
-.app-shell__sidenav a.app-shell__nav-item--active {
-  background: color-mix(in oklch, var(--tc-color-primary) 10%, transparent);
-  --mat-list-list-item-label-text-color: var(--tc-color-primary);
-  --mat-list-list-item-icon-color: var(--tc-color-primary);
+// ---- Flyout ----
+// The reference's own .overlay-side-menu is fully transparent - purely a
+// click-catcher. Dimmed here instead: fully invisible made it ambiguous
+// whether the flyout was a real overlay or just oddly floating on top of
+// the page's own content underneath it, particularly a busy data table.
+.nav-flyout-overlay,
+.icon-rail-overlay {
+  position: fixed;
+  inset: 0;
+  // See the long comment on .icon-rail's z-index - same reasoning, this
+  // must sit above a sticky table header (up to ~102) for outside-click-to-
+  // close to actually be clickable rather than getting the click stolen by
+  // whatever sticky table content the flyout is visually covering.
+  z-index: 250;
+  background: oklch(0 0 0 / 0.24);
 }
 
-.app-shell__content {
+.nav-flyout {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: var(--tc-rail-width);
+  width: var(--tc-flyout-width);
+  background: var(--tc-surface-raised);
+  border-right: 1px solid var(--tc-divider);
+  box-shadow: var(--tc-shadow-lg);
+  z-index: 255;
   display: flex;
   flex-direction: column;
+  // Angular's @if removes the panel from the DOM on close rather than just
+  // hiding it, so there's no "before" state for a transition to animate
+  // from - a plain @keyframes animation instead, which fires automatically
+  // on mount. Close is instant (no exit animation) - a deliberate
+  // simplification rather than pulling in @angular/animations for one
+  // panel's exit transition.
+  animation: tc-flyout-in 0.22s ease;
+
+  @media (max-width: 599px) {
+    width: calc(100vw - var(--tc-rail-width));
+  }
+}
+
+@keyframes tc-flyout-in {
+  from {
+    transform: translate3d(-12px, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.nav-flyout__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--tc-space-5) var(--tc-space-4) var(--tc-space-4);
+  flex-shrink: 0;
+}
+
+.nav-flyout__title {
+  font-size: var(--tc-font-size-lg);
+  font-weight: var(--tc-font-weight-semibold);
+  color: var(--tc-text-primary);
+}
+
+.nav-flyout__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--tc-radius-full);
+  color: var(--tc-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--tc-surface-sunken);
+  }
+}
+
+.nav-flyout__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 0 var(--tc-space-3) var(--tc-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+// Sized up from the reference's literal 11px/24px-min-height - that's
+// below comfortable touch-target size, and this app targets touch as well
+// as desktop (see ui-ux-pro-max's 44x44 touch-target guidance).
+.nav-flyout__link {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-3);
+  min-height: 44px;
+  padding: var(--tc-space-2) var(--tc-space-3);
+  border-radius: var(--tc-radius-md);
+  color: var(--tc-text-primary);
+  text-decoration: none;
+  font-size: var(--tc-font-size-sm);
+  font-weight: var(--tc-font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease;
+
+  mat-icon {
+    flex-shrink: 0;
+    color: var(--tc-text-tertiary);
+  }
+
+  &:hover {
+    background: var(--tc-surface-sunken);
+  }
+
+  // The reference's own active-link treatment (#F4FAEE, a light green
+  // tint) - unlike the rail's ink pill, this one DOES lean into the brand
+  // green, so it maps onto --tc-color-success-surface/--tc-text-link
+  // instead of the neutral ink used above.
+  &--active {
+    background: var(--tc-color-success-surface);
+    color: var(--tc-text-link);
+    font-weight: var(--tc-font-weight-semibold);
+
+    mat-icon {
+      color: var(--tc-text-link);
+    }
+  }
+}
+
+// ---- Main content ----
+.app-shell__content {
+  margin-left: var(--tc-rail-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.app-shell--handset .app-shell__content {
+  margin-left: 0;
 }
 
 .app-shell__topbar {
@@ -86,23 +260,114 @@
   color: var(--tc-text-primary);
   border-bottom: 1px solid var(--tc-border);
   height: var(--tc-topbar-height);
+  // .app-shell__content is a column flex container, so this row's explicit
+  // height is only a flex-basis - by default it can still shrink. On any
+  // route whose content is taller than the viewport (e.g. Dashboard), the
+  // sibling <main> (flex: 1 1 auto but with the browser's default
+  // min-height: auto) refused to shrink below its own content's intrinsic
+  // height, so the topbar absorbed the deficit instead and quietly
+  // compressed from 64px to ~56px - snapping the whole page by that amount
+  // on every nav to/from a page tall enough to trigger it. Pinning
+  // flex-shrink to 0 keeps this chrome element a fixed size no matter what.
+  flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
+// Absolutely centered on the toolbar as a whole (not just "next in flow
+// after the hamburger button") - the standard trick for a centered title
+// flanked by flexible, unequal-width content on either side. `position:
+// sticky` on .app-shell__topbar already establishes the containing block
+// this positions against, so no extra wrapper is needed. Capped width +
+// ellipsis: a long specific title (e.g. a long invoice/customer name) must
+// not run under the search field or the icon cluster on the right.
 .app-shell__breadcrumb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: min(28rem, calc(100% - 22rem));
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: var(--tc-font-weight-semibold);
   white-space: nowrap;
+  pointer-events: none;
 }
 
-.app-shell__search {
-  width: 16rem;
+.app-shell__search-wrapper {
+  position: relative;
   margin-left: var(--tc-space-4);
 
   @include tokens.tc-tablet-down {
     display: none;
   }
+}
+
+.app-shell__search {
+  width: 16rem;
+}
+
+// Sits below the search field, anchored to .app-shell__search-wrapper's
+// `position: relative`. z-index 270 - one above .icon-rail's 260 (see the
+// long comment there) - so this reliably wins against both the CDK sticky
+// table header's inline z-index (~102) and the nav rail/flyout, the same
+// stacking-order bug that bit the flyout earlier.
+.app-shell__search-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: var(--tc-space-1);
+  max-height: 24rem;
+  overflow-y: auto;
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-md);
+  box-shadow: var(--tc-shadow-sm);
+  z-index: 270;
+}
+
+.app-shell__search-empty {
+  padding: var(--tc-space-4);
+  color: var(--tc-text-secondary);
+  font-size: var(--tc-font-size-sm);
+}
+
+.app-shell__search-group + .app-shell__search-group {
+  border-top: 1px solid var(--tc-divider);
+}
+
+.app-shell__search-group-label {
+  display: block;
+  padding: var(--tc-space-2) var(--tc-space-3) 0;
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.app-shell__search-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: var(--tc-space-2) var(--tc-space-3);
+  border: none;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: var(--tc-text-primary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--tc-surface-sunken);
+  }
+}
+
+.app-shell__search-sublabel {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
 }
 
 .app-shell__spacer {
@@ -113,6 +378,17 @@
   display: flex;
   align-items: center;
   gap: var(--tc-space-2);
+
+  // mat-button projects plain (non-icon) content into an inner
+  // .mdc-button__label span, which Material leaves as display: block - so
+  // the avatar and name spans above stacked as two block boxes instead of
+  // sitting in a row, throwing off the whole button's vertical alignment.
+  // This is the flex context that was actually missing.
+  ::ng-deep .mdc-button__label {
+    display: flex;
+    align-items: center;
+    gap: var(--tc-space-2);
+  }
 }
 
 .app-shell__avatar {
@@ -151,15 +427,30 @@
   font-size: var(--tc-font-size-sm);
 }
 
+// Absolutely positioned (out of normal flow) rather than sticky: this bar
+// mounts/unmounts on every route's HTTP request (see loading.service.ts).
+// In-flow, that toggle pushed .app-shell__main down/up by its height on
+// every tab switch - the visible "jitter" the whole layout was chasing.
+// Overlaying it instead means appearing/disappearing never shifts content.
 .app-shell__loading-bar {
-  position: sticky;
+  position: absolute;
   top: var(--tc-topbar-height);
+  left: 0;
+  right: 0;
   z-index: 9;
 }
 
 .app-shell__main {
   flex: 1 1 auto;
-  padding: var(--tc-space-6);
+  // Overrides the flex item default of min-height: auto, which sizes a flex
+  // child to fit its content's intrinsic height no matter what - the actual
+  // cause behind the topbar-squeeze bug fixed above. This lets .app-shell__main
+  // shrink to the space flexbox actually gives it and rely on its own
+  // overflow-y instead of inflating the column past the viewport.
+  min-height: 0;
+  // Extra top padding vs. the other sides: content sitting right under the
+  // fixed topbar needs more breathing room than the side/bottom edges do.
+  padding: var(--tc-space-8) var(--tc-space-6) var(--tc-space-6);
   background: var(--tc-surface-canvas);
   overflow-y: auto;
 }

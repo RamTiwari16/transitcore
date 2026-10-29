@@ -1,0 +1,28 @@
+<div class="page-header">
+  <mat-form-field appearance="outline" class="claims-list__filter" subscriptSizing="dynamic">
+    <mat-label>Status</mat-label>
+    <mat-select [value]="statusFilter()" (selectionChange)="onStatusFilterChange($event.value)">
+      <mat-option [value]="null">All statuses</mat-option>
+      @for (status of statusOptions(); track status.id) {
+        <mat-option [value]="status.id">{{ status.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  filterPlaceholder="Search this page..."
+  emptyTitle="No claims found"
+  emptyDescription="Claims are raised from a shipment's detail page."
+  (pageChange)="list.onPage($event)"
+  (filterChange)="list.onFilter($event)"
+  (rowClick)="openClaim($event)"
+></app-data-table>

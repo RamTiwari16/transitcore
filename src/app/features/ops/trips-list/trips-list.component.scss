@@ -1,4 +1,13 @@
 .trips-list__filter {
   width: 12rem;
-  margin-bottom: var(--tc-space-3);
+}
+
+// .page-header is shared (see styles.scss) and defaults every child to the
+// right edge via justify-content: flex-end - this page is the one place
+// that isn't right, with a filter that belongs at the start of the row
+// instead. auto margin on the trailing button overrides the parent's
+// alignment for just that item, pushing it to the end while the filter
+// stays put, without needing a page-header variant class.
+.trips-list__add {
+  margin-left: auto;
 }

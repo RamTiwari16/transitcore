@@ -1,5 +1,4 @@
 <div class="page-header">
-  <h1>Routes</h1>
   <a mat-flat-button color="primary" routerLink="new">
     <mat-icon>add</mat-icon>
     Add Route
@@ -8,14 +7,22 @@
 
 <app-data-table
   [columns]="columns()"
-  [rows]="rows()"
-  [totalCount]="totalCount()"
-  [loading]="loading()"
-  [pageIndex]="pageIndex()"
-  [pageSize]="pageSize()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
   [rowId]="rowId"
+  [filterValue]="list.filterText()"
   emptyTitle="No routes yet"
   emptyDescription="Add your first route to start scheduling trips."
-  (pageChange)="onPage($event)"
-  (sortChange)="onSort($event)"
-></app-data-table>
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+>
+  <ng-template #rowActions let-row>
+    <a mat-icon-button [routerLink]="[row.id, 'edit']" matTooltip="Edit route" aria-label="Edit route">
+      <mat-icon>edit</mat-icon>
+    </a>
+  </ng-template>
+</app-data-table>

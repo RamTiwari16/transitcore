@@ -1,26 +1,23 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { PageEvent } from '@angular/material/paginator';
-import { Sort } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FleetService } from '../../../services/fleet.service';
 import { VehicleModel } from '../../../models/fleet.models';
 import { DataTableColumn, DataTableComponent } from '../../../shared/components/data-table/data-table.component';
+import { createServerPagedListState } from '../../../shared/util/server-paged-list-state';
 
 @Component({
   selector: 'app-vehicles-list',
-  imports: [RouterLink, MatButtonModule, MatIconModule, DataTableComponent],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatTooltipModule, DataTableComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './vehicles-list.component.html',
   styleUrl: './vehicles-list.component.scss',
 })
 export class VehiclesListComponent {
-  readonly rows = signal<VehicleModel[]>([]);
-  readonly totalCount = signal(0);
-  readonly loading = signal(true);
-  readonly pageIndex = signal(0);
-  readonly pageSize = signal(10);
+  private readonly fleetService = inject(FleetService);
+  private readonly router = inject(Router);
 
   readonly columns = computed<DataTableColumn<VehicleModel>[]>(() => [
     { key: 'registrationNo', label: 'Registration No', sortable: true, cell: (row) => row.registrationNo },
@@ -30,33 +27,17 @@ export class VehiclesListComponent {
     { key: 'statusName', label: 'Status', cell: (row) => row.statusName },
   ]);
 
-  constructor(private fleetService: FleetService) {
-    this.load();
-  }
+  readonly list = createServerPagedListState<VehicleModel>((pageNumber, pageSize) =>
+    this.fleetService.getVehicles(pageNumber, pageSize),
+  );
 
-  private load(): void {
-    this.loading.set(true);
-    this.fleetService.getVehicles(this.pageIndex() + 1, this.pageSize()).subscribe({
-      next: (result) => {
-        this.rows.set(result.items);
-        this.totalCount.set(result.totalCount);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
-
-  onPage(event: PageEvent): void {
-    this.pageIndex.set(event.pageIndex);
-    this.pageSize.set(event.pageSize);
-    this.load();
-  }
-
-  onSort(_sort: Sort): void {
-    // Server-side sorting isn't implemented for this endpoint yet - the
-    // table still emits the event so it can be wired up without touching
-    // the template once fleet.usp_GetVehicles supports an @OrderBy param.
+  constructor() {
+    this.list.load();
   }
 
   rowId = (row: VehicleModel): number => row.id;
+
+  openVehicle(row: VehicleModel): void {
+    this.router.navigate(['/fleet/vehicles', row.id]);
+  }
 }

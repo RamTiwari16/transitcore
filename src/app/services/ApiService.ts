@@ -51,6 +51,17 @@ export class ApiService {
   }
 
   // --------------------
+  // 🔹 POST multipart/form-data (file upload)
+  // --------------------
+  postFormData<T>(url: string, formData: FormData): Observable<T> {
+    // No Content-Type header set here deliberately - the browser sets
+    // multipart/form-data with the right boundary itself when the body is a
+    // FormData; setting it manually strips the boundary and the server
+    // can't parse the parts.
+    return this.http.post<T>(`${this.apiUrl}${url}`, formData).pipe(catchError(this.handleError));
+  }
+
+  // --------------------
   // 🔹 POST for file download (Blob)
   // --------------------
   postBlob(url: string, body: any): Observable<HttpResponse<Blob>> {
