@@ -1,0 +1,168 @@
+@use '@angular/material' as mat;
+@use './styles/tokens' as tokens;
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$violet-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: (
+        plain-family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        brand-family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      ),
+      density: 0,
+    )
+  );
+
+  // Angular Material's M3 palettes (violet/blue above) only exist to satisfy
+  // `mat.theme()`'s API - every colour Material actually paints with is
+  // overridden here to reference the app's own `--tc-*` tokens, so Material
+  // components (buttons, form fields, menus, dialogs...) follow the same
+  // OKLCH palette - and the same light/dark switching - as the rest of the app.
+  @include mat.theme-overrides(
+    (
+      primary: var(--tc-color-primary),
+      on-primary: var(--tc-color-primary-contrast),
+      primary-container: var(--tc-surface-sunken),
+      on-primary-container: var(--tc-text-primary),
+      inverse-primary: var(--tc-color-primary-contrast),
+      error: var(--tc-color-danger),
+      on-error: var(--tc-color-primary-contrast),
+      error-container: var(--tc-color-danger-surface),
+      on-error-container: var(--tc-color-danger),
+      background: var(--tc-surface-canvas),
+      on-background: var(--tc-text-primary),
+      surface: var(--tc-surface-raised),
+      on-surface: var(--tc-text-primary),
+      surface-variant: var(--tc-surface-sunken),
+      on-surface-variant: var(--tc-text-secondary),
+      surface-container: var(--tc-surface-overlay),
+      surface-container-low: var(--tc-surface-raised),
+      surface-container-lowest: var(--tc-surface-raised),
+      surface-container-high: var(--tc-surface-overlay),
+      surface-container-highest: var(--tc-surface-overlay),
+      outline: var(--tc-border-strong),
+      outline-variant: var(--tc-border),
+      // Outlined/filled form-fields, autocomplete/menu panels, tooltips and
+      // snack-bars all default to a barely-rounded 4px corner (Material's
+      // "corner-extra-small"), which reads as noticeably sharper than this
+      // app's own buttons/cards (8-16px) - a small but visible mismatch.
+      // Softening it to 8px brings inputs in line with the rest of the UI.
+      corner-extra-small: 8px,
+    )
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--tc-font-family);
+  font-size: var(--tc-font-size-md);
+  line-height: var(--tc-line-height-normal);
+  color: var(--tc-text-primary);
+  background-color: var(--tc-surface-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--tc-text-link);
+}
+
+// Visible focus state for keyboard navigation (WCAG AA), applied globally
+// since Phase 3 components rely on default browser/Material focus rings
+// rather than each defining their own.
+:focus-visible {
+  outline: 2px solid var(--tc-color-primary);
+  outline-offset: 2px;
+}
+
+// Shared list-page action-button row. Used to also carry an <h1> title
+// (hence "page-header" and the space-between layout that title implied),
+// but every page's own title was a duplicate of the topbar's breadcrumb -
+// see PageTitleService - so the title moved there and this is now purely
+// the row of buttons (Add X, Back, etc.).
+//
+// A right-aligned button with nothing else in the row reads as a mistake -
+// "why is the rest of this bar empty" - regardless of how the alignment
+// itself is done, since the blank space is the page canvas showing through,
+// not something CSS alignment can fill. Giving the row its own bordered
+// card (matching the visual language data-table__toolbar already
+// established) turns it into a clearly intentional toolbar instead of
+// stray content floating in empty space.
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tc-space-2);
+  min-height: 24px;
+  margin-bottom: var(--tc-space-4);
+  padding: var(--tc-space-3) var(--tc-space-4);
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-md);
+
+  &:empty {
+    display: none;
+  }
+}
+
+.page-header__subtitle {
+  font-size: var(--tc-font-size-sm);
+  color: var(--tc-text-secondary);
+  margin: 0 0 var(--tc-space-4);
+}
+
+// Shared reactive-form layout - used by every create/edit form page.
+.form-card {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
+  box-shadow: var(--tc-shadow-md);
+  padding: var(--tc-space-8) var(--tc-space-6);
+  max-width: 48rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 var(--tc-space-6);
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Spans both columns - for a lone trailing field in an odd-count grid, so
+// it doesn't sit next to an empty, oddly-gapped cell.
+.form-grid__span-2 {
+  grid-column: 1 / -1;
+
+  @media (max-width: 768px) {
+    grid-column: auto;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--tc-space-2);
+  margin-top: var(--tc-space-4);
+  padding-top: var(--tc-space-4);
+  border-top: 1px solid var(--tc-border);
+}

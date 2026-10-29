@@ -1,0 +1,31 @@
+<div class="page-header">
+  <a mat-flat-button color="primary" routerLink="new">
+    <mat-icon>add</mat-icon>
+    Add Shipment
+  </a>
+</div>
+
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  emptyTitle="No shipments yet"
+  emptyDescription="Add your first shipment to start tracking deliveries."
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+>
+  <ng-template #rowActions let-row>
+    <a mat-icon-button [routerLink]="[row.id]" matTooltip="View consignment note" aria-label="View consignment note">
+      <mat-icon>visibility</mat-icon>
+    </a>
+    <a mat-icon-button [routerLink]="[row.id, 'edit']" matTooltip="Edit shipment" aria-label="Edit shipment">
+      <mat-icon>edit</mat-icon>
+    </a>
+  </ng-template>
+</app-data-table>

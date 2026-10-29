@@ -1,0 +1,49 @@
+// .page-header (shared, see styles.scss) provides the bordered card look
+// and right-aligns its content by default - overridden to flex-start here
+// since From/To/Search read as one left-to-right search group, not "one
+// thing left, one thing right" the way other pages use this row.
+.vehicle-order__filters {
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+
+  button {
+    height: 56px;
+  }
+}
+
+.vehicle-order__search {
+  width: 20rem;
+  margin-bottom: var(--tc-space-3);
+  display: block;
+}
+
+.vehicle-order__error {
+  color: var(--tc-color-danger);
+  font-size: var(--tc-font-size-sm);
+  margin: 0 0 var(--tc-space-3);
+}
+
+.vehicle-order__table {
+  width: 100%;
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg) var(--tc-radius-lg) 0 0;
+  overflow: hidden;
+}
+
+.vehicle-order__empty {
+  text-align: center;
+  padding: var(--tc-space-6);
+  color: var(--tc-text-secondary);
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-top: none;
+  margin: 0;
+}
+
+mat-paginator {
+  border: 1px solid var(--tc-border);
+  border-top: none;
+  border-radius: 0 0 var(--tc-radius-lg) var(--tc-radius-lg);
+}

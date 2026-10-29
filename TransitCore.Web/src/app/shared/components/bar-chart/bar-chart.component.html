@@ -1,0 +1,15 @@
+<ul class="bar-chart" role="list">
+  @for (item of items(); track item.label) {
+    <li class="bar-chart__row">
+      <span class="bar-chart__label">{{ item.label }}</span>
+      <div
+        class="bar-chart__track"
+        role="img"
+        [attr.aria-label]="item.label + ': ' + item.value + valueSuffix()"
+      >
+        <div class="bar-chart__fill" [style.width.%]="widthPercent(item.value)"></div>
+      </div>
+      <span class="bar-chart__value">{{ item.value }}{{ valueSuffix() }}</span>
+    </li>
+  }
+</ul>

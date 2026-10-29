@@ -1,0 +1,105 @@
+.track-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tc-space-6);
+  background: var(--tc-surface-canvas);
+}
+
+.track-page__card {
+  width: 100%;
+  max-width: 32rem;
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
+  box-shadow: var(--tc-shadow-md);
+  padding: var(--tc-space-8) var(--tc-space-6);
+}
+
+.track-page__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-2);
+  font-weight: var(--tc-font-weight-semibold);
+  color: var(--tc-color-primary);
+  margin-bottom: var(--tc-space-6);
+}
+
+.track-page__title {
+  font-size: var(--tc-font-size-2xl);
+  margin: 0 0 var(--tc-space-1);
+}
+
+.track-page__subtitle {
+  font-size: var(--tc-font-size-sm);
+  color: var(--tc-text-secondary);
+  margin: 0 0 var(--tc-space-6);
+}
+
+.track-page__form {
+  display: flex;
+  gap: var(--tc-space-3);
+  align-items: flex-start;
+
+  mat-form-field {
+    flex: 1 1 auto;
+  }
+}
+
+.track-page__result {
+  margin-top: var(--tc-space-6);
+  padding-top: var(--tc-space-6);
+  border-top: 1px solid var(--tc-border);
+}
+
+.track-page__result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--tc-space-4);
+}
+
+.track-page__tracking-no {
+  font-weight: var(--tc-font-weight-semibold);
+  font-size: var(--tc-font-size-lg);
+}
+
+.track-page__status {
+  font-size: var(--tc-font-size-sm);
+  font-weight: var(--tc-font-weight-medium);
+  padding: 2px var(--tc-space-3);
+  border-radius: var(--tc-radius-full);
+  background: var(--tc-color-info-surface);
+  color: var(--tc-color-info);
+}
+
+.track-page__summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--tc-space-4);
+  margin: 0;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+
+  dt {
+    font-size: var(--tc-font-size-xs);
+    color: var(--tc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: var(--tc-font-weight-medium);
+  }
+}
+
+.track-page__not-found {
+  margin-top: var(--tc-space-6);
+  padding-top: var(--tc-space-6);
+  border-top: 1px solid var(--tc-border);
+  color: var(--tc-text-secondary);
+}

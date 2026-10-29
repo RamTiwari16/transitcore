@@ -1,0 +1,115 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Route</mat-label>
+      <mat-select formControlName="routeId" required>
+        @for (route of routes(); track route.id) {
+          <mat-option [value]="route.id">{{ route.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.routeId.hasError('required') && form.controls.routeId.touched) {
+        <mat-error>Route is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Ownership</mat-label>
+      <mat-select formControlName="ownershipType" required>
+        @for (type of ownershipTypes; track type) {
+          <mat-option [value]="type">{{ type }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    @if (isOwn()) {
+      <mat-form-field appearance="outline">
+        <mat-label>Vehicle</mat-label>
+        <mat-select formControlName="vehicleId" required>
+          @for (vehicle of vehicles(); track vehicle.id) {
+            <mat-option [value]="vehicle.id">{{ vehicle.registrationNo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Driver</mat-label>
+        <mat-select formControlName="driverId" required>
+          @for (driver of drivers(); track driver.id) {
+            <mat-option [value]="driver.id">{{ driver.fullName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    } @else {
+      <mat-form-field appearance="outline">
+        <mat-label>Vendor</mat-label>
+        <mat-select formControlName="vendorId" required>
+          @for (vendor of vendors(); track vendor.id) {
+            <mat-option [value]="vendor.id">{{ vendor.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hired Vehicle No</mat-label>
+        <input matInput formControlName="hiredVehicleNo" required />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hired Driver Name</mat-label>
+        <input matInput formControlName="hiredDriverName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hired Driver Phone</mat-label>
+        <input matInput formControlName="hiredDriverPhone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Vendor Freight Amount</mat-label>
+        <input matInput type="number" formControlName="vendorFreightAmount" />
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="statusId" required>
+        @for (status of statusOptions(); track status.id) {
+          <mat-option [value]="status.id">{{ status.name }}</mat-option>
+        }
+      </mat-select>
+      @if (isEditMode()) {
+        <mat-hint>Change status from the trip detail page instead.</mat-hint>
+      }
+      @if (form.controls.statusId.hasError('required') && form.controls.statusId.touched) {
+        <mat-error>Status is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Scheduled Departure</mat-label>
+      <input matInput type="datetime-local" formControlName="scheduledDeparture" required />
+      @if (form.controls.scheduledDeparture.hasError('required') && form.controls.scheduledDeparture.touched) {
+        <mat-error>Departure time is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Scheduled Arrival</mat-label>
+      <input matInput type="datetime-local" formControlName="scheduledArrival" required />
+      @if (form.controls.scheduledArrival.hasError('required') && form.controls.scheduledArrival.touched) {
+        <mat-error>Arrival time is required</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="form-actions">
+    <a mat-button routerLink="/ops/trips">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving() || loading()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        {{ isEditMode() ? 'Save Trip' : 'Schedule Trip' }}
+      }
+    </button>
+  </div>
+</form>

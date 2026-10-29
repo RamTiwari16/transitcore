@@ -1,0 +1,122 @@
+.shipment-detail__panel {
+  padding: var(--tc-space-6) var(--tc-space-2);
+}
+
+.shipment-detail__summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--tc-space-4);
+  margin: 0 0 var(--tc-space-6);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+
+  dt {
+    font-size: var(--tc-font-size-xs);
+    color: var(--tc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: var(--tc-font-weight-medium);
+  }
+}
+
+.shipment-detail__section-title {
+  font-size: var(--tc-font-size-md);
+  font-weight: var(--tc-font-weight-semibold);
+  margin: var(--tc-space-4) 0 var(--tc-space-2);
+}
+
+.shipment-detail__list {
+  list-style: none;
+  margin: 0 0 var(--tc-space-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tc-space-3);
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tc-space-2);
+    padding-bottom: var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.shipment-detail__charge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-2);
+  min-width: 0;
+}
+
+.shipment-detail__list-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--tc-space-1);
+}
+
+.shipment-detail__list-title {
+  font-weight: var(--tc-font-weight-medium);
+  color: var(--tc-text-primary);
+}
+
+.shipment-detail__list-meta {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
+}
+
+.shipment-detail__inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tc-space-3);
+  padding-top: var(--tc-space-4);
+  padding-bottom: var(--tc-space-6);
+  border-top: 1px solid var(--tc-border);
+
+  mat-form-field {
+    width: 12rem;
+  }
+}
+
+.shipment-detail__cancel-reason {
+  flex: 1 1 20rem;
+}
+
+.shipment-detail__delivery-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--tc-space-2);
+}
+
+.shipment-detail__delivery-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-3);
+}
+
+.shipment-detail__photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tc-space-3);
+}
+
+.shipment-detail__photo-thumb {
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: var(--tc-radius-md);
+  border: 1px solid var(--tc-border);
+}

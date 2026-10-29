@@ -1,0 +1,65 @@
+// .page-header (shared, see styles.scss) provides the bordered card look
+// and right-aligns its content by default - overridden to flex-start here
+// since Customer+From+To+Load-Shipments read as one left-to-right filter
+// group. The trailing Back link gets its own auto-margin to push just
+// itself to the end (same trick trips-list uses for its primary button).
+.generate-invoice__filter-form {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: var(--tc-space-6);
+
+  mat-form-field {
+    width: 14rem;
+  }
+
+  // Dates never need as much width as the Customer dropdown (which holds
+  // full names) - narrowing them recovers the row space that the merged-in
+  // Back link now needs, same fix as aging-report's date field.
+  .generate-invoice__date-field {
+    width: 10rem;
+  }
+}
+
+.generate-invoice__back {
+  margin-left: auto;
+}
+
+.generate-invoice__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--tc-space-6);
+
+  th,
+  td {
+    text-align: left;
+    padding: var(--tc-space-2) var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+  }
+
+  th {
+    font-size: var(--tc-font-size-xs);
+    color: var(--tc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: var(--tc-font-weight-medium);
+  }
+}
+
+.generate-invoice__num {
+  text-align: right !important;
+}
+
+.generate-invoice__no-rate {
+  color: var(--tc-text-secondary);
+  font-style: italic;
+}
+
+.generate-invoice__invoice-form {
+  padding-top: var(--tc-space-4);
+  border-top: 1px solid var(--tc-border);
+}
+
+.generate-invoice__selected-summary {
+  font-weight: var(--tc-font-weight-medium);
+  margin-bottom: var(--tc-space-4);
+}

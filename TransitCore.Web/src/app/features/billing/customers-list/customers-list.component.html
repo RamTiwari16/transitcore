@@ -1,0 +1,33 @@
+<div class="page-header">
+  <button mat-flat-button color="primary" (click)="openAddCustomerDialog()">
+    <mat-icon>add</mat-icon>
+    Add Customer
+  </button>
+</div>
+
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  emptyTitle="No customers yet"
+  emptyDescription="Add your first customer to start billing them."
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+>
+  <ng-template #rowActions let-row>
+    <button
+      mat-icon-button
+      (click)="openEditCustomerDialog(row)"
+      matTooltip="Edit customer"
+      aria-label="Edit customer"
+    >
+      <mat-icon>edit</mat-icon>
+    </button>
+  </ng-template>
+</app-data-table>

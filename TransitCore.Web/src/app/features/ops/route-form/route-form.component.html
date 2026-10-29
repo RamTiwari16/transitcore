@@ -1,0 +1,100 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Route Name</mat-label>
+      <input matInput formControlName="name" required />
+      @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+        <mat-error>Route name is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Distance (km)</mat-label>
+      <input matInput type="number" formControlName="distanceKm" />
+      @if (form.controls.distanceKm.hasError('min')) {
+        <mat-error>Distance cannot be negative</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Origin City</mat-label>
+      <mat-select formControlName="originCityId" required>
+        @for (city of cities(); track city.id) {
+          <mat-option [value]="city.id">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.originCityId.hasError('required') && form.controls.originCityId.touched) {
+        <mat-error>Origin city is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Destination City</mat-label>
+      <mat-select formControlName="destinationCityId" required>
+        @for (city of cities(); track city.id) {
+          <mat-option [value]="city.id">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.destinationCityId.hasError('required') && form.controls.destinationCityId.touched) {
+        <mat-error>Destination city is required</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="form-actions">
+    <a mat-button routerLink="/ops/routes">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving() || loading()">
+      @if (saving()) {
+        Saving...
+      } @else {
+        Save Route
+      }
+    </button>
+  </div>
+</form>
+
+@if (isEditMode()) {
+  <div class="form-card route-form__stops-card">
+    <h2>Stops</h2>
+    <p class="page-header__subtitle">
+      Intermediate stops along this route, in order - for multi-stop trips instead of a single origin-to-destination leg.
+    </p>
+
+    @if (stops().length > 0) {
+      <ul class="route-form__stops-list">
+        @for (stop of stops(); track stop.id) {
+          <li>
+            <span class="route-form__stop-order">{{ stop.stopOrder }}</span>
+            <div class="route-form__stop-main">
+              <span class="route-form__stop-city">{{ stop.cityName }}</span>
+              @if (stop.plannedArrival) {
+                <span class="route-form__stop-meta">Planned arrival: {{ stop.plannedArrival }}</span>
+              }
+            </div>
+            <button mat-icon-button (click)="removeStop(stop)" matTooltip="Remove stop" aria-label="Remove stop">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <app-empty-state title="No stops added yet" icon="alt_route"></app-empty-state>
+    }
+
+    <form [formGroup]="stopForm" (ngSubmit)="addStop()" class="route-form__stop-form">
+      <mat-form-field appearance="outline">
+        <mat-label>City</mat-label>
+        <mat-select formControlName="cityId" required>
+          @for (city of cities(); track city.id) {
+            <mat-option [value]="city.id">{{ city.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Planned Arrival</mat-label>
+        <input matInput type="datetime-local" formControlName="plannedArrival" />
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="savingStop()">Add Stop</button>
+    </form>
+  </div>
+}

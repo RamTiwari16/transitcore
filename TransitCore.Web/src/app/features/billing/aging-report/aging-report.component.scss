@@ -1,0 +1,94 @@
+// .page-header (shared, see styles.scss) provides the bordered card look
+// and right-aligns its content by default - overridden to flex-start here
+// since As-of-Date+Refresh read as one left-to-right filter group. The
+// trailing Back link gets its own auto-margin to push just itself to the
+// end instead (same trick trips-list uses for its Schedule Trip button).
+.aging-report__filter {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: var(--tc-space-6);
+
+  // No explicit width previously - a bare date <input> in an outline
+  // mat-form-field defaults wide enough that, combined with the Refresh
+  // button and (once merged into this same row) the Back link, the row
+  // wrapped onto two lines instead of fitting on one. A date value never
+  // needs more than this to display.
+  mat-form-field {
+    width: 10rem;
+  }
+}
+
+.aging-report__back {
+  margin-left: auto;
+}
+
+.aging-report__buckets {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--tc-space-3);
+  margin-bottom: var(--tc-space-6);
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.aging-report__bucket {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tc-space-1);
+  padding: var(--tc-space-3);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-md);
+}
+
+.aging-report__bucket--total {
+  border-color: var(--tc-color-primary);
+}
+
+.aging-report__bucket-label {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.aging-report__bucket-total {
+  font-weight: var(--tc-font-weight-bold);
+  font-size: var(--tc-font-size-lg);
+}
+
+.aging-report__table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    text-align: left;
+    padding: var(--tc-space-2) var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+  }
+
+  th {
+    font-size: var(--tc-font-size-xs);
+    color: var(--tc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: var(--tc-font-weight-medium);
+  }
+}
+
+.aging-report__num {
+  text-align: right !important;
+}
+
+.aging-report__overdue {
+  color: var(--tc-color-danger);
+  font-weight: var(--tc-font-weight-medium);
+}
+
+.aging-report__loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--tc-space-6);
+}

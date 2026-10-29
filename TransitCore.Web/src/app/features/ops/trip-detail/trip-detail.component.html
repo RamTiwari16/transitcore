@@ -1,0 +1,592 @@
+@if (!loading() && trip(); as t) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/ops/trips', t.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Edit trip
+      </a>
+      <a mat-button routerLink="/ops/trips">
+        <mat-icon>arrow_back</mat-icon>
+        Back to trips
+      </a>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="trip-detail__panel">
+        <dl class="trip-detail__summary">
+          <div><dt>Ownership</dt><dd>{{ t.ownershipType }}</dd></div>
+          @if (t.ownershipType === 'Own') {
+            <div><dt>Vehicle</dt><dd>{{ t.registrationNo }}</dd></div>
+            <div><dt>Driver</dt><dd>{{ t.driverName }}</dd></div>
+          } @else {
+            <div><dt>Vendor</dt><dd>{{ t.vendorName }}</dd></div>
+            <div><dt>Hired Vehicle No</dt><dd>{{ t.hiredVehicleNo }}</dd></div>
+            <div><dt>Hired Driver</dt><dd>{{ t.hiredDriverName ?? '-' }}@if (t.hiredDriverPhone) { - {{ t.hiredDriverPhone }} }</dd></div>
+            <div><dt>Vendor Freight Amount</dt><dd>{{ t.vendorFreightAmount !== null ? ('₹' + t.vendorFreightAmount.toLocaleString()) : '-' }}</dd></div>
+          }
+          <div><dt>Scheduled Departure</dt><dd>{{ formatDateTime(t.scheduledDeparture) }}</dd></div>
+          <div><dt>Scheduled Arrival</dt><dd>{{ formatDateTime(t.scheduledArrival) }}</dd></div>
+          <div><dt>Actual Departure</dt><dd>{{ formatDateTime(t.actualDeparture) }}</dd></div>
+          <div><dt>Actual Arrival</dt><dd>{{ formatDateTime(t.actualArrival) }}</dd></div>
+          <div><dt>Current Status</dt><dd>{{ t.statusName }}</dd></div>
+          @if (capacityCheck(); as cap) {
+            @if (cap.vehicleCapacityKg !== null) {
+              <div>
+                <dt>Load vs Capacity</dt>
+                <dd [class.trip-detail__over-capacity]="cap.isOverCapacity">
+                  {{ (cap.assignedWeightKg ?? 0).toLocaleString() }} / {{ cap.vehicleCapacityKg.toLocaleString() }} kg
+                  @if (cap.isOverCapacity) { (over capacity) }
+                </dd>
+              </div>
+            }
+            @if (cap.vehicleCapacityCbm !== null) {
+              <div>
+                <dt>Volume vs Capacity</dt>
+                <dd [class.trip-detail__over-capacity]="cap.isOverVolumeCapacity">
+                  {{ (cap.assignedVolumeCbm ?? 0).toLocaleString() }} / {{ cap.vehicleCapacityCbm.toLocaleString() }} m³
+                  @if (cap.isOverVolumeCapacity) { (over capacity) }
+                </dd>
+              </div>
+            }
+          }
+        </dl>
+
+        @if (complianceChecks().length > 0) {
+          <h3 class="trip-detail__section-title">Dispatch Compliance</h3>
+          <ul class="trip-detail__compliance-list">
+            @for (check of complianceChecks(); track check.checkType + check.label) {
+              <li [class.trip-detail__compliance--expired]="check.status === 'Expired' || check.status === 'Missing'">
+                <span class="trip-detail__compliance-label">{{ check.checkType }}: {{ check.label }}</span>
+                <span class="trip-detail__compliance-status">
+                  {{ check.status }}
+                  @if (check.expiryDate) { (exp. {{ check.expiryDate }}) }
+                </span>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="trip-detail__status-update">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Update status</mat-label>
+            <mat-select [value]="pendingStatusId()" (selectionChange)="pendingStatusId.set($event.value)">
+              @for (status of statusOptions(); track status.id) {
+                <mat-option [value]="status.id">{{ status.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="applyStatusChange()">Apply</button>
+        </div>
+
+        @if (t.ownershipType === 'Own') {
+          <form [formGroup]="kmForm" (ngSubmit)="saveKm()" class="trip-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Loaded Km</mat-label>
+              <input matInput type="number" formControlName="loadedKm" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Empty Km</mat-label>
+              <input matInput type="number" formControlName="emptyKm" required />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingKm()">Save Km</button>
+          </form>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Status History">
+      <div class="trip-detail__panel">
+        @if (t.statusHistory.length > 0) {
+          <ul class="trip-detail__history">
+            @for (entry of t.statusHistory; track entry.id) {
+              <li>
+                <span class="trip-detail__history-status">{{ entry.statusName }}</span>
+                <span class="trip-detail__history-date">{{ formatDateTime(entry.changedAt) }}</span>
+                @if (entry.notes) {
+                  <span class="trip-detail__history-notes">{{ entry.notes }}</span>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p>No status changes recorded yet.</p>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Costs">
+      <div class="trip-detail__panel">
+        @if (costSummary(); as summary) {
+          <dl class="trip-detail__summary trip-detail__summary--tight">
+            <div><dt>Customer Charges Total</dt><dd>₹{{ summary.customerChargesTotal.toLocaleString() }}</dd></div>
+            @if (summary.vendorFreightAmount !== null) {
+              <div><dt>Vendor Freight Amount</dt><dd>₹{{ summary.vendorFreightAmount.toLocaleString() }}</dd></div>
+            }
+            <div><dt>Total Expenses</dt><dd>₹{{ summary.totalExpenses.toLocaleString() }}</dd></div>
+            <div>
+              <dt>Profit</dt>
+              <dd [class.trip-detail__over-capacity]="summary.profit < 0">₹{{ summary.profit.toLocaleString() }}</dd>
+            </div>
+          </dl>
+        }
+
+        @if (t.ownershipType === 'Own') {
+          <dl class="trip-detail__summary trip-detail__summary--tight">
+            <div><dt>Total Advances</dt><dd>₹{{ (costSummary()?.totalAdvances ?? 0).toLocaleString() }}</dd></div>
+            <div>
+              <dt>Balance</dt>
+              <dd [class.trip-detail__over-capacity]="(costSummary()?.balance ?? 0) < 0">
+                ₹{{ (costSummary()?.balance ?? 0).toLocaleString() }}
+                {{ (costSummary()?.balance ?? 0) >= 0 ? '(driver holds unspent advance)' : '(owed to driver)' }}
+              </dd>
+            </div>
+          </dl>
+
+          <h3 class="trip-detail__section-title">Expenses</h3>
+          @if (expenses().length > 0) {
+            <ul class="trip-detail__list">
+              @for (expense of expenses(); track expense.id) {
+                <li>
+                  <div class="trip-detail__list-main">
+                    <span class="trip-detail__list-title">{{ expense.expenseType }} - ₹{{ expense.amount.toLocaleString() }}</span>
+                    <span class="trip-detail__list-meta">{{ expense.expenseDate }}@if (expense.notes) { - {{ expense.notes }} }</span>
+                  </div>
+                  <button mat-icon-button (click)="removeExpense(expense)" matTooltip="Remove expense" aria-label="Remove expense">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <app-empty-state title="No expenses recorded yet" icon="receipt_long"></app-empty-state>
+          }
+          <form [formGroup]="expenseForm" (ngSubmit)="addExpense()" class="trip-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Expense Type</mat-label>
+              <input matInput formControlName="expenseType" placeholder="Fuel, Toll, Food..." required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" formControlName="amount" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Date</mat-label>
+              <input matInput type="date" formControlName="expenseDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Notes</mat-label>
+              <input matInput formControlName="notes" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingExpense()">Add Expense</button>
+          </form>
+
+          <h3 class="trip-detail__section-title">Advances</h3>
+          @if (advances().length > 0) {
+            <ul class="trip-detail__list">
+              @for (advance of advances(); track advance.id) {
+                <li>
+                  <div class="trip-detail__list-main">
+                    <span class="trip-detail__list-title">₹{{ advance.amount.toLocaleString() }}</span>
+                    <span class="trip-detail__list-meta">{{ advance.advanceDate }}@if (advance.notes) { - {{ advance.notes }} }</span>
+                  </div>
+                  <button mat-icon-button (click)="removeAdvance(advance)" matTooltip="Remove advance" aria-label="Remove advance">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <app-empty-state title="No advances recorded yet" icon="payments"></app-empty-state>
+          }
+          <form [formGroup]="advanceForm" (ngSubmit)="addAdvance()" class="trip-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" formControlName="amount" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Date</mat-label>
+              <input matInput type="date" formControlName="advanceDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Notes</mat-label>
+              <input matInput formControlName="notes" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingAdvance()">Add Advance</button>
+          </form>
+        } @else {
+          <h3 class="trip-detail__section-title">Vendor Advances</h3>
+          @if (vendorAdvances().length > 0) {
+            <ul class="trip-detail__list">
+              @for (advance of vendorAdvances(); track advance.id) {
+                <li>
+                  <div class="trip-detail__list-main">
+                    <span class="trip-detail__list-title">₹{{ advance.amount.toLocaleString() }}</span>
+                    <span class="trip-detail__list-meta">{{ advance.advanceDate }}@if (advance.remarks) { - {{ advance.remarks }} }</span>
+                  </div>
+                  <button mat-icon-button (click)="removeVendorAdvance(advance)" matTooltip="Remove advance" aria-label="Remove advance">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <app-empty-state title="No vendor advances recorded yet" icon="payments"></app-empty-state>
+          }
+          <form [formGroup]="vendorAdvanceForm" (ngSubmit)="addVendorAdvance()" class="trip-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" formControlName="amount" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Date</mat-label>
+              <input matInput type="date" formControlName="advanceDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Remarks</mat-label>
+              <input matInput formControlName="remarks" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingVendorAdvance()">Add Advance</button>
+          </form>
+
+          <h3 class="trip-detail__section-title">Vendor Deductions</h3>
+          @if (vendorDeductions().length > 0) {
+            <ul class="trip-detail__list">
+              @for (deduction of vendorDeductions(); track deduction.id) {
+                <li>
+                  <div class="trip-detail__list-main">
+                    <span class="trip-detail__list-title">₹{{ deduction.amount.toLocaleString() }} - {{ deduction.reason }}</span>
+                    <span class="trip-detail__list-meta">{{ deduction.deductionDate }}</span>
+                  </div>
+                  <button mat-icon-button (click)="removeVendorDeduction(deduction)" matTooltip="Remove deduction" aria-label="Remove deduction">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <app-empty-state title="No vendor deductions recorded yet" icon="remove_circle"></app-empty-state>
+          }
+          <form [formGroup]="vendorDeductionForm" (ngSubmit)="addVendorDeduction()" class="trip-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Amount</mat-label>
+              <input matInput type="number" formControlName="amount" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Reason</mat-label>
+              <input matInput formControlName="reason" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Date</mat-label>
+              <input matInput type="date" formControlName="deductionDate" required />
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="savingVendorDeduction()">Add Deduction</button>
+          </form>
+
+          <h3 class="trip-detail__section-title">Vendor Bill</h3>
+          <p class="trip-detail__list-meta">
+            Creates a bill for the agreed freight minus any deductions above. One bill per trip.
+          </p>
+          <form [formGroup]="vendorBillForm" (ngSubmit)="createVendorBill()" class="trip-detail__inline-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Bill No</mat-label>
+              <input matInput formControlName="billNo" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Bill Date</mat-label>
+              <input matInput type="date" formControlName="billDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Due Date</mat-label>
+              <input matInput type="date" formControlName="dueDate" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="statusId" required>
+                @for (status of vendorBillStatusOptions(); track status.id) {
+                  <mat-option [value]="status.id">{{ status.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <button mat-flat-button color="primary" type="submit" [disabled]="creatingVendorBill()">Create Vendor Bill</button>
+          </form>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Proof of Delivery">
+      <div class="trip-detail__panel">
+        @if (podLoaded()) {
+          @if (pod(); as p) {
+            <dl class="trip-detail__summary trip-detail__summary--tight">
+              <div><dt>Receiver</dt><dd>{{ p.receiverName }}@if (p.receiverPhone) { - {{ p.receiverPhone }} }</dd></div>
+              <div><dt>Delivered At</dt><dd>{{ formatDateTime(p.deliveredAt) }}</dd></div>
+              @if (p.notes) {
+                <div><dt>Notes</dt><dd>{{ p.notes }}</dd></div>
+              }
+            </dl>
+            @if (p.signatureFilePath) {
+              <p class="trip-detail__section-title">Signature</p>
+              <img [src]="fileBaseUrl + p.signatureFilePath" alt="Receiver signature" class="trip-detail__signature-img" />
+            }
+            @if (p.photos.length > 0) {
+              <p class="trip-detail__section-title">Photos</p>
+              <div class="trip-detail__photo-grid">
+                @for (photo of p.photos; track photo.id) {
+                  <img [src]="fileBaseUrl + photo.filePath" alt="Delivery photo" class="trip-detail__photo-thumb" />
+                }
+              </div>
+            }
+          } @else {
+            <app-empty-state title="No proof of delivery recorded yet" icon="assignment_turned_in"></app-empty-state>
+
+            <form [formGroup]="podForm" (ngSubmit)="submitProofOfDelivery()" class="trip-detail__pod-form">
+              <div class="trip-detail__inline-form">
+                <mat-form-field appearance="outline">
+                  <mat-label>Receiver Name</mat-label>
+                  <input matInput formControlName="receiverName" required />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Receiver Phone</mat-label>
+                  <input matInput formControlName="receiverPhone" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Delivered At</mat-label>
+                  <input matInput type="datetime-local" formControlName="deliveredAt" required />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Notes</mat-label>
+                  <input matInput formControlName="notes" />
+                </mat-form-field>
+              </div>
+
+              <div class="trip-detail__signature-field">
+                <label>Receiver Signature</label>
+                <canvas
+                  #signatureCanvas
+                  width="360"
+                  height="140"
+                  class="trip-detail__signature-canvas"
+                  (pointerdown)="onSignatureStart($event)"
+                  (pointermove)="onSignatureMove($event)"
+                  (pointerup)="onSignatureEnd()"
+                  (pointerleave)="onSignatureEnd()"
+                ></canvas>
+                <button mat-button type="button" (click)="clearSignature()">Clear</button>
+              </div>
+
+              <div class="trip-detail__photo-field">
+                <label>
+                  <input type="file" accept="image/*" multiple (change)="onPhotosSelected($event)" />
+                </label>
+                @if (selectedPhotoCount() > 0) {
+                  <span class="trip-detail__list-meta">{{ selectedPhotoCount() }} photo(s) selected</span>
+                }
+              </div>
+
+              <div class="form-actions">
+                <button mat-flat-button color="primary" type="submit" [disabled]="savingPod()">
+                  {{ savingPod() ? 'Saving...' : 'Record Delivery' }}
+                </button>
+              </div>
+            </form>
+          }
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Documents ({{ documents().length }})">
+      <div class="trip-detail__panel">
+        @if (documents().length > 0) {
+          <ul class="trip-detail__list">
+            @for (document of documents(); track document.id) {
+              <li>
+                <div class="trip-detail__list-main">
+                  <a [href]="fileBaseUrl + document.filePath" target="_blank" rel="noopener" class="trip-detail__list-title">
+                    {{ document.documentType }} - {{ document.fileName }}
+                  </a>
+                  <span class="trip-detail__list-meta">{{ formatDateTime(document.uploadedAt) }}</span>
+                </div>
+                <button mat-icon-button (click)="removeDocument(document)" matTooltip="Remove document" aria-label="Remove document">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No documents uploaded yet" icon="description"></app-empty-state>
+        }
+
+        <form [formGroup]="documentForm" (ngSubmit)="addDocument()" class="trip-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Document Type</mat-label>
+            <input matInput formControlName="documentType" placeholder="Invoice copy, Customs form..." required />
+          </mat-form-field>
+          <input type="file" (change)="onDocumentFileSelected($event)" />
+          @if (selectedDocumentName(); as name) {
+            <span class="trip-detail__list-meta">{{ name }}</span>
+          }
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingDocument()">Upload</button>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Incidents ({{ incidents().length }})">
+      <div class="trip-detail__panel">
+        @if (incidents().length > 0) {
+          <ul class="trip-detail__list">
+            @for (incident of incidents(); track incident.id) {
+              <li>
+                <div class="trip-detail__list-main">
+                  <span class="trip-detail__list-title">{{ incident.incidentType }}</span>
+                  <span class="trip-detail__list-meta">{{ formatDateTime(incident.reportedAt) }}</span>
+                  <span class="trip-detail__list-meta">{{ incident.description }}</span>
+                </div>
+                <button mat-icon-button (click)="removeIncident(incident)" matTooltip="Remove incident" aria-label="Remove incident">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No incidents reported" icon="report_problem"></app-empty-state>
+        }
+
+        <form [formGroup]="incidentForm" (ngSubmit)="addIncident()" class="trip-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Incident Type</mat-label>
+            <input matInput formControlName="incidentType" placeholder="Delay, Breakdown, Accident..." required />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="trip-detail__incident-description">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" required />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingIncident()">Report Incident</button>
+        </form>
+      </div>
+    </mat-tab>
+    <mat-tab label="Loading / Unloading ({{ stopShipments().length }})">
+      <div class="trip-detail__panel">
+        @if (stopShipments().length > 0) {
+          <ul class="trip-detail__list">
+            @for (event of stopShipments(); track event.id) {
+              <li>
+                <div class="trip-detail__list-main">
+                  <span class="trip-detail__list-title">
+                    {{ event.action }} - {{ event.trackingNo ?? ('Shipment #' + event.shipmentId) }} ({{ event.customerName }})
+                  </span>
+                  <span class="trip-detail__list-meta">{{ event.stopCityName }} - {{ formatDateTime(event.createdAt) }}</span>
+                </div>
+                <button mat-icon-button (click)="removeStopShipment(event)" matTooltip="Remove event" aria-label="Remove event">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No loading/unloading events recorded yet" icon="local_shipping"></app-empty-state>
+        }
+
+        <form [formGroup]="stopShipmentForm" (ngSubmit)="addStopShipment()" class="trip-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Shipment</mat-label>
+            <mat-select formControlName="shipmentId" required>
+              @for (shipment of tripShipments(); track shipment.id) {
+                <mat-option [value]="shipment.id">{{ shipment.trackingNo ?? ('#' + shipment.id) }} - {{ shipment.customerName }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Action</mat-label>
+            <mat-select formControlName="action" required>
+              <mat-option value="Load">Load</mat-option>
+              <mat-option value="Unload">Unload</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Stop</mat-label>
+            <mat-select formControlName="stopType" required>
+              <mat-option value="Origin">Origin</mat-option>
+              <mat-option value="IntermediateStop">Intermediate Stop</mat-option>
+              <mat-option value="Destination">Destination</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          @if (stopShipmentForm.controls.stopType.value === 'IntermediateStop') {
+            <mat-form-field appearance="outline">
+              <mat-label>Which Stop</mat-label>
+              <mat-select formControlName="routeStopId" required>
+                @for (stop of routeStops(); track stop.id) {
+                  <mat-option [value]="stop.id">{{ stop.cityName }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingStopShipment()">Record</button>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Detention ({{ stopVisits().length }})">
+      <div class="trip-detail__panel">
+        @if (stopVisits().length > 0) {
+          <ul class="trip-detail__list">
+            @for (visit of stopVisits(); track visit.id) {
+              <li>
+                <div class="trip-detail__list-main">
+                  <span class="trip-detail__list-title">{{ visit.stopCityName }} ({{ visit.stopType }})</span>
+                  <span class="trip-detail__list-meta">
+                    Arrived {{ formatDateTime(visit.arrivedAt) }} - Departed {{ formatDateTime(visit.departedAt) }}
+                    @if (visit.dwellHours !== null) { - {{ visit.dwellHours }} hrs dwell }
+                  </span>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No stop visits recorded yet" icon="schedule"></app-empty-state>
+        }
+
+        <form [formGroup]="stopVisitForm" (ngSubmit)="recordStopVisit()" class="trip-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Stop</mat-label>
+            <mat-select formControlName="stopType" required>
+              <mat-option value="Origin">Origin</mat-option>
+              <mat-option value="IntermediateStop">Intermediate Stop</mat-option>
+              <mat-option value="Destination">Destination</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          @if (stopVisitForm.controls.stopType.value === 'IntermediateStop') {
+            <mat-form-field appearance="outline">
+              <mat-label>Which Stop</mat-label>
+              <mat-select formControlName="routeStopId" required>
+                @for (stop of routeStops(); track stop.id) {
+                  <mat-option [value]="stop.id">{{ stop.cityName }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          }
+
+          <mat-form-field appearance="outline">
+            <mat-label>Arrived At</mat-label>
+            <input matInput type="datetime-local" formControlName="arrivedAt" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Departed At</mat-label>
+            <input matInput type="datetime-local" formControlName="departedAt" />
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingStopVisit()">Save</button>
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (!loading()) {
+  <p>Trip not found.</p>
+}

@@ -1,0 +1,204 @@
+<div class="dashboard">
+  <div class="dashboard__stats">
+    <a routerLink="/ops/trips" class="dashboard__stat-link">
+      <app-stat-card label="Active Trips" [value]="activeTrips().length.toString()" icon="route" tone="primary"></app-stat-card>
+    </a>
+    <a routerLink="/ops/shipments" class="dashboard__stat-link">
+      <app-stat-card label="Shipments" [value]="totalShipments().toString()" icon="inventory_2" tone="info"></app-stat-card>
+    </a>
+    <a routerLink="/billing/invoices" class="dashboard__stat-link">
+      <app-stat-card label="Invoices" [value]="(invoiceBuckets().paid + invoiceBuckets().partial + invoiceBuckets().unpaid).toString()" icon="receipt_long" tone="info"></app-stat-card>
+    </a>
+    <a routerLink="/billing/invoices/aging-report" class="dashboard__stat-link">
+      <app-stat-card label="Outstanding" [value]="formatCurrency(totalOutstanding())" icon="account_balance_wallet" tone="warning"></app-stat-card>
+    </a>
+    @if (canViewReports()) {
+      <a routerLink="/reports" class="dashboard__stat-link">
+        <app-stat-card label="Total Revenue" [value]="formatCurrency(totalInvoiced())" icon="payments" tone="success"></app-stat-card>
+      </a>
+      <a routerLink="/reports" class="dashboard__stat-link">
+        <app-stat-card label="Total Expenses" [value]="formatCurrency(totalExpenses())" icon="money_off" tone="danger"></app-stat-card>
+      </a>
+    }
+  </div>
+
+  <div class="dashboard__charts">
+    @if (canViewReports()) {
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <span class="chart-card__title">Revenue</span>
+          <span class="chart-card__period">Last 6 months</span>
+        </div>
+        <div class="chart-card__figure">{{ formatCurrency(totalInvoiced()) }}</div>
+        <div class="chart-card__caption">Total revenue (last 6 months)</div>
+        <div class="chart-card__canvas">
+          <canvas #revenueCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <span class="chart-card__title">Shipment Volume</span>
+          <span class="chart-card__period">Last 6 months</span>
+        </div>
+        <div class="chart-card__figure">{{ totalShipments() }}</div>
+        <div class="chart-card__caption">Total shipments (last 6 months)</div>
+        <div class="chart-card__canvas">
+          <canvas #shipmentCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <span class="chart-card__title">Fleet Utilisation</span>
+          <span class="chart-card__period">Last 6 months</span>
+        </div>
+        <div class="chart-card__figure">{{ vehiclesInMaintenance() }}</div>
+        <div class="chart-card__caption">Vehicles in maintenance</div>
+        <div class="chart-card__canvas">
+          <canvas #utilisationCanvas></canvas>
+        </div>
+      </div>
+    }
+
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <span class="chart-card__title">Invoices</span>
+      </div>
+      <div class="chart-card__figure">{{ invoiceBuckets().paid + invoiceBuckets().partial + invoiceBuckets().unpaid }}</div>
+      <div class="chart-card__caption">Total invoices</div>
+      <div class="chart-card__canvas chart-card__canvas--donut">
+        <canvas #invoiceStatusCanvas></canvas>
+      </div>
+      <div class="chart-card__legend">
+        <div class="chart-card__legend-item">
+          <div class="chart-card__legend-value">{{ invoiceBuckets().paid }}</div>
+          <div class="chart-card__legend-label"><span class="chart-card__swatch chart-card__swatch--success"></span>Paid</div>
+        </div>
+        <div class="chart-card__legend-item">
+          <div class="chart-card__legend-value">{{ invoiceBuckets().partial }}</div>
+          <div class="chart-card__legend-label"><span class="chart-card__swatch chart-card__swatch--warning"></span>Partial</div>
+        </div>
+        <div class="chart-card__legend-item">
+          <div class="chart-card__legend-value">{{ invoiceBuckets().unpaid }}</div>
+          <div class="chart-card__legend-label"><span class="chart-card__swatch chart-card__swatch--neutral"></span>Unpaid</div>
+        </div>
+      </div>
+    </div>
+
+    @if (canViewReports()) {
+      <div class="chart-card">
+        <div class="chart-card__header">
+          <span class="chart-card__title">Driver Expenses</span>
+          <span class="chart-card__period">Top 6</span>
+        </div>
+        <div class="chart-card__figure">{{ formatCurrency(totalExpenses()) }}</div>
+        <div class="chart-card__caption">Total driver expenses</div>
+        <div class="chart-card__canvas">
+          <canvas #driverExpensesCanvas></canvas>
+        </div>
+      </div>
+    }
+
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <span class="chart-card__title">Top Routes</span>
+        <span class="chart-card__period">By trips</span>
+      </div>
+      <div class="chart-card__figure">{{ topRoutes().length }}</div>
+      <div class="chart-card__caption">Active routes (last 30 days)</div>
+      <div class="chart-card__canvas">
+        <canvas #topRoutesCanvas></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard__lists">
+    <div class="list-card">
+      <div class="list-card__header">
+        <span class="list-card__title">Active Trips</span>
+      </div>
+      @if (!loading() && activeTrips().length > 0) {
+        <table class="list-card__table">
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Vehicle</th>
+              <th>Driver</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (trip of activeTrips(); track trip.id) {
+              <tr>
+                <td>{{ trip.routeName }}</td>
+                <td>{{ trip.registrationNo }}</td>
+                <td>{{ trip.driverName }}</td>
+                <td>
+                  <span class="list-card__badge" [attr.data-status]="trip.statusName">{{ trip.statusName }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else if (!loading()) {
+        <app-empty-state title="No active trips" icon="route"></app-empty-state>
+      }
+    </div>
+
+    @if (canViewReports()) {
+      <div class="list-card">
+        <div class="list-card__header">
+          <span class="list-card__title">Top Customers</span>
+        </div>
+        @if (!loading() && topCustomers().length > 0) {
+          <table class="list-card__table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Invoices</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (customer of topCustomers(); track customer.customerId) {
+                <tr>
+                  <td>{{ customer.name }}</td>
+                  <td>{{ customer.invoiceCount }}</td>
+                  <td>{{ formatCurrency(customer.totalInvoiced) }}</td>
+                  <td>
+                    <span class="list-card__badge" [attr.data-status]="customer.isActive ? 'Active' : 'Inactive'">
+                      {{ customer.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else if (!loading()) {
+          <app-empty-state title="No invoices yet" icon="groups"></app-empty-state>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="dashboard__alerts">
+    <div class="dashboard__alert">
+      <span class="dashboard__alert-count">{{ vehiclesInMaintenance() }}</span>
+      vehicle(s) currently in maintenance
+    </div>
+    <div class="dashboard__alert">
+      <span class="dashboard__alert-count">{{ overdueInvoiceCount() }}</span>
+      overdue invoice(s)
+    </div>
+    <div class="dashboard__alert">
+      <span class="dashboard__alert-count">{{ expiringDocumentCount() }}</span>
+      vehicle document(s) expiring within 30 days
+    </div>
+    <div class="dashboard__alert">
+      <span class="dashboard__alert-count">{{ expiringLicenseCount() }}</span>
+      driver license(s) expiring within 30 days
+    </div>
+  </div>
+</div>

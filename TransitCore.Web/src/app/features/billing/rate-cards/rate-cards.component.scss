@@ -1,0 +1,84 @@
+// Standalone page, not a mat-tab-group panel (unlike vehicle-detail/
+// driver-detail's own use of this same padding-only convention) - needs
+// its own card chrome instead of just floating on the page canvas with no
+// visual container.
+.rate-cards__panel {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
+  box-shadow: var(--tc-shadow-sm);
+  padding: var(--tc-space-6);
+}
+
+.rate-cards__list {
+  list-style: none;
+  margin: 0 0 var(--tc-space-6);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tc-space-3);
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tc-space-2);
+    padding-bottom: var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.rate-cards__list-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--tc-space-1);
+}
+
+.rate-cards__list-title {
+  font-weight: var(--tc-font-weight-medium);
+}
+
+.rate-cards__list-meta {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-secondary);
+}
+
+.rate-cards__section-title {
+  font-size: var(--tc-font-size-sm);
+  font-weight: var(--tc-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--tc-text-secondary);
+  margin: 0 0 var(--tc-space-4);
+}
+
+.rate-cards__inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tc-space-3);
+  padding-top: var(--tc-space-5);
+  border-top: 1px solid var(--tc-border);
+
+  mat-form-field {
+    width: 12rem;
+  }
+
+  button {
+    margin-top: var(--tc-space-1);
+  }
+}
+
+// This heading lives inside the flex-wrap row above (form-fields as
+// siblings) rather than a normal block context, so it needs an explicit
+// full-width flex-basis to force its own line instead of just being
+// another small flex item squeezed in before the first field.
+.rate-cards__section-title--form {
+  flex-basis: 100%;
+  margin-bottom: 0;
+}

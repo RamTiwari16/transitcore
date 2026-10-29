@@ -1,0 +1,49 @@
+<div class="page-header">
+  <div>
+    <a mat-button routerLink="aging-report">
+      <mat-icon>schedule</mat-icon>
+      Aging Report
+    </a>
+    <a mat-button routerLink="generate">
+      <mat-icon>auto_awesome</mat-icon>
+      Generate from Shipments
+    </a>
+    <a mat-flat-button color="primary" routerLink="new">
+      <mat-icon>add</mat-icon>
+      Add Invoice
+    </a>
+  </div>
+</div>
+
+<app-data-table
+  [columns]="columns()"
+  [rows]="list.rows()"
+  [totalCount]="list.totalCount()"
+  [loading]="list.loading()"
+  [pageIndex]="list.pageIndex()"
+  [pageSize]="list.pageSize()"
+  [rowId]="rowId"
+  [filterValue]="list.filterText()"
+  emptyTitle="No invoices yet"
+  emptyDescription="Add your first invoice to start billing customers."
+  (pageChange)="list.onPage($event)"
+  (sortChange)="list.onSort($event)"
+  (filterChange)="list.onFilter($event)"
+  (rowClick)="openInvoice($event)"
+>
+  <ng-template #rowActions let-row>
+    <button
+      mat-icon-button
+      (click)="downloadPdf(row)"
+      [disabled]="downloadingId() !== null"
+      matTooltip="Download PDF"
+      [attr.aria-label]="'Download PDF for invoice ' + row.invoiceNo"
+    >
+      @if (downloadingId() === row.id) {
+        <mat-spinner diameter="20"></mat-spinner>
+      } @else {
+        <mat-icon>picture_as_pdf</mat-icon>
+      }
+    </button>
+  </ng-template>
+</app-data-table>

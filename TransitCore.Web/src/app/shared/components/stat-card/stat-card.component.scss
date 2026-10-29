@@ -1,0 +1,93 @@
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--tc-space-4);
+  padding: var(--tc-space-5);
+  min-height: 96px;
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-divider);
+  border-radius: var(--tc-radius-md);
+  // No shadow at rest, on purpose - only the hover state (below) lifts the
+  // card, matching the reference dashboard's KPI card treatment.
+  box-shadow: none;
+  transition: box-shadow 0.2s ease;
+  min-width: 0;
+}
+
+// The host is <app-stat-card> itself - a caller wraps it in a plain <a> for
+// navigation (see dashboard.component.html), so the hover affordance lives
+// here rather than needing ::ng-deep from that caller's stylesheet.
+:host(:hover) .stat-card {
+  box-shadow: 0 4px 8px oklch(0 0 0 / 0.08);
+}
+
+:host(:hover) .stat-card__value {
+  color: var(--tc-text-link);
+}
+
+.stat-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--tc-radius-md);
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.stat-card__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-card__label {
+  font-size: var(--tc-font-size-sm);
+  color: var(--tc-text-secondary);
+  font-weight: var(--tc-font-weight-medium);
+}
+
+.stat-card__value {
+  font-size: var(--tc-font-size-2xl);
+  font-weight: var(--tc-font-weight-semibold);
+  color: var(--tc-text-primary);
+  line-height: var(--tc-line-height-tight);
+  margin-top: var(--tc-space-1);
+}
+
+.stat-card__hint {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-tertiary);
+  margin-top: var(--tc-space-1);
+}
+
+.stat-card--primary .stat-card__icon {
+  color: var(--tc-color-primary);
+  background: var(--tc-color-success-surface);
+}
+
+.stat-card--success .stat-card__icon {
+  color: var(--tc-color-success);
+  background: var(--tc-color-success-surface);
+}
+
+.stat-card--warning .stat-card__icon {
+  color: var(--tc-color-warning);
+  background: var(--tc-color-warning-surface);
+}
+
+.stat-card--danger .stat-card__icon {
+  color: var(--tc-color-danger);
+  background: var(--tc-color-danger-surface);
+}
+
+.stat-card--info .stat-card__icon {
+  color: var(--tc-color-info);
+  background: var(--tc-color-info-surface);
+}

@@ -1,0 +1,62 @@
+<div class="page-header aging-report__filter">
+  <mat-form-field appearance="outline">
+    <mat-label>As of Date</mat-label>
+    <input matInput type="date" [(ngModel)]="asOfDate" />
+  </mat-form-field>
+  <button mat-flat-button color="primary" (click)="load()" [disabled]="loading()">Refresh</button>
+
+  <a mat-button routerLink="/billing/invoices" class="aging-report__back">
+    <mat-icon>arrow_back</mat-icon>
+    Back to invoices
+  </a>
+</div>
+
+@if (loading()) {
+  <div class="aging-report__loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else {
+  <div class="aging-report__buckets">
+    @for (bucket of buckets(); track bucket.label) {
+      <div class="aging-report__bucket">
+        <span class="aging-report__bucket-label">{{ bucket.label }}</span>
+        <span class="aging-report__bucket-total">{{ bucket.total | inr }}</span>
+      </div>
+    }
+    <div class="aging-report__bucket aging-report__bucket--total">
+      <span class="aging-report__bucket-label">Total Outstanding</span>
+      <span class="aging-report__bucket-total">{{ totalOutstanding() | inr }}</span>
+    </div>
+  </div>
+
+  @if (lines().length > 0) {
+    <table class="aging-report__table">
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Customer</th>
+          <th>Invoice Date</th>
+          <th>Due Date</th>
+          <th class="aging-report__num">Outstanding</th>
+          <th class="aging-report__num">Days Overdue</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of lines(); track line.id) {
+          <tr>
+            <td><a [routerLink]="['/billing/invoices', line.id]">{{ line.invoiceNo }}</a></td>
+            <td>{{ line.customerName }}</td>
+            <td>{{ line.invoiceDate | date: 'dd MMM yyyy' }}</td>
+            <td>{{ line.dueDate | date: 'dd MMM yyyy' }}</td>
+            <td class="aging-report__num">{{ line.outstandingAmount | inr }}</td>
+            <td class="aging-report__num" [class.aging-report__overdue]="line.daysOverdue > 0">
+              {{ line.daysOverdue > 0 ? line.daysOverdue : '-' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <app-empty-state title="No outstanding invoices" description="Everything is paid up as of this date." icon="task_alt"></app-empty-state>
+  }
+}

@@ -1,0 +1,112 @@
+<div class="bulk-upload">
+  <div class="bulk-upload__container">
+  <p class="bulk-upload__subtitle">Upload Vehicle-Order mappings via Excel file.</p>
+
+  <div class="bulk-upload__card">
+    <div
+      class="bulk-upload__dropzone"
+      [class.bulk-upload__dropzone--active]="isDragging()"
+      [class.bulk-upload__dropzone--has-file]="selectedFile()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave()"
+      (drop)="onDrop($event)"
+    >
+      @if (!selectedFile()) {
+        <div class="bulk-upload__empty">
+          <mat-icon aria-hidden="true">upload_file</mat-icon>
+          <p>Drag &amp; drop your Excel file here</p>
+          <p class="bulk-upload__hint">Supports .xlsx and .xls formats</p>
+          <label>
+            <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" hidden />
+            <span mat-flat-button color="primary" class="bulk-upload__browse">
+              <mat-icon>folder_open</mat-icon>
+              Browse File
+            </span>
+          </label>
+        </div>
+      } @else {
+        <div class="bulk-upload__file">
+          <mat-icon aria-hidden="true">description</mat-icon>
+          <div class="bulk-upload__file-info">
+            <span class="bulk-upload__file-name">{{ selectedFile()!.name }}</span>
+            <span class="bulk-upload__file-size">{{ formatFileSize(selectedFile()!) }}</span>
+          </div>
+          <button mat-icon-button (click)="removeFile()" aria-label="Remove file">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (errorMsg()) {
+      <p class="bulk-upload__alert bulk-upload__alert--error" role="alert">
+        <mat-icon aria-hidden="true">error</mat-icon>
+        {{ errorMsg() }}
+      </p>
+    }
+    @if (successMsg()) {
+      <p class="bulk-upload__alert bulk-upload__alert--success" role="status">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        {{ successMsg() }}
+      </p>
+    }
+
+    <div class="bulk-upload__actions">
+      <button mat-button (click)="downloadTemplate()">
+        <mat-icon>download</mat-icon>
+        Download Template
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="upload()"
+        [disabled]="isLoading() || !selectedFile() || previewData().length === 0"
+      >
+        <mat-icon>cloud_upload</mat-icon>
+        {{ isLoading() ? 'Uploading...' : 'Upload' }}
+      </button>
+    </div>
+
+    <p class="bulk-upload__format">
+      <mat-icon aria-hidden="true">info</mat-icon>
+      Expected columns: <strong>A: Order No</strong> &middot; <strong>B: Vehicle No</strong>
+    </p>
+  </div>
+
+  @if (previewData().length > 0) {
+    <div class="bulk-upload__preview">
+      <h2>Data Preview <span class="bulk-upload__preview-count">{{ previewData().length }} rows</span></h2>
+
+      <table mat-table [dataSource]="previewData()" class="bulk-upload__table">
+        <ng-container matColumnDef="index">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">{{ i + 1 }}</td>
+        </ng-container>
+        <ng-container matColumnDef="vehicleNo">
+          <th mat-header-cell *matHeaderCellDef>Vehicle No</th>
+          <td mat-cell *matCellDef="let row">
+            @if (!row.vehicleNo) {
+              <span class="bulk-upload__missing">Missing</span>
+            } @else {
+              {{ row.vehicleNo }}
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="orderNo">
+          <th mat-header-cell *matHeaderCellDef>Order No</th>
+          <td mat-cell *matCellDef="let row">
+            @if (!row.orderNo) {
+              <span class="bulk-upload__missing">Missing</span>
+            } @else {
+              {{ row.orderNo }}
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+  }
+  </div>
+</div>

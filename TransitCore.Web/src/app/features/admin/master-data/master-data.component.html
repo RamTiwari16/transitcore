@@ -1,0 +1,173 @@
+<div class="master-data__card">
+<mat-tab-group>
+  <mat-tab label="Regions">
+    <app-lookup-admin-panel
+      #regionsPanel
+      entityLabel="Region"
+      [rows]="regionRows()"
+      [loading]="loadingRegions()"
+      (saveRow)="saveRegion($event)"
+      (deleteRow)="deleteRegion($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Compliance Document Types">
+    <app-lookup-admin-panel
+      #complianceDocTypesPanel
+      entityLabel="Document Type"
+      [hasActiveToggle]="true"
+      [rows]="complianceDocTypeRows()"
+      [loading]="loadingComplianceDocTypes()"
+      (saveRow)="saveComplianceDocType($event)"
+      (deleteRow)="deleteComplianceDocType($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Branches">
+    <app-lookup-admin-panel
+      #branchesPanel
+      entityLabel="Branch"
+      [hasCode]="true"
+      [codeMaxLength]="10"
+      parentLabel="Region"
+      [parentOptions]="regionOptions()"
+      [rows]="branchRows()"
+      [loading]="loadingBranches()"
+      (saveRow)="saveBranch($event)"
+      (deleteRow)="deleteBranch($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Designations">
+    <app-lookup-admin-panel
+      #designationsPanel
+      entityLabel="Designation"
+      [hasCode]="true"
+      [codeMaxLength]="50"
+      [rows]="designationRows()"
+      [loading]="loadingDesignations()"
+      (saveRow)="saveDesignation($event)"
+      (deleteRow)="deleteDesignation($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Working Designations">
+    <app-lookup-admin-panel
+      #workingDesignationsPanel
+      entityLabel="Working Designation"
+      [rows]="workingDesignationRows()"
+      [loading]="loadingWorkingDesignations()"
+      (saveRow)="saveWorkingDesignation($event)"
+      (deleteRow)="deleteWorkingDesignation($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Countries">
+    <app-lookup-admin-panel
+      #countriesPanel
+      entityLabel="Country"
+      [hasCode]="true"
+      [codeMaxLength]="3"
+      [rows]="countryRows()"
+      [loading]="loadingCountries()"
+      (saveRow)="saveCountry($event)"
+      (deleteRow)="deleteCountry($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Cities">
+    <app-lookup-admin-panel
+      #citiesPanel
+      entityLabel="City"
+      parentLabel="Country"
+      [parentOptions]="countryOptions()"
+      [rows]="cityRows()"
+      [loading]="loadingCities()"
+      (saveRow)="saveCity($event)"
+      (deleteRow)="deleteCity($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Units of Measure">
+    <app-lookup-admin-panel
+      #unitsPanel
+      entityLabel="Unit of Measure"
+      [hasCode]="true"
+      [codeMaxLength]="20"
+      codeLabel="Code"
+      [rows]="unitRows()"
+      [loading]="loadingUnits()"
+      (saveRow)="saveUnit($event)"
+      (deleteRow)="deleteUnit($event)"
+    ></app-lookup-admin-panel>
+  </mat-tab>
+
+  <mat-tab label="Status Codes">
+    <div class="master-data__panel">
+      @if (!loadingStatusCodes() && statusCodes().length > 0) {
+        <table class="master-data__table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Code</th>
+              <th>Name</th>
+              <th class="master-data__num">Sort Order</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of statusCodes(); track row.id) {
+              <tr>
+                <td>{{ row.category }}</td>
+                <td>{{ row.code }}</td>
+                <td>{{ row.name }}</td>
+                <td class="master-data__num">{{ row.sortOrder }}</td>
+                <td class="master-data__actions">
+                  <button mat-icon-button (click)="editStatusCode(row)" matTooltip="Edit" aria-label="Edit status code">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    (click)="removeStatusCode(row)"
+                    matTooltip="Remove"
+                    aria-label="Remove status code"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else if (!loadingStatusCodes()) {
+        <app-empty-state title="No status codes yet" icon="tune"></app-empty-state>
+      }
+
+      <form [formGroup]="statusCodeForm" (ngSubmit)="saveStatusCode()" class="master-data__inline-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <input matInput formControlName="category" placeholder="Trip, Invoice, Vehicle..." required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Code</mat-label>
+          <input matInput formControlName="code" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Sort Order</mat-label>
+          <input matInput type="number" formControlName="sortOrder" required />
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="savingStatusCode()">
+          {{ editingStatusCodeId() !== null ? 'Save Changes' : 'Add Status Code' }}
+        </button>
+        @if (editingStatusCodeId() !== null) {
+          <button mat-button type="button" (click)="cancelStatusCodeEdit()">Cancel</button>
+        }
+      </form>
+    </div>
+  </mat-tab>
+</mat-tab-group>
+</div>

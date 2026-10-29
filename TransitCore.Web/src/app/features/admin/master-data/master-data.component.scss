@@ -1,0 +1,66 @@
+// mat-tab-group has no card chrome of its own by default (just the tab
+// label underline) - it was floating directly on the page canvas with no
+// visual boundary, unlike every other content area in the app now.
+.master-data__card {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-border);
+  border-radius: var(--tc-radius-lg);
+  box-shadow: var(--tc-shadow-sm);
+  // Horizontal padding lives here (the card boundary) rather than on each
+  // individual tab's own panel, so all 8 tabs - the 7 app-lookup-admin-panel
+  // instances plus this file's own StatusCodes markup - get it for free
+  // (both the tab label row and the content below it) without needing the
+  // same fix repeated 8 times.
+  padding: 0 var(--tc-space-6);
+}
+
+.master-data__panel {
+  padding: var(--tc-space-5) 0;
+}
+
+.master-data__table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--tc-space-6);
+
+  th,
+  td {
+    text-align: left;
+    padding: var(--tc-space-2) var(--tc-space-3);
+    border-bottom: 1px solid var(--tc-divider);
+  }
+
+  th {
+    font-size: var(--tc-font-size-xs);
+    color: var(--tc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: var(--tc-font-weight-medium);
+  }
+}
+
+.master-data__num {
+  text-align: right !important;
+}
+
+.master-data__actions {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.master-data__inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tc-space-3);
+  padding-top: var(--tc-space-4);
+  border-top: 1px solid var(--tc-border);
+
+  mat-form-field {
+    width: 12rem;
+  }
+
+  button {
+    margin-top: var(--tc-space-1);
+  }
+}

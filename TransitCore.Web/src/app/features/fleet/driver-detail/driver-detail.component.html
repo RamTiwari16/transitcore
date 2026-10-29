@@ -1,0 +1,125 @@
+@if (!loading() && driver(); as d) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/fleet/drivers', d.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Edit driver
+      </a>
+      <a mat-button routerLink="/fleet/drivers">
+        <mat-icon>arrow_back</mat-icon>
+        Back to drivers
+      </a>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="driver-detail__panel">
+        <dl class="driver-detail__summary">
+          <div><dt>Phone</dt><dd>{{ d.phoneNo || '-' }}</dd></div>
+          <div><dt>Email</dt><dd>{{ d.email || '-' }}</dd></div>
+          <div><dt>Date of Birth</dt><dd>{{ d.dateOfBirth || '-' }}</dd></div>
+          <div><dt>Hire Date</dt><dd>{{ d.hireDate || '-' }}</dd></div>
+          <div><dt>Status</dt><dd>{{ d.statusName }}</dd></div>
+        </dl>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Licenses ({{ licenses().length }})">
+      <div class="driver-detail__panel">
+        @if (licenses().length > 0) {
+          <ul class="driver-detail__list">
+            @for (license of licenses(); track license.id) {
+              <li>
+                <div class="driver-detail__list-main">
+                  <span class="driver-detail__list-title">
+                    {{ license.licenseType || 'License' }} - {{ license.licenseNo }}
+                  </span>
+                  <span class="driver-detail__list-meta">
+                    @if (license.expiryDate) {
+                      <span [class.driver-detail__expiry--expired]="expiryStatus(license.expiryDate) === 'expired'"
+                            [class.driver-detail__expiry--warning]="expiryStatus(license.expiryDate) === 'warning'">
+                        Expires {{ license.expiryDate }}
+                        @if (expiryStatus(license.expiryDate) === 'expired') { (expired) }
+                        @if (expiryStatus(license.expiryDate) === 'warning') { (expiring soon) }
+                      </span>
+                    } @else {
+                      No expiry set
+                    }
+                  </span>
+                </div>
+                <button mat-icon-button (click)="removeLicense(license)" matTooltip="Remove license" aria-label="Remove license">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No licenses on file" icon="badge"></app-empty-state>
+        }
+
+        <form [formGroup]="licenseForm" (ngSubmit)="addLicense()" class="driver-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>License No</mat-label>
+            <input matInput formControlName="licenseNo" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <input matInput formControlName="licenseType" placeholder="Driving License, Medical Certificate..." />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Issued Date</mat-label>
+            <input matInput type="date" formControlName="issuedDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Expiry Date</mat-label>
+            <input matInput type="date" formControlName="expiryDate" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingLicense()">Add License</button>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Performance">
+      <div class="driver-detail__panel">
+        @if (!performanceLoading() && performance(); as p) {
+          <dl class="driver-detail__summary">
+            <div><dt>Total Trips</dt><dd>{{ p.totalTrips }}</dd></div>
+            <div><dt>Completed Trips</dt><dd>{{ p.completedTrips }}</dd></div>
+            <div>
+              <dt>On-Time Delivery</dt>
+              <dd>{{ p.onTimePercent !== null ? p.onTimePercent + '%' : 'No completed trips yet' }}</dd>
+            </div>
+            <div><dt>Delayed Trips</dt><dd>{{ p.delayedTrips }}</dd></div>
+            <div><dt>Total Distance</dt><dd>{{ p.totalDistanceKm.toLocaleString() }} km</dd></div>
+          </dl>
+        } @else if (!performanceLoading()) {
+          <app-empty-state title="No trip history yet" icon="insights"></app-empty-state>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Settlement">
+      <div class="driver-detail__panel">
+        @if (!settlementLoading() && settlement(); as s) {
+          <dl class="driver-detail__summary">
+            <div><dt>Total Advances</dt><dd>₹{{ s.totalAdvances.toLocaleString() }}</dd></div>
+            <div><dt>Total Expenses</dt><dd>₹{{ s.totalExpenses.toLocaleString() }}</dd></div>
+            <div>
+              <dt>Balance</dt>
+              <dd [class.driver-detail__expiry--expired]="s.balance < 0">
+                ₹{{ s.balance.toLocaleString() }}
+                {{ s.balance < 0 ? '(owed by driver)' : s.balance > 0 ? '(owed to driver)' : '' }}
+              </dd>
+            </div>
+            <div><dt>Trips With Activity</dt><dd>{{ s.tripsWithActivity }}</dd></div>
+          </dl>
+        } @else if (!settlementLoading()) {
+          <app-empty-state title="No advances or expenses recorded yet" icon="account_balance_wallet"></app-empty-state>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (!loading()) {
+  <p>Driver not found.</p>
+}

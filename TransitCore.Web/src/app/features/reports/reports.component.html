@@ -1,0 +1,176 @@
+<div class="reports__grid">
+  <section class="reports__panel">
+    <h2>Revenue by Period</h2>
+    @if (!loading() && revenueChartData().length > 0) {
+      <app-bar-chart [items]="revenueChartData()" [maxValue]="revenueMaxValue()" valueSuffix=""></app-bar-chart>
+      <table class="reports__table">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th class="reports__num">Invoiced</th>
+            <th class="reports__num">Collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of revenue(); track row.periodLabel) {
+            <tr>
+              <td>{{ row.periodLabel }}</td>
+              <td class="reports__num">{{ formatCurrency(row.totalInvoiced) }}</td>
+              <td class="reports__num">{{ formatCurrency(row.totalCollected) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else if (!loading()) {
+      <app-empty-state title="No invoices in this range" icon="receipt_long"></app-empty-state>
+    }
+  </section>
+
+  <section class="reports__panel">
+    <h2>Fleet Utilisation Trend</h2>
+    @if (!loading() && fleetUtilisationChartData().length > 0) {
+      <app-bar-chart [items]="fleetUtilisationChartData()" [maxValue]="100" valueSuffix="%"></app-bar-chart>
+    } @else if (!loading()) {
+      <app-empty-state title="No trip data" icon="local_shipping"></app-empty-state>
+    }
+  </section>
+
+  <section class="reports__panel">
+    <h2>Shipment Volume Trend</h2>
+    @if (!loading() && shipmentVolumeChartData().length > 0) {
+      <app-bar-chart
+        [items]="shipmentVolumeChartData()"
+        [maxValue]="shipmentVolumeMaxValue()"
+        valueSuffix=" shipments"
+      ></app-bar-chart>
+    } @else if (!loading()) {
+      <app-empty-state title="No shipment data" icon="inventory_2"></app-empty-state>
+    }
+  </section>
+
+  <section class="reports__panel reports__panel--wide">
+    <h2>Empty Km % (last 3 months, own fleet)</h2>
+    @if (!loading() && emptyKmReport().length > 0) {
+      <table class="reports__table">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th class="reports__num">Loaded Km</th>
+            <th class="reports__num">Empty Km</th>
+            <th class="reports__num">Total Km</th>
+            <th class="reports__num">Empty %</th>
+            <th class="reports__num">Trips</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of emptyKmReport(); track row.vehicleId) {
+            <tr>
+              <td><a [routerLink]="['/fleet/vehicles', row.vehicleId]">{{ row.registrationNo }}</a></td>
+              <td class="reports__num">{{ row.totalLoadedKm | number: '1.0-0' }}</td>
+              <td class="reports__num">{{ row.totalEmptyKm | number: '1.0-0' }}</td>
+              <td class="reports__num">{{ row.totalKm | number: '1.0-0' }}</td>
+              <td class="reports__num">{{ row.emptyKmPercent | number: '1.0-1' }}%</td>
+              <td class="reports__num">{{ row.tripCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else if (!loading()) {
+      <app-empty-state title="No km recorded yet" description="Loaded/empty km is entered from a completed trip's detail page." icon="route"></app-empty-state>
+    }
+  </section>
+
+  <section class="reports__panel reports__panel--wide">
+    <h2>Vehicles Becoming Available</h2>
+    @if (!loading() && vehiclesBecomingAvailable().length > 0) {
+      <table class="reports__table">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Current Route</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of vehiclesBecomingAvailable(); track row.vehicleId) {
+            <tr>
+              <td><a [routerLink]="['/fleet/vehicles', row.vehicleId]">{{ row.registrationNo }}</a></td>
+              <td>{{ row.vehicleTypeName }}</td>
+              <td>
+                @if (row.isAvailableNow) {
+                  Available now
+                } @else {
+                  Free from {{ formatDateTime(row.expectedFreeAt) }}
+                }
+              </td>
+              <td>{{ row.currentTripRoute ?? '-' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else if (!loading()) {
+      <app-empty-state title="No active fleet vehicles" icon="local_shipping"></app-empty-state>
+    }
+  </section>
+
+  <section class="reports__panel reports__panel--wide">
+    <h2>Expiring E-way Bills (next 7 days)</h2>
+    @if (!loading() && expiringEwayBills().length > 0) {
+      <table class="reports__table">
+        <thead>
+          <tr>
+            <th>Shipment</th>
+            <th>CN Number</th>
+            <th>E-way Bill No</th>
+            <th>Valid Until</th>
+            <th class="reports__num">Days Left</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of expiringEwayBills(); track row.consignmentNoteId) {
+            <tr [class.reports__balance--negative]="row.daysUntilExpiry < 0">
+              <td><a [routerLink]="['/ops/shipments', row.shipmentId]">{{ row.trackingNo ?? ('#' + row.shipmentId) }}</a></td>
+              <td>{{ row.cnNumber }}</td>
+              <td>{{ row.ewayBillNo }}</td>
+              <td>{{ row.ewayBillValidUntil }}</td>
+              <td class="reports__num">{{ row.daysUntilExpiry }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else if (!loading()) {
+      <app-empty-state title="No e-way bills expiring soon" icon="description"></app-empty-state>
+    }
+  </section>
+
+  <section class="reports__panel reports__panel--wide">
+    <h2>Driver Settlement Summary</h2>
+    @if (!loading() && driverSettlements().length > 0) {
+      <table class="reports__table">
+        <thead>
+          <tr>
+            <th>Driver</th>
+            <th class="reports__num">Advances</th>
+            <th class="reports__num">Expenses</th>
+            <th class="reports__num">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of driverSettlements(); track row.driverId) {
+            <tr>
+              <td><a [routerLink]="['/fleet/drivers', row.driverId]">{{ row.fullName }}</a></td>
+              <td class="reports__num">{{ formatCurrency(row.totalAdvances) }}</td>
+              <td class="reports__num">{{ formatCurrency(row.totalExpenses) }}</td>
+              <td class="reports__num" [class.reports__balance--negative]="row.balance < 0">
+                {{ formatCurrency(row.balance) }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else if (!loading()) {
+      <app-empty-state title="No drivers yet" icon="badge"></app-empty-state>
+    }
+  </section>
+</div>

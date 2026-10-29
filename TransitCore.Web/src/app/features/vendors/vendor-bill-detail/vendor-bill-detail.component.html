@@ -1,0 +1,87 @@
+@if (loading()) {
+  <div class="vendor-bill-detail__loading">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else if (bill(); as b) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/vendors', b.vendorId]">
+        <mat-icon>arrow_back</mat-icon>
+        Back to {{ b.vendorName }}
+      </a>
+    </div>
+  </div>
+
+  <div class="vendor-bill-detail__panel">
+    <dl class="vendor-bill-detail__summary">
+      <div><dt>Vendor</dt><dd>{{ b.vendorName }}</dd></div>
+      <div><dt>Status</dt><dd>{{ b.statusName }}</dd></div>
+      <div><dt>Bill Date</dt><dd>{{ b.billDate }}</dd></div>
+      <div><dt>Due Date</dt><dd>{{ b.dueDate }}</dd></div>
+      <div><dt>Amount</dt><dd>{{ b.amount | inr }}</dd></div>
+      <div><dt>Paid</dt><dd>{{ b.paidAmount | inr }}</dd></div>
+      <div>
+        <dt>Balance Due</dt>
+        <dd [class.vendor-bill-detail__balance--clear]="balanceDue() <= 0">{{ balanceDue() | inr }}</dd>
+      </div>
+    </dl>
+
+    <h2 class="vendor-bill-detail__section-title">Payments ({{ b.payments.length }})</h2>
+    @if (b.payments.length > 0) {
+      <ul class="vendor-bill-detail__list">
+        @for (payment of b.payments; track payment.id) {
+          <li>
+            <div class="vendor-bill-detail__list-main">
+              <span class="vendor-bill-detail__list-title">{{ payment.amount | inr }} - {{ payment.method }}</span>
+              <span class="vendor-bill-detail__list-meta">
+                {{ payment.paymentDate }}
+                @if (payment.referenceNo) { - Ref: {{ payment.referenceNo }} }
+              </span>
+            </div>
+            <button mat-icon-button (click)="removePayment(payment)" matTooltip="Remove payment" aria-label="Remove payment">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <app-empty-state title="No payments recorded yet" icon="payments"></app-empty-state>
+    }
+
+    @if (balanceDue() > 0) {
+      <form [formGroup]="paymentForm" (ngSubmit)="recordPayment()" class="vendor-bill-detail__inline-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Payment Date</mat-label>
+          <input matInput type="date" formControlName="paymentDate" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Amount</mat-label>
+          <input matInput type="number" formControlName="amount" required />
+          @if (paymentForm.controls.amount.hasError('max')) {
+            <mat-error>Cannot exceed balance of {{ balanceDue() | inr }}</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Method</mat-label>
+          <mat-select formControlName="method" required>
+            @for (method of paymentMethods; track method) {
+              <mat-option [value]="method">{{ method }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Reference No</mat-label>
+          <input matInput formControlName="referenceNo" />
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="savingPayment()">Record Payment</button>
+      </form>
+    } @else {
+      <p class="vendor-bill-detail__paid-note">
+        <mat-icon>task_alt</mat-icon>
+        This bill is fully paid.
+      </p>
+    }
+  </div>
+} @else {
+  <app-empty-state title="Vendor bill not found" icon="search_off"></app-empty-state>
+}

@@ -1,0 +1,159 @@
+<div class="app-shell" [class.app-shell--handset]="isHandset().matches">
+  <aside
+    class="icon-rail"
+    [class.icon-rail--handset]="isHandset().matches"
+    [class.icon-rail--mobile-open]="isHandset().matches && mobileNavOpen()"
+  >
+    <div class="icon-rail__logo">
+      <mat-icon aria-hidden="true">local_shipping</mat-icon>
+    </div>
+
+    <nav class="icon-rail__nav" aria-label="Primary">
+      @for (group of navGroups; track group.label; let i = $index) {
+        <button
+          type="button"
+          class="icon-rail__link"
+          [class.icon-rail__link--active]="activeGroupIndex() === i"
+          [class.icon-rail__link--open]="openGroupIndex() === i"
+          (click)="toggleGroup(i)"
+          [matTooltip]="group.label"
+          matTooltipPosition="right"
+          [attr.aria-expanded]="openGroupIndex() === i"
+          [attr.aria-label]="group.label"
+        >
+          <mat-icon aria-hidden="true">{{ group.icon }}</mat-icon>
+        </button>
+      }
+    </nav>
+
+    <div class="icon-rail__bottom">
+      <button
+        type="button"
+        class="icon-rail__link"
+        (click)="logout()"
+        matTooltip="Log out"
+        matTooltipPosition="right"
+        aria-label="Log out"
+      >
+        <mat-icon aria-hidden="true">logout</mat-icon>
+      </button>
+    </div>
+  </aside>
+
+  @if (openGroup(); as group) {
+    <div class="nav-flyout-overlay" (click)="closeGroup()"></div>
+    <div class="nav-flyout">
+      <div class="nav-flyout__header">
+        <span class="nav-flyout__title">{{ group.label }}</span>
+        <button type="button" class="nav-flyout__close" (click)="closeGroup()" aria-label="Close menu">
+          <mat-icon aria-hidden="true">chevron_left</mat-icon>
+        </button>
+      </div>
+      <nav class="nav-flyout__body">
+        @for (item of group.items; track item.path) {
+          <a class="nav-flyout__link" [routerLink]="item.path" routerLinkActive="nav-flyout__link--active" (click)="closeGroup()">
+            <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+    </div>
+  }
+
+  @if (isHandset().matches && mobileNavOpen()) {
+    <div class="icon-rail-overlay" (click)="toggleMobileNav()"></div>
+  }
+
+  <div class="app-shell__content">
+    <mat-toolbar class="app-shell__topbar">
+      @if (isHandset().matches) {
+        <button mat-icon-button (click)="toggleMobileNav()" aria-label="Toggle navigation">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+
+      <span class="app-shell__breadcrumb">{{ breadcrumb() }}</span>
+
+      <div class="app-shell__search-wrapper">
+        <mat-form-field appearance="outline" class="app-shell__search" subscriptSizing="dynamic">
+          <mat-icon matPrefix aria-hidden="true">search</mat-icon>
+          <input
+            matInput
+            placeholder="Search"
+            aria-label="Search"
+            [value]="searchTerm()"
+            (input)="searchTerm.set($any($event.target).value); searchOpen.set(true)"
+            (focus)="searchOpen.set(true)"
+          />
+        </mat-form-field>
+
+        @if (searchOpen() && searchTerm().trim().length >= 2) {
+          <div class="app-shell__search-panel">
+            @if (groupedResults().length === 0) {
+              <div class="app-shell__search-empty">No results</div>
+            } @else {
+              @for (group of groupedResults(); track group.entityType) {
+                <div class="app-shell__search-group">
+                  <span class="app-shell__search-group-label">{{ group.entityType }}</span>
+                  @for (r of group.items; track r.entityId) {
+                    <button type="button" class="app-shell__search-row" (click)="navigateToResult(r)">
+                      <span>{{ r.label }}</span>
+                      @if (r.subLabel) {
+                        <span class="app-shell__search-sublabel">{{ r.subLabel }}</span>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <span class="app-shell__spacer"></span>
+
+      <button mat-icon-button (click)="toggleTheme()" matTooltip="Toggle theme" aria-label="Toggle light/dark theme">
+        <mat-icon>dark_mode</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="notificationsMenu"
+        matTooltip="Notifications"
+        aria-label="Notifications"
+        matBadge="0"
+        matBadgeSize="small"
+        [matBadgeHidden]="true"
+      >
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <mat-menu #notificationsMenu="matMenu">
+        <div class="app-shell__notifications-empty">No new notifications</div>
+      </mat-menu>
+
+      <button mat-button [matMenuTriggerFor]="userMenu" class="app-shell__user-trigger">
+        <span class="app-shell__avatar">{{ avatarInitial }}</span>
+        <span class="app-shell__user-name">{{ displayName }}</span>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="app-shell__user-menu-header">
+          <strong>{{ displayName }}</strong>
+          <span>{{ email }}</span>
+        </div>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Log out</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    @if (loadingService.isLoading()) {
+      <mat-progress-bar mode="indeterminate" class="app-shell__loading-bar"></mat-progress-bar>
+    }
+
+    <main class="app-shell__main">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

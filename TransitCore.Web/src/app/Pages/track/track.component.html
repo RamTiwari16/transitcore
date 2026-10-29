@@ -1,0 +1,52 @@
+<div class="track-page">
+  <div class="track-page__card">
+    <div class="track-page__brand">
+      <mat-icon aria-hidden="true">local_shipping</mat-icon>
+      <span>TransitCore</span>
+    </div>
+
+    <h1 class="track-page__title">Track your shipment</h1>
+    <p class="track-page__subtitle">Enter the tracking number from your delivery confirmation.</p>
+
+    <form [formGroup]="form" (ngSubmit)="search()" class="track-page__form">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Tracking Number</mat-label>
+        <input matInput formControlName="trackingNo" placeholder="TRK000123" />
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Searching...' : 'Track' }}
+      </button>
+    </form>
+
+    @if (searched()) {
+      @if (result(); as r) {
+        <div class="track-page__result">
+          <div class="track-page__result-header">
+            <span class="track-page__tracking-no">{{ r.trackingNo }}</span>
+            <span class="track-page__status">{{ r.statusName }}</span>
+          </div>
+
+          <dl class="track-page__summary">
+            <div><dt>From</dt><dd>{{ r.originCityName }}</dd></div>
+            <div><dt>To</dt><dd>{{ r.destinationCityName }}</dd></div>
+            <div><dt>Shipment Date</dt><dd>{{ r.shipmentDate }}</dd></div>
+            @if (r.tripStatusName) {
+              <div><dt>Trip Status</dt><dd>{{ r.tripStatusName }}</dd></div>
+            }
+            @if (r.scheduledDeparture) {
+              <div><dt>Scheduled Departure</dt><dd>{{ formatDateTime(r.scheduledDeparture) }}</dd></div>
+            }
+            @if (r.scheduledArrival) {
+              <div><dt>Scheduled Arrival</dt><dd>{{ formatDateTime(r.scheduledArrival) }}</dd></div>
+            }
+            @if (r.actualArrival) {
+              <div><dt>Delivered</dt><dd>{{ formatDateTime(r.actualArrival) }}</dd></div>
+            }
+          </dl>
+        </div>
+      } @else if (notFound()) {
+        <p class="track-page__not-found">No shipment found for that tracking number. Double-check it and try again.</p>
+      }
+    }
+  </div>
+</div>

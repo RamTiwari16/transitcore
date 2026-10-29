@@ -1,0 +1,70 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Code</mat-label>
+      <input matInput formControlName="code" required />
+      @if (form.controls.code.hasError('required') && form.controls.code.touched) {
+        <mat-error>Code is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required />
+      @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+        <mat-error>Name is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Name</mat-label>
+      <input matInput formControlName="contactName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Phone</mat-label>
+      <input matInput formControlName="contactPhone" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Email</mat-label>
+      <input matInput type="email" formControlName="contactEmail" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="form-grid__span-2">
+      <mat-label>Address</mat-label>
+      <input matInput formControlName="address" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Bank Account No</mat-label>
+      <input matInput formControlName="bankAccountNo" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Bank IFSC Code</mat-label>
+      <input matInput formControlName="bankIfscCode" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>PAN No</mat-label>
+      <input matInput formControlName="panNo" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>GSTIN No</mat-label>
+      <input matInput formControlName="gstinNo" />
+    </mat-form-field>
+  </div>
+
+  @if (isEditMode()) {
+    <mat-checkbox formControlName="isActive">Active</mat-checkbox>
+  }
+
+  <div class="form-actions">
+    <a mat-button routerLink="/vendors">Cancel</a>
+    <button mat-flat-button color="primary" type="submit" [disabled]="saving() || loading()">
+      {{ saving() ? 'Saving...' : 'Save Vendor' }}
+    </button>
+  </div>
+</form>

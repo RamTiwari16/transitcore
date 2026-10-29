@@ -1,0 +1,12 @@
+<div class="stat-card" [class]="'stat-card--' + tone()">
+  <div class="stat-card__icon">
+    <mat-icon aria-hidden="true">{{ icon() }}</mat-icon>
+  </div>
+  <div class="stat-card__body">
+    <span class="stat-card__label">{{ label() }}</span>
+    <span class="stat-card__value">{{ value() }}</span>
+    @if (hint()) {
+      <span class="stat-card__hint">{{ hint() }}</span>
+    }
+  </div>
+</div>

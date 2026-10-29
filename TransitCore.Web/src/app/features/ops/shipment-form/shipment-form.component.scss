@@ -1,0 +1,21 @@
+.shipment-form__items-title {
+  font-size: var(--tc-font-size-lg);
+  margin: var(--tc-space-2) 0 var(--tc-space-3);
+}
+
+.shipment-form__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tc-space-2);
+}
+
+.shipment-form__item-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: var(--tc-space-2);
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}

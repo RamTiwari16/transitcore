@@ -1,0 +1,189 @@
+@if (!loading() && vehicle(); as v) {
+  <div class="page-header">
+    <div>
+      <a mat-button [routerLink]="['/fleet/vehicles', v.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Edit vehicle
+      </a>
+      <a mat-button routerLink="/fleet/vehicles">
+        <mat-icon>arrow_back</mat-icon>
+        Back to vehicles
+      </a>
+    </div>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Overview">
+      <div class="vehicle-detail__panel">
+        <dl class="vehicle-detail__summary">
+          <div><dt>Type</dt><dd>{{ v.vehicleTypeName }}</dd></div>
+          <div><dt>Make / Model</dt><dd>{{ [v.make, v.model].join(' ') || '-' }}</dd></div>
+          <div><dt>Manufacture Year</dt><dd>{{ v.manufactureYear ?? '-' }}</dd></div>
+          <div><dt>Capacity</dt><dd>{{ v.capacityKg.toLocaleString() }} kg</dd></div>
+          <div><dt>Status</dt><dd>{{ v.statusName }}</dd></div>
+        </dl>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Documents ({{ documents().length }})">
+      <div class="vehicle-detail__panel">
+        @if (documents().length > 0) {
+          <ul class="vehicle-detail__list">
+            @for (doc of documents(); track doc.id) {
+              <li>
+                <div class="vehicle-detail__list-main">
+                  <span class="vehicle-detail__list-title">
+                    {{ doc.documentType }}
+                    @if (doc.documentNo) {
+                      <span class="vehicle-detail__list-meta">- {{ doc.documentNo }}</span>
+                    }
+                  </span>
+                  <span class="vehicle-detail__list-meta">
+                    @if (doc.expiryDate) {
+                      <span [class.vehicle-detail__expiry--expired]="expiryStatus(doc.expiryDate) === 'expired'"
+                            [class.vehicle-detail__expiry--warning]="expiryStatus(doc.expiryDate) === 'warning'">
+                        Expires {{ doc.expiryDate }}
+                        @if (expiryStatus(doc.expiryDate) === 'expired') { (expired) }
+                        @if (expiryStatus(doc.expiryDate) === 'warning') { (expiring soon) }
+                      </span>
+                    } @else {
+                      No expiry set
+                    }
+                  </span>
+                </div>
+                <button mat-icon-button (click)="removeDocument(doc)" matTooltip="Remove document" aria-label="Remove document">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No documents yet" icon="description"></app-empty-state>
+        }
+
+        <form [formGroup]="documentForm" (ngSubmit)="addDocument()" class="vehicle-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Document Type</mat-label>
+            <input matInput formControlName="documentType" placeholder="Insurance, Permit, PUC..." required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Document No</mat-label>
+            <input matInput formControlName="documentNo" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Issued Date</mat-label>
+            <input matInput type="date" formControlName="issuedDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Expiry Date</mat-label>
+            <input matInput type="date" formControlName="expiryDate" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingDocument()">Add Document</button>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Maintenance ({{ maintenanceRecords().length }})">
+      <div class="vehicle-detail__panel">
+        @if (maintenanceRecords().length > 0) {
+          <ul class="vehicle-detail__list">
+            @for (record of maintenanceRecords(); track record.id) {
+              <li>
+                <div class="vehicle-detail__list-main">
+                  <span class="vehicle-detail__list-title">{{ record.description || 'Service' }}</span>
+                  <span class="vehicle-detail__list-meta">
+                    {{ record.serviceDate }}
+                    @if (record.odometerKm) { - {{ record.odometerKm.toLocaleString() }} km }
+                    @if (record.performedBy) { - {{ record.performedBy }} }
+                    - ₹{{ record.cost.toLocaleString() }}
+                  </span>
+                </div>
+                <button mat-icon-button (click)="removeMaintenance(record)" matTooltip="Remove record" aria-label="Remove maintenance record">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No service history yet" icon="build"></app-empty-state>
+        }
+
+        <form [formGroup]="maintenanceForm" (ngSubmit)="addMaintenance()" class="vehicle-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Service Date</mat-label>
+            <input matInput type="date" formControlName="serviceDate" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" placeholder="Oil change, tyre rotation..." />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Cost</mat-label>
+            <input matInput type="number" formControlName="cost" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Odometer (km)</mat-label>
+            <input matInput type="number" formControlName="odometerKm" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Performed By</mat-label>
+            <input matInput formControlName="performedBy" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingMaintenance()">Add Record</button>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Fuel Logs ({{ fuelLogs().length }})">
+      <div class="vehicle-detail__panel">
+        @if (fuelLogs().length > 0) {
+          <ul class="vehicle-detail__list">
+            @for (log of fuelLogs(); track log.id) {
+              <li>
+                <div class="vehicle-detail__list-main">
+                  <span class="vehicle-detail__list-title">
+                    {{ log.liters }} L - ₹{{ log.cost.toLocaleString() }}
+                    @if (log.kmPerLiter) {
+                      <span class="vehicle-detail__list-badge">{{ log.kmPerLiter }} km/L</span>
+                    }
+                  </span>
+                  <span class="vehicle-detail__list-meta">
+                    {{ log.fuelDate }}
+                    @if (log.odometerKm) { - {{ log.odometerKm.toLocaleString() }} km }
+                  </span>
+                </div>
+                <button mat-icon-button (click)="removeFuelLog(log)" matTooltip="Remove log" aria-label="Remove fuel log">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state title="No fuel logs yet" icon="local_gas_station"></app-empty-state>
+        }
+
+        <form [formGroup]="fuelLogForm" (ngSubmit)="addFuelLog()" class="vehicle-detail__inline-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Fuel Date</mat-label>
+            <input matInput type="date" formControlName="fuelDate" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Liters</mat-label>
+            <input matInput type="number" formControlName="liters" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Cost</mat-label>
+            <input matInput type="number" formControlName="cost" required />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Odometer (km)</mat-label>
+            <input matInput type="number" formControlName="odometerKm" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="savingFuelLog()">Add Fuel Log</button>
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else if (!loading()) {
+  <p>Vehicle not found.</p>
+}

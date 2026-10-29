@@ -1,0 +1,261 @@
+// ---- KPI row ----
+// auto-fit rather than a fixed column count - the row holds 4 cards for a
+// plain User role and 6 for Admin/Manager (see canViewReports in the
+// component), so a hardcoded 6-up grid would leave gaps for everyone else.
+.dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--tc-space-4);
+  margin-bottom: var(--tc-space-5);
+}
+
+.dashboard__stat-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+// ---- Chart card grid ----
+// 3 per row desktop, 2 tablet, 1 mobile - matches the reference dashboard's
+// own breakpoints (main.ts's component-inline styles), just expressed as a
+// plain responsive grid instead of flex + magic percentages.
+.dashboard__charts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tc-space-4);
+  margin-bottom: var(--tc-space-5);
+
+  @media (max-width: 1280px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-divider);
+  border-radius: var(--tc-radius-md);
+  padding: var(--tc-space-5);
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tc-space-2);
+}
+
+.chart-card__title {
+  font-size: var(--tc-font-size-sm);
+  font-weight: var(--tc-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.chart-card__period {
+  font-size: var(--tc-font-size-xs);
+  font-weight: var(--tc-font-weight-medium);
+  color: var(--tc-text-secondary);
+  text-transform: capitalize;
+}
+
+.chart-card__figure {
+  font-size: var(--tc-font-size-xl);
+  font-weight: var(--tc-font-weight-semibold);
+  margin-top: var(--tc-space-3);
+}
+
+.chart-card__caption {
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-tertiary);
+  margin-top: 2px;
+}
+
+.chart-card__canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: var(--tc-space-3);
+}
+
+.chart-card__canvas--donut {
+  flex: 0 0 120px;
+}
+
+.chart-card__legend {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--tc-space-2);
+  margin-top: var(--tc-space-2);
+}
+
+.chart-card__legend-item {
+  text-align: center;
+}
+
+.chart-card__legend-value {
+  font-size: var(--tc-font-size-md);
+  font-weight: var(--tc-font-weight-semibold);
+}
+
+.chart-card__legend-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--tc-font-size-xs);
+  color: var(--tc-text-tertiary);
+}
+
+.chart-card__swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+
+  &--success {
+    background: var(--tc-color-success);
+  }
+
+  &--warning {
+    background: var(--tc-color-warning);
+  }
+
+  &--neutral {
+    background: var(--tc-divider);
+  }
+}
+
+// ---- List cards ----
+.dashboard__lists {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--tc-space-4);
+  margin-bottom: var(--tc-space-5);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.list-card {
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-divider);
+  border-radius: var(--tc-radius-md);
+  padding: var(--tc-space-5);
+}
+
+.list-card__header {
+  margin-bottom: var(--tc-space-3);
+}
+
+.list-card__title {
+  font-size: var(--tc-font-size-sm);
+  font-weight: var(--tc-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.list-card__table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  max-height: 280px;
+  overflow-y: auto;
+
+  thead,
+  tbody,
+  tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  thead {
+    position: sticky;
+    top: 0;
+  }
+
+  th {
+    text-align: left;
+    font-size: var(--tc-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: var(--tc-font-weight-semibold);
+    color: var(--tc-text-primary);
+    background: var(--tc-surface-sunken);
+    padding: var(--tc-space-2) var(--tc-space-2);
+    border-bottom: 2px solid var(--tc-divider);
+  }
+
+  td {
+    font-size: var(--tc-font-size-sm);
+    color: var(--tc-text-primary);
+    padding: var(--tc-space-2);
+    border-bottom: 1px solid var(--tc-divider);
+  }
+}
+
+.list-card__badge {
+  display: inline-block;
+  font-size: var(--tc-font-size-xs);
+  font-weight: var(--tc-font-weight-semibold);
+  padding: 3px 8px;
+  border-radius: var(--tc-radius-full);
+  background: var(--tc-color-info-surface);
+  color: var(--tc-color-info);
+
+  &[data-status='In Transit'],
+  &[data-status='Active'] {
+    background: var(--tc-color-success-surface);
+    color: var(--tc-color-success);
+  }
+
+  &[data-status='Delayed'] {
+    background: var(--tc-color-warning-surface);
+    color: var(--tc-color-warning);
+  }
+
+  &[data-status='Cancelled'],
+  &[data-status='Inactive'] {
+    background: var(--tc-color-danger-surface);
+    color: var(--tc-color-danger);
+  }
+}
+
+// ---- Alerts ----
+.dashboard__alerts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--tc-space-3);
+}
+
+.dashboard__alert {
+  display: flex;
+  align-items: center;
+  background: var(--tc-surface-raised);
+  border: 1px solid var(--tc-divider);
+  border-radius: var(--tc-radius-md);
+  padding: var(--tc-space-3) var(--tc-space-4);
+  font-size: var(--tc-font-size-sm);
+  color: var(--tc-text-secondary);
+}
+
+.dashboard__alert-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 var(--tc-space-1);
+  border-radius: var(--tc-radius-full);
+  background: var(--tc-color-warning-surface);
+  color: var(--tc-color-warning);
+  font-weight: var(--tc-font-weight-semibold);
+  margin-right: var(--tc-space-2);
+}
