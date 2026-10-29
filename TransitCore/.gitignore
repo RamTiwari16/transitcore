@@ -1,0 +1,27 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+
+## Visual Studio
+.vs/
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+## Build artifacts
+*.dll
+*.pdb
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Publish output / runtime data - not source, don't commit
+TransitCoreApp/
+TransitCore.Api/wwwroot/uploads/
+
+## Contains real secrets (JWT key, connection string) - keep local only
+TransitCore.Api/appsettings.Production.json
