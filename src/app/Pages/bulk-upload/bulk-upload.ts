@@ -77,8 +77,8 @@ export class BulkUpload {
         .slice(1)
         .filter((row) => row[0] || row[1])
         .map((row) => ({
-          vehicleNo: row[0]?.toString().trim() ?? '',
-          orderNo: row[1]?.toString().trim() ?? '',
+          orderNo: row[0]?.toString().trim() ?? '',
+          vehicleNo: row[1]?.toString().trim() ?? '',
         }));
 
       this.previewData.set(parsed);
